@@ -307,44 +307,44 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 
 #### Automated
 
-- [x] 1.1 No starter auth references remain — 6b9a5b4
-- [x] 1.2 Lint passes — 6b9a5b4
-- [x] 1.3 Type check passes — 6b9a5b4
-- [x] 1.4 Build passes with no env vars set — 6b9a5b4
-- [x] 1.5 Output is static — 6b9a5b4
-- [x] 1.6 `dist/index.html` contains `lang="pl"` — 6b9a5b4
+- [x] 1.1 No starter auth references remain — fcb7f74
+- [x] 1.2 Lint passes — fcb7f74
+- [x] 1.3 Type check passes — fcb7f74
+- [x] 1.4 Build passes with no env vars set — fcb7f74
+- [x] 1.5 Output is static — fcb7f74
+- [x] 1.6 `dist/index.html` contains `lang="pl"` — fcb7f74
 
 #### Manual
 
-- [x] 1.7 Dev home page shows Polish welcome, no banner, no sign-in links — 6b9a5b4
-- [x] 1.8 `wrangler deploy --dry-run` accepts the assets-only config — 6b9a5b4
+- [x] 1.7 Dev home page shows Polish welcome, no banner, no sign-in links — fcb7f74
+- [x] 1.8 `wrangler deploy --dry-run` accepts the assets-only config — fcb7f74
 
 ### Phase 2: Offline and Installability
 
 #### Automated
 
-- [x] 2.1 Build passes and generates the SW — 5c7fb04
-- [x] 2.2 Lint passes — 5c7fb04
-- [x] 2.3 Type check passes — 5c7fb04
-- [x] 2.4 Smoke passes against preview — 5c7fb04
+- [x] 2.1 Build passes and generates the SW — cd84426
+- [x] 2.2 Lint passes — cd84426
+- [x] 2.3 Type check passes — cd84426
+- [x] 2.4 Smoke passes against preview — cd84426
 
 #### Manual
 
-- [x] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline" — 5c7fb04
-- [x] 2.6 Offline reload renders fully — 5c7fb04
-- [x] 2.7 New build is picked up without clearing site data — 5c7fb04
+- [x] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline" — cd84426
+- [x] 2.6 Offline reload renders fully — cd84426
+- [x] 2.7 New build is picked up without clearing site data — cd84426
 
 ### Phase 3: CI and Deploy from main
 
 #### Automated
 
-- [x] 3.1 Workflow references no Supabase secrets
+- [x] 3.1 Workflow references no Supabase secrets — 2f29abf
 - [ ] 3.2 PR run: `ci` and `smoke` green, `deploy` skipped
 - [ ] 3.3 After merge: `deploy` green including live smoke
 
 #### Manual
 
-- [ ] 3.4 Cloudflare secrets set
+- [x] 3.4 Cloudflare secrets set
 - [ ] 3.5 Android: installed app opens in airplane mode
 - [ ] 3.6 iPhone: installed app opens in airplane mode (if available)
 - [ ] 3.7 Pushed change visible in installed app after next online open
