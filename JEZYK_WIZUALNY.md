@@ -278,7 +278,14 @@ Nie dodawaj kolejnych poziomów bez rzeczywistej potrzeby hierarchicznej.
 - Preparation Mode może używać spokojnych ilustracji wspierających zrozumienie i rodzinny charakter.
 - Nie używaj ozdobnych ilustracji, maskotek ani metafor w sytuacji awaryjnej.
 - **TOKEN:** Biblioteką ikon jest **Lucide**, domyślnie z obrysem `2px` i bez dekoracyjnego wypełnienia.
-- **GUIDELINE:** v0 nie wprowadza systemu ilustracji. Ilustracja może powstać dopiero dla konkretnej potrzeby Preparation Mode i wymaga dopisania jej zasad do tego dokumentu przed użyciem.
+- **GUIDELINE:** Ilustracje są dopuszczone wyłącznie w Preparation Mode, dla konkretnej potrzeby — pierwszą jest poradnik onboardingu (5 kart: domownicy, plecak, miejsca, udostępnienie, prowadzenie). W Execution Mode ilustracji nie ma.
+- **GUIDELINE — styl ilustracji „kontur”:**
+  - jedna równa kreska `#2F3E45` o grubości jak obrys ikony Lucide; wszystko inne białe w zamkniętym konturze — skóra, włosy, ubrania, meble, drzewa;
+  - jedyny kolor wypełnienia to stal `#536B75` na **jednym** kluczowym obiekcie sceny (drzwi, plecak, ławka, telefon); żadnych innych kolorów, szarości, cieni ani gradientów;
+  - smukłe postacie z małą głową; przyjazna twarz: dwie kropki oczu, mała kreska nosa, delikatny uśmiech — bez kreskówkowych proporcji;
+  - mało detali, dużo pustej przestrzeni; bez tekstu, interfejsu, mundurów, flag i motywów militarnych; przezroczyste tło.
+- **Pochodzenie:** ilustracje są generowane przez AI (dla zgłoszenia oznaczyć zgodnie z §20); źródła, warianty i proces: [`context/foundation/ilustracje/README.md`](context/foundation/ilustracje/README.md). Nową ilustrację generuje się z gotowymi kartami jako referencją stylu, żeby postacie i kreska pozostały spójne.
+- **TOKEN — ikona aplikacji:** dach nad dwoma znakami „W” (nazwa „W razie W”: dom chroni domowników), biała kreska na stali `#536B75`. Źródła SVG w `public/icons/` (`icon.svg`, `icon-maskable.svg` ze znakiem w strefie bezpiecznej 80%, `icon-favicon.svg` z jednym „W” dla 16–32 px); pliki PNG generuje `npm run icon:export`.
 
 ## 13. Stany i feedback
 
@@ -426,7 +433,7 @@ Wyjątek: zadanie jawnie prosi o eksplorację zupełnie nowego kierunku. Taki ma
 - spacing: skala 4–64px oraz breakpointy Tailwind,
 - elevation: dwa subtelne poziomy w Preparation, brak cieni w Execution,
 - interakcje: jawne tokeny hover, pressed, focus, disabled i loading,
-- ikony: Lucide, obrys 2px; brak ilustracji w v0,
+- ikony: Lucide, obrys 2px; ilustracje w stylu „kontur” tylko w Preparation Mode (§12); ikona aplikacji: dach nad „WW” (§12),
 - dystrybucja web: CSS custom properties → Tailwind `@theme inline` → komponenty shadcn/CVA.
 
 ## 20. Hackathon HackYeah „Defence"
@@ -451,4 +458,4 @@ Regulamin wymaga oddzielenia pracy sprzed startu od pracy w trakcie hackathonu o
 
 ### Ustalenia obowiązujące w demie
 
-Demo korzysta z rozstrzygnięć implementacyjnych v0 z §19: Commissioner, Lucide, wspólnej skali spacingu, jawnych stanów interakcji i tokenów trybów. Nie wprowadzaj ilustracji ani nowego języka prezentacji bez osobnej decyzji.
+Demo korzysta z rozstrzygnięć implementacyjnych v0 z §19: Commissioner, Lucide, wspólnej skali spacingu, jawnych stanów interakcji i tokenów trybów. Ilustracje tylko w stylu „kontur” z §12; nie wprowadzaj innego stylu ilustracji ani nowego języka prezentacji bez osobnej decyzji.

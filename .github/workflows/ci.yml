@@ -64,5 +64,11 @@ jobs:
       - name: Smoke test live deployment
         run: |
           URL="${{ steps.deploy.outputs.deployment-url }}"
-          for i in $(seq 1 30); do curl -sf -o /dev/null "$URL/" && break; sleep 2; done
-          BASE_URL="$URL" EXPECT_HEADERS=1 npm run smoke
+          # A new route can lag behind the deploy on the edge while "/" already answers from the
+          # previous version, so waiting for "/" is not enough: retry the whole smoke test.
+          for i in $(seq 1 10); do
+            BASE_URL="$URL" EXPECT_HEADERS=1 npm run smoke && exit 0
+            echo "Smoke attempt $i of 10 failed, retrying in 6 s"
+            sleep 6
+          done
+          exit 1
