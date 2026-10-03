@@ -51,9 +51,13 @@ import RouteCard from "@/components/RouteCard";
         </div>
       </section>
 
-      <MapPackageCard client:only="react" />
+      <div>
+        <MapPackageCard client:only="react" />
+      </div>
 
-      <RouteCard client:only="react" />
+      <div>
+        <RouteCard client:only="react" />
+      </div>
 
       <section aria-labelledby="places-title" class="space-y-4">
         <div>
@@ -66,32 +70,42 @@ import RouteCard from "@/components/RouteCard";
           </p>
         </div>
 
-        <PlaceCard
-          client:only="react"
-          kind="meeting"
-          title="Miejsce spotkania"
-          description="Tu zbiera się rodzina zaraz po alarmie."
-          emphasis="primary"
-        />
-        <PlaceCard
-          client:only="react"
-          kind="backup"
-          title="Miejsce zapasowe"
-          description="Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne."
-          emphasis="secondary"
-        />
-        <PlaceCard
-          client:only="react"
-          kind="shelter"
-          title="Punkt ewakuacji"
-          description="Twój punkt na końcu drogi — używany, gdy nie ma przygotowanej trasy do schronu PSP."
-          emphasis="secondary"
-        />
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="meeting"
+            title="Miejsce spotkania"
+            description="Tu zbiera się rodzina zaraz po alarmie."
+            emphasis="primary"
+          />
+        </div>
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="backup"
+            title="Miejsce zapasowe"
+            description="Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne."
+            emphasis="secondary"
+          />
+        </div>
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="shelter"
+            title="Punkt ewakuacji"
+            description="Twój punkt na końcu drogi — używany, gdy nie ma przygotowanej trasy do schronu PSP."
+            emphasis="secondary"
+          />
+        </div>
       </section>
 
-      <HouseholdLinkCard client:only="react" />
+      <div>
+        <HouseholdLinkCard client:only="react" />
+      </div>
 
-      <BackpackLinkCard client:only="react" />
+      <div>
+        <BackpackLinkCard client:only="react" />
+      </div>
 
       <a
         href="/czujniki"

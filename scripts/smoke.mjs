@@ -21,6 +21,27 @@ if (!html.includes("data-offline-status")) fail("/ is missing the offline status
 // The three place cards are client:only islands; the section heading is their only static trace in the HTML.
 if (!html.includes('id="places-title"')) fail("/ is missing the places section heading");
 
+// iOS Safari fix: Astro emits an inline, unlayered `display: contents` rule for every
+// island root (astro-island/astro-slot/astro-static-slot), and does not deliver
+// touch-originated pointer events to an element with that display — which silently
+// breaks every hold-to-confirm action on iPhone. Both sides of this dependency must
+// stay true: Astro's own rule (so our override still targets something real) and our
+// higher-specificity, unlayered override in the shipped stylesheet (so the fix is
+// actually live). See src/styles/global.css for the full explanation.
+if (!html.includes("astro-island,astro-slot,astro-static-slot{display:contents}")) {
+  fail(
+    "/ no longer contains Astro's astro-island display:contents rule — the iOS pointer-event fix assumption changed, see src/styles/global.css",
+  );
+}
+const stylesheetHref = html.match(/<link rel="stylesheet" href="([^"]+)"/)?.[1];
+if (!stylesheetHref) fail("/ is missing its stylesheet <link>");
+const stylesheet = await (await get(stylesheetHref)).text();
+if (!stylesheet.includes("html astro-island{display:block}")) {
+  fail(
+    `${stylesheetHref} is missing the astro-island display:block override — iOS Safari hold-to-confirm actions will stop working, see src/styles/global.css`,
+  );
+}
+
 const manifestRes = await get("/manifest.webmanifest");
 const manifest = await manifestRes.json();
 if (manifest.lang !== "pl") fail("manifest lang is not pl");
