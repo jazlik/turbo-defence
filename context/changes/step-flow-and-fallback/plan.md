@@ -475,7 +475,7 @@ Pozycje F8.4 (wspólny akapit `<p id="hold-hint">`) i F8.5 (korekty treści) nie
 
 #### Automated
 
-- [x] 4.1 Lint, typy, testy, build i smoke przechodzą na gałęzi: `npm run lint && npx astro check && npm test && npm run build && npm run smoke`
+- [x] 4.1 Lint, typy, testy, build i smoke przechodzą na gałęzi: `npm run lint && npx astro check && npm test && npm run build && npm run smoke` — 2eaf5c4
 - [ ] 4.2 CI na gałęzi `step-flow-and-fallback` jest zielone (`ci` i `smoke`)
 - [ ] 4.3 Smoke na żywym adresie po wdrożeniu: `BASE_URL=https://w-razie-w.jzogala.workers.dev EXPECT_HEADERS=1 npm run smoke`
 
