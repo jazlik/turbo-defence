@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { requestCurrentPosition } from "@/components/hooks/useGeolocation";
 import { loadShelters, needsRefresh, refreshRoutes, ROUTE_MAX_AGE_MS } from "@/lib/services/route-refresh";
-import { osrmRouter } from "@/lib/services/routing/osrm";
+import { walkingRouter } from "@/lib/services/routing";
 import { readNavigation, writeNavigation } from "@/lib/services/navigation-storage";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
 import type { NavigationState } from "@/types";
@@ -58,7 +58,7 @@ export function useRouteRefresh(): RouteRefresh {
       const next = await refreshRoutes({
         previous: current,
         origin: position.fix.coords,
-        router: osrmRouter,
+        router: walkingRouter,
         shelters: await loadShelters(fetchJson),
       });
       writeNavigation(next);

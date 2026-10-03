@@ -972,7 +972,7 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [ ] 7.1 Lint, typy, testy, build i smoke przechodzą
+- [x] 7.1 Lint, typy, testy, build i smoke przechodzą
 
 #### Manual
 

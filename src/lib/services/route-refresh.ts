@@ -1,5 +1,6 @@
 import { distanceMeters } from "@/lib/geo";
 import { isRecord } from "@/lib/services/plan-storage";
+import { activeRoute } from "@/lib/services/navigation-storage";
 import { parseShelterRows, pickDestinations, shortlist, toDestination, type ShelterPoint } from "@/lib/shelters";
 import type { Coordinates, NavigationState, RouteRefreshFailure, SavedRoute } from "@/types";
 
@@ -73,6 +74,35 @@ export async function refreshRoutes({
     // B is a convenience: losing it must not discard a fresh A.
     const alternate = picked.alternate ? await toSaved(picked.alternate).catch(() => null) : null;
     return { ...previous, primary, alternate, active: "primary", lastRefresh: { at, ok: true } };
+  } catch (error) {
+    if (error instanceof RoutingError) return failed(previous, at, "routing-error");
+    throw error;
+  }
+}
+
+/** Online off-route recovery in Execution Mode (P1): only after this long off the route… */
+export const REROUTE_AFTER_OFF_ROUTE_MS = 15_000;
+/** …and not more often than this, to respect the public router. */
+export const REROUTE_MIN_INTERVAL_MS = 60_000;
+
+/**
+ * New route from where the user is now to the SAME destination — never a new destination choice during a crisis.
+ * Returns the previous state with the reason recorded when routing fails.
+ */
+export async function rerouteActive({
+  previous,
+  origin,
+  router,
+  now = new Date(),
+}: Omit<RefreshOptions, "shelters" | "pause">): Promise<NavigationState> {
+  const at = now.toISOString();
+  const current = activeRoute(previous);
+  if (!current) return previous;
+  try {
+    const route = await router.route(origin, current.destination.coords);
+    const next: SavedRoute = { ...current, origin, ...route, createdAt: at, provider: router.id };
+    const role = previous.active === "alternate" && previous.alternate ? "alternate" : "primary";
+    return { ...previous, [role]: next, lastRefresh: { at, ok: true } };
   } catch (error) {
     if (error instanceof RoutingError) return failed(previous, at, "routing-error");
     throw error;

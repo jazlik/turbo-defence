@@ -71,3 +71,10 @@ Po zakończeniu S-04: lokalny `S04_HANDOVER_LOCAL.md` (nie commitować).
 - Desktop: /alarm shows the "Mapa" button only with a ready package; the map chunk (1.08 MB) is prefetched in idle after the first render; GuidanceScreen chunk is 21.7 KB with no MapLibre. Overlay renders route, destination, user, Polish labels and buildings from OPFS; north-up note without heading.
 - Testing artefact, not a product bug: the automation tab is `visibilityState: hidden`, so requestAnimationFrame never fires and MapLibre only paints when a screenshot forces a frame (the "blank map" seen in the Phase 1 spike too).
 
+## Phase 7 (P1) — implementation notes (2026-10-04)
+
+- Camera (team decision 2026-10-03): default map view is pedestrian navigation — heading-up, pitch 45° (max 50°), zoom 17, user puck flat in the lower quarter; north-up is a flat fallback (toggle remembered per device, or no heading). Stability first: ≥ 5° / ≥ 2 m thresholds, 250 ms ease.
+- Backup router: Valhalla (FOSSGIS) behind `withFallback([osrm, valhalla])`. That instance ignores `shape_format: "geojson"`, so shapes are decoded with `@googlemaps/polyline-codec` (zero dependencies; `@mapbox/polyline` pulled 51 packages and was dropped).
+- Online reroute on /alarm: live fix, online, ≥ 15 s off the route, at most once per 60 s, same destination; offline nothing changes. Adds ~7 KB to the /alarm chunk.
+- Not done (P1 leftovers): map preview in Preparation Mode; package update flow (needs a separate pending record so /alarm keeps the old ready package while the new one downloads).
+

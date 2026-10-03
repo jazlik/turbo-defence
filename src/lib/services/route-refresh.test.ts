@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createEmptyNavigation } from "./navigation-storage";
-import { needsRefresh, refreshRoutes, ROUTER_REQUEST_GAP_MS } from "./route-refresh";
+import { needsRefresh, refreshRoutes, rerouteActive, ROUTER_REQUEST_GAP_MS } from "./route-refresh";
 import { RoutingError, type WalkingRouter } from "./routing/types";
 import { parseShelterRows } from "@/lib/shelters";
 import type { Coordinates, NavigationState } from "@/types";
@@ -126,5 +126,44 @@ describe("needsRefresh", () => {
     expect(needsRefresh(fresh, origin, now.getTime() + 10 * 60_000)).toBe(false);
     expect(needsRefresh(fresh, origin, now.getTime() + 31 * 60_000)).toBe(true);
     expect(needsRefresh(fresh, { latitude: 50.064, longitude: 19.94 }, now.getTime())).toBe(true);
+  });
+});
+
+describe("rerouteActive", () => {
+  it("replaces the active route with one from the current position to the same destination", async () => {
+    const prepared = await refreshRoutes({
+      previous: createEmptyNavigation(),
+      origin,
+      router: fakeRouter(),
+      shelters,
+      now,
+      pause: () => Promise.resolve(),
+    });
+    const elsewhere = { latitude: 50.065, longitude: 19.95 };
+    const later = new Date("2026-10-03T12:10:00.000Z");
+    const next = await rerouteActive({ previous: prepared, origin: elsewhere, router: fakeRouter(), now: later });
+    expect(next.primary?.destination).toEqual(prepared.primary?.destination);
+    expect(next.primary?.origin).toEqual(elsewhere);
+    expect(next.primary?.createdAt).toBe(later.toISOString());
+    expect(next.alternate).toEqual(prepared.alternate);
+  });
+
+  it("keeps the old route when the router fails", async () => {
+    const prepared = await refreshRoutes({
+      previous: createEmptyNavigation(),
+      origin,
+      router: fakeRouter(),
+      shelters,
+      now,
+      pause: () => Promise.resolve(),
+    });
+    const next = await rerouteActive({
+      previous: prepared,
+      origin,
+      router: fakeRouter({ route: () => Promise.reject(new RoutingError("down")) }),
+      now,
+    });
+    expect(next.primary).toEqual(prepared.primary);
+    expect(next.lastRefresh?.reason).toBe("routing-error");
   });
 });
