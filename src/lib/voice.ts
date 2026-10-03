@@ -74,7 +74,8 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
       return "Nie wskazano punktu ewakuacji.";
 
     case "searching":
-      if (entry) return "Szukam sygnału GPS. Wyjdź pod otwarte niebo.";
+      // Coming out of a location problem there was never a signal to lose.
+      if (entry || previous.kind === "locationProblem") return "Szukam sygnału GPS. Wyjdź pod otwarte niebo.";
       return "Utracono sygnał GPS. Czekam na połączenie.";
 
     case "locationProblem": {

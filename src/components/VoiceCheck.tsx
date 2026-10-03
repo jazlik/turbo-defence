@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CheckCircle2, CircleX, LoaderCircle, TriangleAlert, Volume2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -44,33 +44,42 @@ export default function VoiceCheck() {
   const [result, setResult] = useState<VoiceResult>("idle");
   const [voiceLocal, setVoiceLocal] = useState<boolean | null>(null);
 
-  const checkVoice = () => {
-    // Kick off the async part, but speak() is called synchronously below (gesture preserved).
-    setResult("checking");
+  // Loaded on mount so the click handler can speak without awaiting anything.
+  const voiceLoad = useRef<ReturnType<typeof loadPolishVoice> | null>(null);
+  // undefined while loading, null when the phone has no Polish voice.
+  const loadedVoice = useRef<Awaited<ReturnType<typeof loadPolishVoice>> | undefined>(undefined);
 
-    // loadPolishVoice is async — we must call speak() synchronously in this handler.
-    // Strategy: load the voice, then speak. On browsers where getVoices() returns immediately
-    // (iOS), speak() runs right away. On Chromium the voices may not be ready yet, but
-    // the button click itself is the gesture, so the subsequent speak() still counts.
-    void (async () => {
-      if (!speechSupported()) {
-        setResult("no-voice");
-        return;
-      }
-      const polishVoice = await loadPolishVoice();
+  useEffect(() => {
+    if (!speechSupported()) return;
+    const load = loadPolishVoice();
+    voiceLoad.current = load;
+    void load.then((loaded) => {
+      loadedVoice.current = loaded;
+    });
+  }, []);
+
+  const checkVoice = () => {
+    const load = voiceLoad.current;
+    if (!load || loadedVoice.current === null) {
+      setResult("no-voice");
+      return;
+    }
+    setResult("checking");
+    // Must start synchronously in the click: iOS only speaks from a user gesture, and an await before speak() loses it.
+    // Before the voice list arrives, speak with the default pl-PL voice.
+    const spoken = speak("Głos prowadzenia działa.", loadedVoice.current?.voice ?? null);
+    void Promise.all([spoken, load]).then(([outcome, polishVoice]) => {
       if (!polishVoice) {
         setResult("no-voice");
         return;
       }
       setVoiceLocal(polishVoice.local);
-      // speak() must be called as close to the gesture as possible — no unrelated awaits after this.
-      const outcome = await speak("Głos prowadzenia działa.", polishVoice.voice);
       if (outcome === "spoken") {
         setResult(polishVoice.local ? "offline" : "online-only");
       } else {
         setResult("failed");
       }
-    })();
+    });
   };
 
   const resultData = result !== "idle" && result !== "checking" ? RESULT_COPY[result] : null;

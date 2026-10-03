@@ -36,6 +36,33 @@ function ExitLink() {
   );
 }
 
+function VoiceToggle({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
+  if (voice.status === "unavailable") {
+    return (
+      <p className="text-muted-foreground flex items-center gap-2 text-base">
+        <VolumeX className="size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+        Głos niedostępny na tym telefonie — prowadzenie tylko na ekranie
+      </p>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      className="w-full text-base"
+      aria-pressed={voice.enabled}
+      onClick={voice.toggle}
+    >
+      {voice.enabled ? (
+        <Volume2 className="size-5" strokeWidth={2} aria-hidden="true" />
+      ) : (
+        <VolumeX className="size-5" strokeWidth={2} aria-hidden="true" />
+      )}
+      {voice.enabled ? "Głos: włączony" : "Głos: wyłączony"}
+    </Button>
+  );
+}
+
 export default function GuidanceScreen() {
   // Synchronous read: the target and instruction are on screen before any sensor answers.
   const [plan] = useState(readPlan);
@@ -103,9 +130,12 @@ export default function GuidanceScreen() {
             Bez zapisanego punktu nie mogę prowadzić. Wróć do planu i ustaw punkt — zajmie to chwilę.
           </p>
         </div>
-        <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
-          <a href="/">Ustaw punkt ewakuacji</a>
-        </Button>
+        <div className="flex flex-col items-center gap-3">
+          <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
+            <a href="/">Ustaw punkt ewakuacji</a>
+          </Button>
+          <VoiceToggle voice={voice} />
+        </div>
       </main>
     );
   }
@@ -197,27 +227,7 @@ export default function GuidanceScreen() {
             Włącz kompas
           </Button>
         )}
-        {voice.status === "unavailable" ? (
-          <p className="text-muted-foreground flex items-center gap-2 text-base">
-            <VolumeX className="size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
-            Głos niedostępny na tym telefonie — prowadzenie tylko na ekranie
-          </p>
-        ) : (
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full text-base"
-            aria-pressed={voice.enabled}
-            onClick={voice.toggle}
-          >
-            {voice.enabled ? (
-              <Volume2 className="size-5" strokeWidth={2} aria-hidden="true" />
-            ) : (
-              <VolumeX className="size-5" strokeWidth={2} aria-hidden="true" />
-            )}
-            {voice.enabled ? "Głos: włączony" : "Głos: wyłączony"}
-          </Button>
-        )}
+        <VoiceToggle voice={voice} />
         <ExitLink />
       </footer>
     </main>

@@ -149,4 +149,16 @@ describe("phraseFor", () => {
     const next: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: true };
     expect(phraseFor(next, prev)).toContain("Odzyskano sygnał GPS");
   });
+
+  it("does not report a lost signal when locationProblem → searching", () => {
+    const prev: GuidanceVoiceState = { kind: "locationProblem", label, problem: "denied" };
+    const next: GuidanceVoiceState = { kind: "searching", label };
+    expect(phraseFor(next, prev)).toContain("Szukam sygnału GPS");
+  });
+
+  it("signals loss of GPS when guiding → searching", () => {
+    const prev: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: true };
+    const next: GuidanceVoiceState = { kind: "searching", label };
+    expect(phraseFor(next, prev)).toContain("Utracono sygnał GPS");
+  });
 });

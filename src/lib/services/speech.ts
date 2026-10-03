@@ -9,12 +9,13 @@ export async function loadPolishVoice(): Promise<{ voice: SpeechSynthesisVoice; 
   let voices = speechSynthesis.getVoices();
   if (voices.length === 0) {
     await new Promise<void>((resolve) => {
-      const handler = () => {
-        speechSynthesis.removeEventListener("voiceschanged", handler);
+      const finish = () => {
+        window.clearTimeout(timer);
+        speechSynthesis.removeEventListener("voiceschanged", finish);
         resolve();
       };
-      speechSynthesis.addEventListener("voiceschanged", handler);
-      window.setTimeout(resolve, 2000);
+      speechSynthesis.addEventListener("voiceschanged", finish);
+      const timer = window.setTimeout(finish, 2000);
     });
     voices = speechSynthesis.getVoices();
   }
@@ -26,7 +27,12 @@ export async function loadPolishVoice(): Promise<{ voice: SpeechSynthesisVoice; 
  * speechSynthesis.speak() is called synchronously — required for iOS gesture unlock.
  * Never async-before-speak: the Promise constructor executes synchronously up to speak().
  */
-export function speak(text: string, voice: SpeechSynthesisVoice | null): Promise<"spoken" | "blocked" | "failed"> {
+export function speak(
+  text: string,
+  voice: SpeechSynthesisVoice | null,
+  // A slow engine can start after the timeout has already reported "blocked" — the caller learns it was not.
+  onLateStart?: () => void,
+): Promise<"spoken" | "blocked" | "failed"> {
   return new Promise((resolve) => {
     if (!speechSupported()) {
       resolve("failed");
@@ -38,17 +44,18 @@ export function speak(text: string, voice: SpeechSynthesisVoice | null): Promise
     utterance.lang = "pl-PL";
     if (voice) utterance.voice = voice;
 
-    let settled = false;
+    let settled: "spoken" | "blocked" | "failed" | null = null;
     const timerRef = { id: 0 as number };
 
     const settle = (result: "spoken" | "blocked" | "failed") => {
       if (settled) return;
-      settled = true;
+      settled = result;
       window.clearTimeout(timerRef.id);
       resolve(result);
     };
 
     utterance.addEventListener("start", () => {
+      if (settled === "blocked") onLateStart?.();
       settle("spoken");
     });
     utterance.addEventListener("error", (e) => {

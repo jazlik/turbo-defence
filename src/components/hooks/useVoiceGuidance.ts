@@ -76,7 +76,10 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
   const say = useCallback(
     (text: string) => {
       const seq = ++speechSeqRef.current;
-      void speak(text, voice ?? null).then((result) => {
+      const onLateStart = () => {
+        if (seq === speechSeqRef.current) setBlocked(false);
+      };
+      void speak(text, voice ?? null, onLateStart).then((result) => {
         // A newer utterance cancelled this one; its outcome says nothing about blocking.
         if (seq !== speechSeqRef.current) return;
         if (result === "blocked") setBlocked(true);

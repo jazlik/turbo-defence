@@ -358,6 +358,15 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 - Przejście alarmu do nowego dokumentu: `src/components/AlarmButton.tsx`
 - Język wizualny: `JEZYK_WIZUALNY.md` §5, §13, §15
 
+## Addendum (impl-review 2026-10-03)
+
+Odstępstwa od planu przyjęte w przeglądzie implementacji (`reviews/impl-review.md`):
+
+- **Wynik „Sprawdź głos” bez `ResultBadge`.** `VoiceCheck.tsx` ma własne `RESULT_COPY` (etykieta, ikona, klasa koloru, instrukcja), bo każdy wynik głosu niesie instrukcję naprawy, której `ResultBadge` z `SensorCheck.tsx` nie obsługuje. Role wizualne są te same: safe / attention / destructive, zawsze tekst z ikoną (`JEZYK_WIZUALNY.md` §13).
+- **Cisza po drganiu na granicy dotarcia.** `useVoiceGuidance` nie ogłasza przejścia `arrived` → `guiding`, dopóki odległość jest mniejsza niż `ARRIVAL_JITTER_METERS` (50 m). Stojąc tuż przy promieniu 25 m, GPS przełącza stany w kółko, a „Jesteś na miejscu” i tak pada tylko raz.
+- **`stopSpeaking()` na `pagehide`.** Wyjście z `/alarm` to pełna nawigacja, więc sprzątanie przy odmontowaniu się nie wykonuje. Bez `pagehide` głos mówiłby dalej po opuszczeniu ekranu.
+- **Linia „Głos lokalny / sieciowy” w `VoiceCheck`.** Pod wynikiem pokazujemy, czy wybrany głos jest lokalny. To podpowiedź przy diagnozie, a nie dowód: działanie offline potwierdza dopiero test w trybie samolotowym.
+
 ## Progress
 
 > Konwencja: `- [ ]` do zrobienia, `- [x]` zrobione. Po zakończeniu kroku dopisz ` — <commit sha>`. Nie zmieniaj tytułów kroków. Patrz `references/progress-format.md`.
