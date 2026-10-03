@@ -442,9 +442,9 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Manual
 
-- [ ] 2.6 „Ustaw tutaj" zapisuje punkt, który przeżywa ponowne otwarcie aplikacji
+- [x] 2.6 „Ustaw tutaj" zapisuje punkt, który przeżywa ponowne otwarcie aplikacji — ac5c4e2
 - [x] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu — f2a799e
-- [ ] 2.8 Na `/czujniki` oba czujniki raportują wynik, a kurs reaguje na obrót telefonu
+- [x] 2.8 Na `/czujniki` oba czujniki raportują wynik, a kurs reaguje na obrót telefonu — ac5c4e2
 - [x] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat — f2a799e
 - [x] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony — f2a799e
 
@@ -461,25 +461,25 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Manual
 
-- [ ] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
+- [x] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper) — ac5c4e2
 - [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu — 766f23e
-- [ ] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu
-- [ ] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
-- [ ] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
+- [x] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu — ac5c4e2
+- [x] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu" — ac5c4e2
+- [x] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu — ac5c4e2
 - [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd — 766f23e
-- [ ] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu
-- [ ] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu
+- [x] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu — ac5c4e2
+- [x] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu — ac5c4e2
 
 ### Phase 4: Weryfikacja offline i domknięcie dokumentów
 
 #### Automated
 
-- [ ] 4.1 Pełne CI przechodzi na branchu (lint, check, test, build, smoke)
-- [ ] 4.2 Smoke przeciwko wdrożonemu adresowi przechodzi z `EXPECT_HEADERS=1`
+- [x] 4.1 Pełne CI przechodzi na branchu (lint, check, test, build, smoke) — 47b4ee0
+- [x] 4.2 Smoke przeciwko wdrożonemu adresowi przechodzi z `EXPECT_HEADERS=1` — ac5c4e2
 
 #### Manual
 
-- [ ] 4.3 Cała ścieżka przechodzi na telefonie w trybie samolotowym
-- [ ] 4.4 Plan przeżywa zamknięcie i ponowne otwarcie aplikacji bez sieci
+- [x] 4.3 Cała ścieżka przechodzi na telefonie w trybie samolotowym — ac5c4e2
+- [x] 4.4 Plan przeżywa zamknięcie i ponowne otwarcie aplikacji bez sieci — ac5c4e2
 - [x] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed` — 629f098
 - [x] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP — 629f098
