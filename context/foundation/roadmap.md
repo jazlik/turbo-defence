@@ -50,18 +50,19 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-10-03`, after `F-01` and `S-01` (refreshed at the S-01 close).
+What's already in place in the codebase as of `2026-10-03`, after `F-01`, `S-01`, `S-03` and `S-02` (refreshed at the S-02 close; S-03 landed on `main` in parallel and was merged into S-02).
 Slices below build on these and do NOT re-scaffold them.
 
 - **Frontend:** present — statyczna PWA Astro 7 z wyspami React 19, Tailwind 4 i shadcn/ui; tokeny wizualne w `src/styles/global.css`, tryby `preparation` / `execution` w `src/layouts/Layout.astro`. Ekrany: `/` (plan i alarm), `/czujniki`, `/alarm`, `/design`.
 - **Backend / API:** absent — świadomie: `output: "static"`, bez serwera, API i middleware (PRD: dane nie opuszczają urządzenia).
-- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 1`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`); każda zmiana kształtu podnosi wersję i dopisuje migrację w `readPlan`.
+- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 2`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`) z trzema miejscami w `places` (`meeting`, `backup`, `shelter`); migracja v1 → v2 mapuje dawny `evacuationPoint` na `places.shelter`. Każda zmiana kształtu podnosi wersję i dopisuje migrację w `parsePlan`; nieczytelny wpis zwraca `source: "unreadable"` i nie jest nadpisywany automatycznym zapisem. Przebieg ewakuacji żyje osobno pod kluczem `wrw.run` (`src/lib/services/run-storage.ts`, `schemaVersion: 1`) i jest wznawiany tylko w progu świeżości `RUN_FRESH_MS` (6 h); sekwencja kroków nie jest zapisywana — wylicza ją `buildSteps` z planu (`src/lib/evacuation-steps.ts`).
 - **Auth:** absent — świadomie: profil lokalny, bez kont.
 - **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
 - **Sensors:** present — `useGeolocation`, `useHeading` (kompas iOS/Android z fallbackiem na azymut z ruchu), `useScreenWakeLock` w `src/components/hooks/`; matematyka geo w `src/lib/geo.ts`.
+- **Voice:** present — synteza mowy przez `useVoiceGuidance` (`src/components/hooks/`) i `src/lib/services/speech.ts`; treść komunikatów w `phraseFor` (`src/lib/voice.ts`) jako warianty `GuidanceVoiceState`, ustawienie włącz/wyłącz osobno pod `wrw.voice`. Nowe komunikaty dopisuje się jako wariant stanu, nigdy wołając `speechSynthesis` wprost.
 - **Deploy / infra:** present — assets-only Worker `w-razie-w` na Cloudflare; CI (`.github/workflows/ci.yml`) na `main`: lint, `astro check`, `npm test`, build, smoke, deploy z `main` i smoke na żywym adresie.
 - **Observability:** absent — świadomie poza MVP (PRD: brak guardrails).
-- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`; `scripts/smoke.mjs` sprawdza strony i precache; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
+- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`: geo, plan z migracją v1 → v2, sekwencja kroków (`buildSteps`, `resumeIndex`, `targetPlaceKind`), przebieg ewakuacji (`parseRun` z progiem świeżości) oraz treść i progi głosu (`voice`, `voice-settings`); `scripts/smoke.mjs` sprawdza strony, precache i sekcję „Miejsca” na stronie domowej; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
 
 ## Foundations
 
@@ -217,7 +218,7 @@ Slices below build on these and do NOT re-scaffold them.
 | ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------- |
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                                                      |
 | S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
-| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Run `/10x-plan step-flow-and-fallback`                                                 |
+| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
 | S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Zaimplementowane; testy na telefonie w trybie samolotowym odłożone                     |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                                | yes                   | Run `/10x-plan household-members`                                                      |

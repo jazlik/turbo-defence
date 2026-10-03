@@ -58,20 +58,33 @@ export function nextDistanceAnnouncement(lastMark: number | null, meters: number
   return { announce: false, mark: lastMark };
 }
 
+/**
+ * Prowadzenie jest sekwencją kroków (S-02), więc stan głosu nosi tytuł bieżącego kroku, nie tylko
+ * nazwę celu: po przełączeniu na miejsce zapasowe i po przejściu na następny krok cel się zmienia,
+ * a głos musi to powiedzieć, zamiast dalej czytać odległość do czegoś innego.
+ */
 export type GuidanceVoiceState =
-  | { kind: "noPoint" }
+  | { kind: "noSteps" }
+  | { kind: "resume"; title: string }
+  | { kind: "action"; title: string; instruction: string }
   | { kind: "searching"; label: string }
   | { kind: "locationProblem"; label: string; problem: "denied" | "unavailable" }
-  | { kind: "guiding"; label: string; meters: number; live: boolean }
-  | { kind: "arrived"; label: string };
+  | { kind: "guiding"; title: string; label: string; meters: number; live: boolean; fallback: boolean }
+  | { kind: "arrived"; label: string; next: string | null };
 
 /** Full or short phrase for the given state transition. */
 export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceState | null): string {
   const entry = previous === null;
 
   switch (state.kind) {
-    case "noPoint":
-      return "Nie wskazano punktu ewakuacji.";
+    case "noSteps":
+      return "Nie wskazano żadnego miejsca. Wróć do planu i ustaw miejsce spotkania albo punkt ewakuacji.";
+
+    case "resume":
+      return `Wracasz do przerwanej ewakuacji. Zatrzymaliście się na kroku: ${state.title}. Wybierz, czy kontynuować, czy zacząć od początku.`;
+
+    case "action":
+      return `${state.title}. ${state.instruction}`;
 
     case "searching":
       // Coming out of a location problem there was never a signal to lose.
@@ -87,12 +100,27 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
       const dist = spokenDistance(state.meters);
       if (entry) {
         const staleSuffix = state.live ? "" : " Dane z ostatniej znanej pozycji.";
-        return `Idź do punktu ewakuacji: ${state.label}. ${dist} w linii prostej.${staleSuffix}`;
+        return `${state.title}: ${state.label}. ${dist} w linii prostej.${staleSuffix}`;
       }
+
+      // Cel się zmienił: albo wyjście awaryjne na miejsce zapasowe, albo następny krok sekwencji.
+      // Oba trzeba powiedzieć, bo strzałka zaczyna wskazywać w inną stronę.
+      if (previous.kind === "guiding" && previous.title !== state.title) {
+        if (state.fallback && !previous.fallback) {
+          return `Punkt niedostępny. Idź do miejsca zapasowego: ${state.label}. ${dist}.`;
+        }
+        return `${state.title}: ${state.label}. ${dist}.`;
+      }
+
+      // Wejście w prowadzenie z kroku akcji, z ekranu wznowienia albo z dojścia na poprzedni krok.
+      if (previous.kind === "action" || previous.kind === "resume" || previous.kind === "arrived") {
+        return `${state.title}: ${state.label}. ${dist} w linii prostej.`;
+      }
+
       // Transition from searching / locationProblem → guiding (got signal)
       if (previous.kind === "searching" || previous.kind === "locationProblem") {
-        if (state.live) return `Mam sygnał GPS. Do punktu ${dist}.`;
-        return `Dane z ostatniej pozycji. Do punktu ${dist}.`;
+        if (state.live) return `Mam sygnał GPS. Do celu ${dist}.`;
+        return `Dane z ostatniej pozycji. Do celu ${dist}.`;
       }
 
       // Transition live → stale
@@ -102,14 +130,15 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
 
       // Transition stale → live
       if (previous.kind === "guiding" && !previous.live && state.live) {
-        return `Odzyskano sygnał GPS. Do punktu ${dist}.`;
+        return `Odzyskano sygnał GPS. Do celu ${dist}.`;
       }
 
-      return `Do punktu ${state.label}. ${dist}.`;
+      return `${state.title}: ${state.label}. ${dist}.`;
     }
 
     case "arrived":
-      return "Jesteś na miejscu. Zostań tutaj i czekaj na pozostałych domowników.";
+      if (state.next === null) return "Jesteś na miejscu. Dotarliście na miejsce, to koniec zaplanowanej drogi.";
+      return `Jesteś na miejscu: ${state.label}. Zostań tutaj i czekaj na pozostałych domowników. Następny krok: ${state.next}.`;
   }
 }
 
