@@ -347,4 +347,4 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 - [x] 3.4 Cloudflare secrets set
 - [x] 3.5 Android: installed app opens in airplane mode
 - [x] 3.6 iPhone: installed app opens in airplane mode (if available)
-- [ ] 3.7 Pushed change visible in installed app after next online open
+- [x] 3.7 Pushed change visible in installed app after next online open
