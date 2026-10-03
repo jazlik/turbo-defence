@@ -96,3 +96,5 @@ Rodzina spójna: twarz c3, włosy konturem, ta sama grubość kreski we wszystki
 | 5     | **c1**          | babcia czytelna (siwy kok); w c2 wygląda na młodą kobietę                                                                    |
 
 **Wybór człowieka (2026-10-03):** 1-c1, 2-c2, 3-c2, 4-c1, 5-c1 — karta 4 bez powtórki. Wyeksportowane do prototypu (`public/prototyp/poradnik/karta-<N>.webp`).
+
+**Karta 4 — decyzja człowieka (2026-10-03):** zostaje wersja bez strzałki (`karta-4-c1.png`, obecna w prototypie). Wersja ze strzałką na ziemi (`karta-4-c5.png`) jest zachowana jako **wariant zapasowy** — do przywrócenia jednym eksportem: `npm run illustrations:export -- context/foundation/ilustracje/kierunki-v1/poradnik/karta-4-c5.png public/prototyp/poradnik/karta-4.webp`. Strzałka na ekranie telefonu (c3, c4) odrzucona: generator rysuje ją za małą i niespójnie.
