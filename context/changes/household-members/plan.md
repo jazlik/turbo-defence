@@ -39,9 +39,9 @@ Weryfikacja: `npm run lint`, `npx astro check`, `npm test`, `npm run build`, `np
 
 - Checklista plecaka i jej reguły dopasowania (S-06); tu zapisujemy tylko dane, z których S-06 skorzysta.
 - Role domowników i scenariusze (FR-005, nice-to-have, poza MVP), zdjęcia, daty urodzenia, adresy, wiek.
-- Wolne pole notatki o potrzebach (alergie, niepełnosprawność) — świadoma decyzja: tylko trzy potrzeby z PRD.
+- Opisy potrzeb poza listą (dawki, nazwy leków, instrukcje); lista potrzeb to etykiety, nie dokumentacja medyczna.
 - Odpowiednik „organizatora jako domownika” (osoba korzystająca z telefonu nie jest dodawana automatycznie).
-- Import z książki adresowej telefonu, wybieranie numeru, wysyłanie SMS-ów.
+- Wysyłanie SMS-ów i wybieranie numeru z poziomu aplikacji (link `tel:` otwiera dialer telefonu).
 - Przekazywanie planu między urządzeniami i edycja „własnych danych” przez domownika (S-09, FR-010/011).
 - Wpisanie kontaktów do Execution Mode (`/alarm`); w kryzysie prowadzenie do punktu zostaje bez zmian.
 - Kroki onboardingu (S-07) — komponenty mają być użyteczne w onboardingu, ale nie budujemy go tutaj.
@@ -191,6 +191,53 @@ Organizator widzi, dodaje, edytuje i usuwa domowników i kontakty na osobnej str
 
 ---
 
+## Phase 3: Zmiana zakresu po przeglądzie — potrzeby domownika i import kontaktów
+
+### Overview
+
+Po obejrzeniu fazy 2 zakres został zmieniony decyzją użytkownika: (a) flaga „przyjmuje leki” zostaje zastąpiona listą potrzeb osoby (propozycje + własne wpisy), bo flaga nie niesie informacji, z której S-06 mógłby dobrać plecak; (b) kontakty można dodać trzema metodami do wyboru: z kontaktów telefonu (Contact Picker API, tylko tam, gdzie działa), z pliku vCard `.vcf` (działa wszędzie, także na iOS) albo ręcznie. Gałąź nie jest wdrożona, więc kształt rekordu zmienia się w ramach `schemaVersion: 2` bez kolejnej migracji.
+
+### Changes Required:
+
+#### 1. Model potrzeb
+
+**File**: `src/types.ts`, `src/lib/household.ts`, `src/lib/services/plan-storage.ts`, testy
+
+**Intent**: Zastąpić `takesMedication: boolean` listą `needs`. Propozycje mają stałe identyfikatory (dla reguł S-06), wpisy własne niosą tekst.
+
+**Contract**: `PresetNeedKind = "medication" | "diabetes" | "allergy" | "mobility" | "diet"`; `MemberNeed = { kind: PresetNeedKind } | { kind: "custom"; label: string }`; `HouseholdMember.needs: MemberNeed[]`. Stałe `PRESET_NEEDS` (kind + polska etykieta), `MAX_NEEDS = 10`, `MAX_NEED_LABEL_LENGTH = 40`. Funkcje: `needLabel(need)`, `toggleNeed(needs, kind)`, `addCustomNeed(needs, label)` → `Validation<MemberNeed[], string>` (puste, za długie, duplikat bez względu na wielkość liter, limit; wpis równy etykiecie propozycji włącza tę propozycję). Parser rekordu pomija nieprawidłowe potrzeby i ucina listę do `MAX_NEEDS`.
+
+#### 2. Import kontaktów (logika)
+
+**File**: `src/lib/vcard.ts` (nowy), `src/lib/services/contact-import.ts` (nowy), `src/lib/household.ts`
+
+**Intent**: Wspólna ścieżka „kandydaci → wybór → dodanie” dla Contact Picker i pliku vCard.
+
+**Contract**: `parseVCard(text): ContactInput[]` (wiele wizytówek, składanie linii, `FN` albo `N`, pierwszy `TEL`, prefiksy grup `itemN.`, `tel:` w wartości, ucieczki `\, \; \n`; relacja pusta). `isContactPickerSupported()` i `pickPhoneContacts()` w `contact-import.ts` (obsługa anulowania i błędów bez rzucania). `prepareCandidates(raw, existing)` → `{ candidates, invalid, duplicates }` (walidacja przez `validateContactInput`, duplikaty po samych cyfrach numeru wobec istniejących i w obrębie listy).
+
+#### 3. Ekran
+
+**File**: `src/components/HouseholdMembersCard.tsx`, `src/components/EmergencyContactsCard.tsx`, `src/components/HouseholdFormParts.tsx`
+
+**Intent**: W formularzu domownika jedno pole „Potrzeby” z dodawaniem i usuwaniem chipów; podpowiedzi (leki, cukrzyca, alergia, wózek, dieta) są tylko w opisie pola, a wpis zgodny z etykietą propozycji (np. „leki”) zapisuje się jako propozycja o stałym `kind`; wiersze listy pokazują potrzeby jako etykiety. W kontaktach przed formularzem wybór metody: „Z kontaktów telefonu” (tylko gdy API jest dostępne), „Z pliku vCard”, „Wpisz ręcznie”; import pokazuje listę kandydatów do zaznaczenia i przycisk „Dodaj wybrane”, z limitem do wolnych miejsc. Komunikaty: dodano ile, pominięto ile (zły numer lub duplikat), brak kontaktów z numerem w pliku.
+
+### Success Criteria:
+
+#### Automated Verification:
+
+- Testy przechodzą: `npm test`
+- Lint przechodzi: `npm run lint`
+- Sprawdzenie typów przechodzi: `npx astro check`
+- Build i smoke przechodzą: `npm run build`, potem `npm run smoke` na podglądzie
+
+#### Manual Verification:
+
+- Potrzeby: wpis „leki” i wpis własny (np. „insulina”) dodają się i usuwają, zapisane potrzeby widać na liście i po przeładowaniu.
+- Import z pliku vCard (jeden i wiele kontaktów) pokazuje listę do wyboru; zaznaczone trafiają na listę kontaktów.
+- Na telefonie z Chrome na Androidzie działa „Z kontaktów telefonu”; na iOS przycisk się nie pojawia, a vCard działa.
+
+---
+
 ## Testing Strategy
 
 ### Unit Tests:
@@ -237,31 +284,46 @@ Migracja jednokierunkowa v1→v2 w `parsePlan`; zapis dopiero przy następnym `w
 
 #### Automated
 
-- [x] 1.1 Testy przechodzą: `npm test`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 1.4 Build przechodzi: `npm run build`
+- [x] 1.1 Testy przechodzą: `npm test` — d39393d
+- [x] 1.2 Lint przechodzi: `npm run lint` — d39393d
+- [x] 1.3 Sprawdzenie typów przechodzi: `npx astro check` — d39393d
+- [x] 1.4 Build przechodzi: `npm run build` — d39393d
 
 #### Manual
 
-- [x] 1.5 Plan v1 w `localStorage` nadal prowadzi na `/alarm` do tego samego punktu
+- [x] 1.5 Plan v1 w `localStorage` nadal prowadzi na `/alarm` do tego samego punktu — d39393d
 
 ### Phase 2: Ekran `/domownicy` i karta na stronie głównej
 
 #### Automated
 
-- [ ] 2.1 Testy przechodzą: `npm test`
-- [ ] 2.2 Lint przechodzi: `npm run lint`
-- [ ] 2.3 Sprawdzenie typów przechodzi: `npx astro check`
-- [ ] 2.4 Build przechodzi: `npm run build`
-- [ ] 2.5 Smoke przechodzi na buildzie, w tym `/domownicy` i `domownicy.html` w precache
+- [x] 2.1 Testy przechodzą: `npm test`
+- [x] 2.2 Lint przechodzi: `npm run lint`
+- [x] 2.3 Sprawdzenie typów przechodzi: `npx astro check`
+- [x] 2.4 Build przechodzi: `npm run build`
+- [x] 2.5 Smoke przechodzi na buildzie, w tym `/domownicy` i `domownicy.html` w precache
 
 #### Manual
 
-- [ ] 2.6 Dodawanie, edycja i usuwanie domowników i kontaktów na telefonie, dane przeżywają przeładowanie
-- [ ] 2.7 Walidacja pokazuje błędy tekstem z ikoną
+- [x] 2.6 Dodawanie, edycja i usuwanie domowników i kontaktów na telefonie, dane przeżywają przeładowanie
+- [x] 2.7 Walidacja pokazuje błędy tekstem z ikoną
 - [ ] 2.8 Tryb samolotowy: strona główna i `/domownicy` działają po pierwszym otwarciu online
 - [ ] 2.9 Link `tel:` otwiera dialer z właściwym numerem
-- [ ] 2.10 Karta na stronie głównej pokazuje aktualne liczby
-- [ ] 2.11 Obsługa klawiaturą: logiczny tab, widoczny focus, fokus nie ginie po edycji
-- [ ] 2.12 Regresja: punkt ewakuacji, alarm i `/alarm` działają jak przed zmianą
+- [x] 2.10 Karta na stronie głównej pokazuje aktualne liczby
+- [x] 2.11 Obsługa klawiaturą: logiczny tab, widoczny focus, fokus nie ginie po edycji
+- [x] 2.12 Regresja: punkt ewakuacji, alarm i `/alarm` działają jak przed zmianą
+
+### Phase 3: Zmiana zakresu po przeglądzie — potrzeby domownika i import kontaktów
+
+#### Automated
+
+- [x] 3.1 Testy przechodzą: `npm test`
+- [x] 3.2 Lint przechodzi: `npm run lint`
+- [x] 3.3 Sprawdzenie typów przechodzi: `npx astro check`
+- [x] 3.4 Build i smoke przechodzą
+
+#### Manual
+
+- [x] 3.5 Potrzeby: wpisy (także „leki” jako propozycja) działają i zostają po przeładowaniu
+- [x] 3.6 Import z pliku vCard (jeden i wiele kontaktów) działa
+- [ ] 3.7 Contact Picker działa na Chrome/Android, a na iOS przycisku nie ma

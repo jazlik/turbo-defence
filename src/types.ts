@@ -16,11 +16,16 @@ export interface LastKnownPosition {
 
 export type MemberCategory = "adult" | "child" | "pet";
 
+/** Presets carry a stable kind so S-06 can map them to backpack items. */
+export type PresetNeedKind = "medication" | "diabetes" | "allergy" | "mobility" | "diet";
+
+export type MemberNeed = { kind: PresetNeedKind } | { kind: "custom"; label: string };
+
 export interface HouseholdMember {
   id: string;
   name: string;
   category: MemberCategory;
-  takesMedication: boolean;
+  needs: MemberNeed[];
 }
 
 export interface EmergencyContact {

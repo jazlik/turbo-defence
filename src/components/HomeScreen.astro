@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from
 
 import AlarmButton from "@/components/AlarmButton";
 import EvacuationPointCard from "@/components/EvacuationPointCard";
+import HouseholdLinkCard from "@/components/HouseholdLinkCard";
 ---
 
 <div class="min-h-screen bg-background px-4 text-foreground sm:px-8">
@@ -49,6 +50,8 @@ import EvacuationPointCard from "@/components/EvacuationPointCard";
       <div>
         <EvacuationPointCard client:only="react" />
       </div>
+
+      <HouseholdLinkCard client:only="react" />
 
       <a
         href="/czujniki"

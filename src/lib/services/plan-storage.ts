@@ -1,4 +1,4 @@
-import { isMemberCategory, MAX_RECORDS } from "../household";
+import { isMemberCategory, isPresetNeedKind, MAX_NEED_LABEL_LENGTH, MAX_NEEDS, MAX_RECORDS } from "../household";
 import type {
   Coordinates,
   EmergencyContact,
@@ -6,6 +6,7 @@ import type {
   HouseholdMember,
   HouseholdPlan,
   LastKnownPosition,
+  MemberNeed,
 } from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
@@ -48,11 +49,19 @@ function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
 
+function parseNeed(value: unknown): MemberNeed | null {
+  if (!isRecord(value)) return null;
+  if (isPresetNeedKind(value.kind)) return { kind: value.kind };
+  if (value.kind !== "custom" || typeof value.label !== "string") return null;
+  const label = value.label.trim();
+  return label !== "" && label.length <= MAX_NEED_LABEL_LENGTH ? { kind: "custom", label } : null;
+}
+
 function parseMember(value: unknown): HouseholdMember | null {
   if (!isRecord(value)) return null;
-  const { id, name, category, takesMedication } = value;
+  const { id, name, category, needs } = value;
   if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isMemberCategory(category)) return null;
-  return { id, name, category, takesMedication: takesMedication === true };
+  return { id, name, category, needs: parseList(needs, parseNeed, MAX_NEEDS) };
 }
 
 function parseContact(value: unknown): EmergencyContact | null {
@@ -63,14 +72,14 @@ function parseContact(value: unknown): EmergencyContact | null {
 }
 
 /** A damaged record is skipped, the rest of the list survives. */
-function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null): T[] {
+function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null, limit = MAX_RECORDS): T[] {
   if (!Array.isArray(value)) return [];
   const items: T[] = [];
   for (const raw of value as unknown[]) {
     const item = parseItem(raw);
     if (item) items.push(item);
   }
-  return items.slice(0, MAX_RECORDS);
+  return items.slice(0, limit);
 }
 
 /**

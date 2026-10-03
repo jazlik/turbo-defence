@@ -18,8 +18,8 @@ Strona `/domownicy` z dwiema listami (domownicy, kontakty): dodaj, edytuj, usuń
 
 | Decision           | Choice                                                   | Why (1 sentence)                                                             |
 | ------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Model domownika    | imię + kategoria (dorosły / dziecko / zwierzę) + leki    | Dokładnie trzy potrzeby z PRD, proste reguły plecaka w S-06.                 |
-| Model kontaktu     | imię + telefon + relacja (opcjonalna)                    | Wystarcza do zadzwonienia i do zrozumienia, kim jest osoba, bez adresów.     |
+| Model domownika    | imię + kategoria + lista potrzeb (propozycje + własne)   | Propozycje mają stałe kind dla reguł plecaka w S-06, własne wpisy (np. insulina) niosą tekst; zmiana po przeglądzie fazy 2. |
+| Model kontaktu     | imię + telefon + relacja (opcjonalna); dodawanie: z kontaktów telefonu (gdzie działa), z pliku vCard lub ręcznie | Przepisywanie numerów jest uciążliwe; vCard działa także na iOS. |
 | Miejsce w aplikacji | osobna strona `/domownicy` + karta-link na stronie głównej | Strona główna zostaje krótka, komponenty nadają się do kroku onboardingu.    |
 | Operacje           | dodaj, edytuj, usuń (usuń bez okna potwierdzenia)        | Edycja potrzebna pod FR-011 w S-09; rekordy łatwo dodać ponownie.            |
 | Schemat            | `schemaVersion` 1→2 z migracją w `parsePlan`             | Bez gałęzi dla v1 plan z S-01 zostałby skasowany.                            |
@@ -28,9 +28,9 @@ Strona `/domownicy` z dwiema listami (domownicy, kontakty): dodaj, edytuj, usuń
 
 ## Scope
 
-**In scope:** typy i migracja planu, walidacja, operacje na listach, strona `/domownicy`, karta na stronie głównej, rozszerzenie smoke.
+**In scope:** typy i migracja planu, import kontaktów (Contact Picker, vCard), walidacja, operacje na listach, strona `/domownicy`, karta na stronie głównej, rozszerzenie smoke.
 
-**Out of scope:** checklista plecaka (S-06), role (FR-005), notatki o potrzebach, adresy, książka adresowa, dzwonienie z `/alarm`, przekazywanie planu (S-09), onboarding (S-07).
+**Out of scope:** checklista plecaka (S-06), role (FR-005), opisy potrzeb poza etykietami (dawki, nazwy leków), adresy, dzwonienie z `/alarm`, przekazywanie planu (S-09), onboarding (S-07).
 
 ## Architecture / Approach
 
@@ -42,6 +42,7 @@ Dwie wyspy React (`HouseholdMembersCard`, `EmergencyContactsCard`, `client:only=
 | -------------------------------- | --------------------------------------------------------- | -------------------------------------------------- |
 | 1. Model danych i logika         | Typy, schema v2 z migracją z v1, walidacja, operacje, testy | Utrata punktu ewakuacji przy migracji              |
 | 2. Ekran `/domownicy` i karta    | Strona z listami i formularzami, karta-link, smoke        | Dostępność formularza (fokus, błędy) na telefonie  |
+| 3. Potrzeby i import kontaktów   | Lista potrzeb zamiast flagi leków; Contact Picker i vCard | Contact Picker tylko na Chrome/Android             |
 
 **Prerequisites:** S-01 zamknięte (jest). **Estimated effort:** ~2 sesje, 2 fazy.
 

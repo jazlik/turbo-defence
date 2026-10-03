@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import {
   addContact,
+  addCustomNeed,
   addMember,
+  MAX_NEEDS,
   MAX_RECORDS,
+  needLabel,
+  type MemberInput,
   phoneHref,
+  prepareCandidates,
   removeContact,
   removeMember,
   summarizeHousehold,
+  toggleNeed,
   updateContact,
   updateMember,
   validateContactInput,
@@ -15,7 +21,7 @@ import {
 } from "./household";
 import type { EmergencyContact, HouseholdMember } from "@/types";
 
-const member = { name: "Ola", category: "child", takesMedication: false } as const;
+const member: MemberInput = { name: "Ola", category: "child", needs: [] };
 const contact = { name: "Babcia", phone: "600 100 200", relation: "" };
 
 describe("validateMemberInput", () => {
@@ -116,5 +122,60 @@ describe("phoneHref", () => {
 describe("summarizeHousehold", () => {
   it("counts both lists", () => {
     expect(summarizeHousehold({ members: addMember([], member), contacts: [] })).toEqual({ members: 1, contacts: 0 });
+  });
+});
+
+describe("needs", () => {
+  it("toggles presets on and off", () => {
+    const on = toggleNeed([], "diabetes");
+    expect(on).toEqual([{ kind: "diabetes" }]);
+    expect(toggleNeed(on, "diabetes")).toEqual([]);
+  });
+
+  it("adds a trimmed custom need and rejects empty, too long and duplicate ones", () => {
+    const result = addCustomNeed([], "  insulina ");
+    expect(result).toEqual({ ok: true, value: [{ kind: "custom", label: "insulina" }] });
+    expect(addCustomNeed([], "   ").ok).toBe(false);
+    expect(addCustomNeed([], "a".repeat(41)).ok).toBe(false);
+    expect(addCustomNeed([{ kind: "custom", label: "Insulina" }], "INSULINA").ok).toBe(false);
+  });
+
+  it("turns a typed preset label into the preset instead of a custom duplicate", () => {
+    expect(addCustomNeed([], "cukrzyca")).toEqual({ ok: true, value: [{ kind: "diabetes" }] });
+    expect(addCustomNeed([{ kind: "diabetes" }], "Cukrzyca").ok).toBe(false);
+  });
+
+  it("stops at the per-person limit", () => {
+    let needs = [] as ReturnType<typeof toggleNeed>;
+    for (let i = 0; i < MAX_NEEDS; i += 1) {
+      const result = addCustomNeed(needs, `potrzeba ${i}`);
+      if (result.ok) needs = result.value;
+    }
+    expect(needs).toHaveLength(MAX_NEEDS);
+    expect(addCustomNeed(needs, "jeszcze jedna").ok).toBe(false);
+    expect(toggleNeed(needs, "diet")).toHaveLength(MAX_NEEDS);
+  });
+
+  it("labels presets and custom needs", () => {
+    expect(needLabel({ kind: "mobility" })).toBe("Ograniczona mobilność");
+    expect(needLabel({ kind: "custom", label: "wózek" })).toBe("wózek");
+  });
+});
+
+describe("prepareCandidates", () => {
+  it("drops invalid numbers and duplicates, counting them", () => {
+    const existing: EmergencyContact[] = [{ id: "c1", name: "Babcia", phone: "+48 600 100 200", relation: "" }];
+    const result = prepareCandidates(
+      [
+        { name: "Jan", phone: "500 500 500", relation: "" },
+        { name: "Jan bis", phone: "500-500-500", relation: "" },
+        { name: "Babcia", phone: "48600100200", relation: "" },
+        { name: "Zły", phone: "12", relation: "" },
+      ],
+      existing,
+    );
+    expect(result.candidates).toEqual([{ name: "Jan", phone: "500 500 500", relation: "" }]);
+    expect(result.duplicates).toBe(2);
+    expect(result.invalid).toBe(1);
   });
 });

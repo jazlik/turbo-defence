@@ -6,7 +6,14 @@ const validPlan = {
   schemaVersion: 2,
   evacuationPoint: { label: "Szkoła", coords: { latitude: 52.2297, longitude: 21.0122 } },
   lastKnownPosition: { coords: { latitude: 52.2317, longitude: 21.0059 }, recordedAt: "2026-10-03T12:00:00.000Z" },
-  members: [{ id: "m1", name: "Ola", category: "child", takesMedication: true }],
+  members: [
+    {
+      id: "m1",
+      name: "Ola",
+      category: "child",
+      needs: [{ kind: "medication" }, { kind: "custom", label: "insulina" }],
+    },
+  ],
   contacts: [{ id: "c1", name: "Babcia", phone: "+48 600 100 200", relation: "babcia" }],
   updatedAt: "2026-10-03T12:00:00.000Z",
 };
@@ -89,5 +96,29 @@ describe("parsePlan", () => {
       expect(plan.lastKnownPosition).toBeNull();
       expect(plan.evacuationPoint).toEqual(validPlan.evacuationPoint);
     }
+  });
+});
+
+describe("parsePlan needs", () => {
+  it("skips damaged needs and caps the list", () => {
+    const needs = [
+      { kind: "diabetes" },
+      { kind: "custom", label: "  wózek " },
+      { kind: "custom", label: "" },
+      { kind: "custom" },
+      { kind: "robot" },
+      "foo",
+    ];
+    const plan = parsePlan({ ...validPlan, members: [{ ...validPlan.members[0], needs }] });
+    expect(plan.members[0]?.needs).toEqual([{ kind: "diabetes" }, { kind: "custom", label: "wózek" }]);
+    const many = Array.from({ length: 30 }, (_, i) => ({ kind: "custom", label: `n${i}` }));
+    expect(
+      parsePlan({ ...validPlan, members: [{ ...validPlan.members[0], needs: many }] }).members[0]?.needs,
+    ).toHaveLength(10);
+  });
+
+  it("reads a member without needs as having none", () => {
+    const { needs: _needs, ...rest } = validPlan.members[0] as Record<string, unknown>;
+    expect(parsePlan({ ...validPlan, members: [rest] }).members[0]?.needs).toEqual([]);
   });
 });

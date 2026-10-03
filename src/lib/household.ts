@@ -1,8 +1,17 @@
-import type { EmergencyContact, HouseholdMember, HouseholdPlan, MemberCategory } from "@/types";
+import type {
+  EmergencyContact,
+  HouseholdMember,
+  HouseholdPlan,
+  MemberCategory,
+  MemberNeed,
+  PresetNeedKind,
+} from "@/types";
 
 export const MAX_RECORDS = 20;
 export const MAX_NAME_LENGTH = 60;
 export const MAX_RELATION_LENGTH = 40;
+export const MAX_NEEDS = 10;
+export const MAX_NEED_LABEL_LENGTH = 40;
 const MIN_PHONE_DIGITS = 7;
 const MAX_PHONE_DIGITS = 15;
 
@@ -10,6 +19,56 @@ export const MEMBER_CATEGORIES: readonly MemberCategory[] = ["adult", "child", "
 
 export const isMemberCategory = (value: unknown): value is MemberCategory =>
   typeof value === "string" && (MEMBER_CATEGORIES as readonly string[]).includes(value);
+
+export const PRESET_NEEDS: readonly { kind: PresetNeedKind; label: string }[] = [
+  { kind: "medication", label: "Leki" },
+  { kind: "diabetes", label: "Cukrzyca" },
+  { kind: "allergy", label: "Alergia" },
+  { kind: "mobility", label: "Ograniczona mobilność" },
+  { kind: "diet", label: "Dieta" },
+];
+
+export const isPresetNeedKind = (value: unknown): value is PresetNeedKind =>
+  PRESET_NEEDS.some((preset) => preset.kind === value);
+
+export function needLabel(need: MemberNeed): string {
+  if (need.kind === "custom") return need.label;
+  return PRESET_NEEDS.find((preset) => preset.kind === need.kind)?.label ?? "";
+}
+
+export const hasNeed = (needs: readonly MemberNeed[], kind: PresetNeedKind) => needs.some((need) => need.kind === kind);
+
+/** Switches a preset on or off. */
+export function toggleNeed(needs: readonly MemberNeed[], kind: PresetNeedKind): MemberNeed[] {
+  if (hasNeed(needs, kind)) return needs.filter((need) => need.kind !== kind);
+  return needs.length >= MAX_NEEDS ? [...needs] : [...needs, { kind }];
+}
+
+/** A typed label equal to a preset's label switches that preset on instead of creating a duplicate. */
+export function addCustomNeed(needs: readonly MemberNeed[], rawLabel: string): Validation<MemberNeed[], string> {
+  const label = rawLabel.trim();
+  if (label.length === 0) return { ok: false, errors: "Wpisz nazwę potrzeby." };
+  if (label.length > MAX_NEED_LABEL_LENGTH) {
+    return { ok: false, errors: `Nazwa potrzeby może mieć najwyżej ${MAX_NEED_LABEL_LENGTH} znaków.` };
+  }
+  const lower = label.toLocaleLowerCase("pl");
+  const preset = PRESET_NEEDS.find((item) => item.label.toLocaleLowerCase("pl") === lower);
+  if (preset) {
+    return hasNeed(needs, preset.kind)
+      ? { ok: false, errors: "Ta potrzeba jest już na liście." }
+      : validateNeedCount([...needs, { kind: preset.kind }]);
+  }
+  if (needs.some((need) => need.kind === "custom" && need.label.toLocaleLowerCase("pl") === lower)) {
+    return { ok: false, errors: "Ta potrzeba jest już na liście." };
+  }
+  return validateNeedCount([...needs, { kind: "custom", label }]);
+}
+
+function validateNeedCount(needs: MemberNeed[]): Validation<MemberNeed[], string> {
+  return needs.length > MAX_NEEDS
+    ? { ok: false, errors: `Najwyżej ${MAX_NEEDS} potrzeb na osobę.` }
+    : { ok: true, value: needs };
+}
 
 export type MemberInput = Omit<HouseholdMember, "id">;
 export type ContactInput = Omit<EmergencyContact, "id">;
@@ -47,7 +106,7 @@ export function validateMemberInput(input: MemberInput): Validation<MemberInput,
   const name = input.name.trim();
   const error = nameError(name);
   if (error) return { ok: false, errors: { name: error } };
-  return { ok: true, value: { name, category: input.category, takesMedication: input.takesMedication } };
+  return { ok: true, value: { name, category: input.category, needs: [...input.needs] } };
 }
 
 export function validateContactInput(input: ContactInput): Validation<ContactInput, ContactErrors> {
@@ -98,4 +157,32 @@ export function phoneHref(phone: string): string {
 
 export function summarizeHousehold(plan: Pick<HouseholdPlan, "members" | "contacts">) {
   return { members: plan.members.length, contacts: plan.contacts.length };
+}
+
+const digitsOf = (phone: string) => phone.replace(/\D/g, "");
+
+/**
+ * Cleans raw candidates from the phone's contact picker or a vCard file: invalid ones and
+ * duplicates (same digits as an existing or earlier contact) are counted, not returned.
+ */
+export function prepareCandidates(raw: readonly ContactInput[], existing: readonly EmergencyContact[]) {
+  const seen = new Set(existing.map((contact) => digitsOf(contact.phone)));
+  const candidates: ContactInput[] = [];
+  let invalid = 0;
+  let duplicates = 0;
+  for (const item of raw) {
+    const result = validateContactInput(item);
+    if (!result.ok) {
+      invalid += 1;
+      continue;
+    }
+    const digits = digitsOf(result.value.phone);
+    if (seen.has(digits)) {
+      duplicates += 1;
+      continue;
+    }
+    seen.add(digits);
+    candidates.push(result.value);
+  }
+  return { candidates, invalid, duplicates };
 }
