@@ -313,8 +313,8 @@ Migracja jednokierunkowa v1→v2 w `parsePlan`; zapis dopiero przy następnym `w
 
 - [x] 2.6 Dodawanie, edycja i usuwanie domowników i kontaktów na telefonie, dane przeżywają przeładowanie — 9bd51f4
 - [x] 2.7 Walidacja pokazuje błędy tekstem z ikoną — 9bd51f4
-- [ ] 2.8 Tryb samolotowy: strona główna i `/domownicy` działają po pierwszym otwarciu online
-- [ ] 2.9 Link `tel:` otwiera dialer z właściwym numerem
+- [x] 2.8 Tryb samolotowy: strona główna i `/domownicy` działają po pierwszym otwarciu online — 9869c89
+- [x] 2.9 Link `tel:` otwiera dialer z właściwym numerem — 9869c89
 - [x] 2.10 Karta na stronie głównej pokazuje aktualne liczby — 9bd51f4
 - [x] 2.11 Obsługa klawiaturą: logiczny tab, widoczny focus, fokus nie ginie po edycji — 9bd51f4
 - [x] 2.12 Regresja: punkt ewakuacji, alarm i `/alarm` działają jak przed zmianą — 9bd51f4
@@ -332,4 +332,4 @@ Migracja jednokierunkowa v1→v2 w `parsePlan`; zapis dopiero przy następnym `w
 
 - [x] 3.5 Potrzeby: wpisy (także „leki” jako propozycja) działają i zostają po przeładowaniu — 9bd51f4
 - [x] 3.6 Import z pliku vCard (jeden i wiele kontaktów) działa — 9bd51f4
-- [ ] 3.7 Contact Picker działa na Chrome/Android, a na iOS przycisku nie ma
+- [x] 3.7 Contact Picker działa na Chrome/Android, a na iOS przycisku nie ma — 9869c89

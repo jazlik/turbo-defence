@@ -32,7 +32,7 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                           | S-01          | US-01, FR-013                                                                         | proposed |
 | S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | done     |
 | S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed |
-| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed |
+| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | done     |
 | S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | done     |
 | S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                     | S-04, S-06    | US-01, FR-001                                                                         | proposed |
 | S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                       | S-07          | FR-008, FR-009                                                                        | proposed |
@@ -144,7 +144,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** rozszerza zapis planu z S-01 o dane rodziny, od których zależą plecak, onboarding i udostępnianie; prosty formularz, niskie ryzyko.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Spersonalizowana checklista plecaka
 
@@ -255,3 +255,4 @@ Rozstrzygnięte 2026-10-03:
 - **S-01: użytkownik może wskazać punkt ewakuacji, przytrzymać przycisk alarmu i w trybie samolotowym iść za dużą strzałką z odległością do punktu; plan zostaje zapisany na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-guided-to-point-offline/`. Lesson: —.
 - **S-03: użytkownik słyszy kolejne kroki po polsku, domyślnie włączone, i może głos wyłączyć.** — Archived 2026-10-03 → `context/archive/2026-10-03-voice-guidance/`. Lesson: —.
 - **S-06: organizator może odhaczać pozycje checklisty plecaka ewakuacyjnego dobranej do składu rodziny.** — Archived 2026-10-03 → `context/archive/2026-10-03-personalized-backpack/`. Lesson: —.
+- **S-05: organizator może dodać domowników (z potrzebami: dzieci, leki, zwierzęta) i kontakty awaryjne; dane zapisują się na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-household-members/`. Lesson: —.
