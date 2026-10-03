@@ -1,5 +1,7 @@
 import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
-import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
+import type { LayerSpecification, LineLayerSpecification, StyleSpecification } from "maplibre-gl";
+
+type LineWidth = NonNullable<LineLayerSpecification["paint"]>["line-width"];
 
 /**
  * The lean package (scripts/map/lean_filter.py) is read as three sources over the same PMTiles file:
@@ -85,6 +87,11 @@ const sourceLayerOf = (layer: LayerSpecification) =>
 
 const usesIcons = (layer: LayerSpecification) => layer.type === "symbol" && layer.layout?.["icon-image"] !== undefined;
 
+const ROUND_LINE = { "line-cap": "round", "line-join": "round" } as const;
+// Widths grow with zoom like in walking navigation: readable at z14, a broad band at z18.
+const ROUTE_WIDTH: LineWidth = ["interpolate", ["exponential", 1.5], ["zoom"], 13, 4, 16, 9, 18, 16];
+const ROUTE_CASING_WIDTH: LineWidth = ["interpolate", ["exponential", 1.5], ["zoom"], 13, 7, 16, 14, 18, 23];
+
 export function buildMapStyle(fileKey: string, palette: MapPalette): StyleSpecification {
   const tiles = [`pmtiles://${fileKey}/{z}/{x}/{y}`];
   const basemap = layers("base", executionFlavor(palette), { lang: "pl" })
@@ -105,24 +112,34 @@ export function buildMapStyle(fileKey: string, palette: MapPalette): StyleSpecif
       base: { type: "vector", tiles, maxzoom: 14 },
       detail: { type: "vector", tiles, minzoom: 15, maxzoom: 15 },
       route: { type: "geojson", data: empty },
+      "route-walked": { type: "geojson", data: empty },
       destination: { type: "geojson", data: empty },
       user: { type: "geojson", data: empty },
     },
     layers: [
       ...basemap,
+      // Whole route, faint: the part already walked stays as context without competing with the way ahead.
+      {
+        id: "route-walked",
+        type: "line",
+        source: "route-walked",
+        layout: ROUND_LINE,
+        paint: { "line-color": palette.guidance, "line-opacity": 0.3, "line-width": ROUTE_WIDTH },
+      },
+      // The way ahead, navigation-style: dark casing + wide guidance line, on top of streets and labels.
       {
         id: "route-casing",
         type: "line",
         source: "route",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": palette.background, "line-width": 10 },
+        layout: ROUND_LINE,
+        paint: { "line-color": palette.background, "line-width": ROUTE_CASING_WIDTH },
       },
       {
         id: "route",
         type: "line",
         source: "route",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": palette.guidance, "line-width": 6 },
+        layout: ROUND_LINE,
+        paint: { "line-color": palette.guidance, "line-width": ROUTE_WIDTH },
       },
       {
         id: "destination",

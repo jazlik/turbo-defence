@@ -6,6 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import { distanceMeters } from "@/lib/geo";
 import { buildMapStyle, PALETTE_TOKENS, type MapPalette } from "@/lib/map-style";
+import { prepareRoute, progressOnRoute, remainingGeometry, type PreparedRoute } from "@/lib/route-progress";
 import { openMapFile, type MapPackageState } from "@/lib/services/map-storage";
 import type { Coordinates, Destination, SavedRoute } from "@/types";
 
@@ -31,6 +32,8 @@ const MAX_PITCH = 50;
 const MIN_BEARING_DELTA = 5;
 const MIN_MOVE_METERS = 2;
 const EASE_MS = 250;
+/** The highlighted remainder is re-cut every few metres walked, not on every GPS fix. */
+const REMAINING_STEP_METERS = 5;
 
 export function readMapPalette(): MapPalette {
   const css = getComputedStyle(document.documentElement);
@@ -83,6 +86,14 @@ export default function ExecutionMap({
   const camera = useRef<{ bearing: number; center: Coordinates; mode: CameraMode } | null>(null);
   const onErrorRef = useRef(onError);
   const [loaded, setLoaded] = useState(false);
+  // Built once per route (a reroute brings a new one), not on every fix.
+  const [prepared, setPrepared] = useState<{ route: SavedRoute | null; line: PreparedRoute | null }>(() => ({
+    route,
+    line: route ? prepareRoute(route) : null,
+  }));
+  if (prepared.route !== route) setPrepared({ route, line: route ? prepareRoute(route) : null });
+  const traveledMeters = prepared.line && position ? progressOnRoute(prepared.line, position).traveledMeters : 0;
+  const traveledStep = Math.floor(traveledMeters / REMAINING_STEP_METERS) * REMAINING_STEP_METERS;
 
   useEffect(() => {
     onErrorRef.current = onError;
@@ -134,14 +145,18 @@ export default function ExecutionMap({
     const map = mapRef.current;
     if (!loaded || !map) return;
     void map.getSource<GeoJSONSource>("destination")?.setData(pointFeature(destination.coords));
+    const line = (coordinates: [number, number][]) => ({
+      type: "Feature" as const,
+      properties: {},
+      geometry: { type: "LineString" as const, coordinates },
+    });
+    const empty = { type: "FeatureCollection" as const, features: [] };
+    const { line: routeLine } = prepared;
+    void map.getSource<GeoJSONSource>("route-walked")?.setData(routeLine ? line(routeLine.route.geometry) : empty);
     void map
       .getSource<GeoJSONSource>("route")
-      ?.setData(
-        route
-          ? { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: route.geometry } }
-          : { type: "FeatureCollection", features: [] },
-      );
-  }, [loaded, route, destination]);
+      ?.setData(routeLine ? line(remainingGeometry(routeLine, traveledStep)) : empty);
+  }, [loaded, prepared, traveledStep, destination]);
 
   useEffect(() => {
     const map = mapRef.current;

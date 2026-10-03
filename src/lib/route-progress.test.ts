@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { distanceMeters } from "./geo";
-import { CHECKPOINT_LOOKAHEAD_METERS, prepareRoute, progressOnRoute } from "./route-progress";
+import { CHECKPOINT_LOOKAHEAD_METERS, prepareRoute, progressOnRoute, remainingGeometry } from "./route-progress";
 import type { Coordinates, SavedRoute } from "@/types";
 
 // L-shaped route near Kraków: ~500 m north, then ~500 m east. 0.0045° lat ≈ 500 m, 0.007° lon ≈ 500 m at 50°N.
@@ -83,5 +83,23 @@ describe("progressOnRoute", () => {
     const atEnd = progressOnRoute(offEnd, end);
     expect(atEnd.remainingOnLineMeters).toBe(0);
     near(atEnd.remainingMeters, 40, 1);
+  });
+});
+
+describe("remainingGeometry", () => {
+  it("starts at the walked distance and ends at the route end", () => {
+    const traveled = distanceMeters(start, corner) + 100; // 100 m past the corner
+    const remaining = remainingGeometry(prepared, traveled);
+    const [firstLon, firstLat] = remaining[0];
+    const [lastLon, lastLat] = remaining[remaining.length - 1];
+    near(distanceMeters(corner, { latitude: firstLat, longitude: firstLon }), 100, 1);
+    near(distanceMeters(end, { latitude: lastLat, longitude: lastLon }), 0, 1);
+  });
+
+  it("returns the whole route before the start and a single point past the end", () => {
+    expect(remainingGeometry(prepared, 0)).toEqual(route().geometry);
+    const done = remainingGeometry(prepared, prepared.lengthMeters + 10);
+    expect(done).toHaveLength(2);
+    expect(done[0]).toEqual(done[1]);
   });
 });

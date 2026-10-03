@@ -1,6 +1,7 @@
 import { along } from "@turf/along";
 import { lineString } from "@turf/helpers";
 import { length } from "@turf/length";
+import { lineSliceAlong } from "@turf/line-slice-along";
 import { nearestPointOnLine } from "@turf/nearest-point-on-line";
 import type { Feature, LineString } from "geojson";
 
@@ -60,4 +61,16 @@ export function progressOnRoute(prepared: PreparedRoute, position: Coordinates):
     checkpoint: toCoordinates(along(prepared.line, checkpointAt, { units: "meters" }).geometry.coordinates),
     snapped: toCoordinates(nearest.geometry.coordinates),
   };
+}
+
+/** The part of the route still ahead — the highlighted line on the map; the walked part is drawn faintly. */
+export function remainingGeometry(prepared: PreparedRoute, traveledMeters: number): LngLat[] {
+  const { geometry } = prepared.route;
+  if (traveledMeters <= 0) return geometry;
+  if (traveledMeters >= prepared.lengthMeters) {
+    const end = geometry[geometry.length - 1];
+    return [end, end];
+  }
+  const slice = lineSliceAlong(prepared.line, traveledMeters, prepared.lengthMeters, { units: "meters" });
+  return slice.geometry.coordinates.map(([longitude, latitude]): LngLat => [longitude, latitude]);
 }
