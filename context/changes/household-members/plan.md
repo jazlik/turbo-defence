@@ -297,33 +297,33 @@ Migracja jednokierunkowa v1→v2 w `parsePlan`; zapis dopiero przy następnym `w
 
 #### Automated
 
-- [x] 2.1 Testy przechodzą: `npm test`
-- [x] 2.2 Lint przechodzi: `npm run lint`
-- [x] 2.3 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 2.4 Build przechodzi: `npm run build`
-- [x] 2.5 Smoke przechodzi na buildzie, w tym `/domownicy` i `domownicy.html` w precache
+- [x] 2.1 Testy przechodzą: `npm test` — 9bd51f4
+- [x] 2.2 Lint przechodzi: `npm run lint` — 9bd51f4
+- [x] 2.3 Sprawdzenie typów przechodzi: `npx astro check` — 9bd51f4
+- [x] 2.4 Build przechodzi: `npm run build` — 9bd51f4
+- [x] 2.5 Smoke przechodzi na buildzie, w tym `/domownicy` i `domownicy.html` w precache — 9bd51f4
 
 #### Manual
 
-- [x] 2.6 Dodawanie, edycja i usuwanie domowników i kontaktów na telefonie, dane przeżywają przeładowanie
-- [x] 2.7 Walidacja pokazuje błędy tekstem z ikoną
+- [x] 2.6 Dodawanie, edycja i usuwanie domowników i kontaktów na telefonie, dane przeżywają przeładowanie — 9bd51f4
+- [x] 2.7 Walidacja pokazuje błędy tekstem z ikoną — 9bd51f4
 - [ ] 2.8 Tryb samolotowy: strona główna i `/domownicy` działają po pierwszym otwarciu online
 - [ ] 2.9 Link `tel:` otwiera dialer z właściwym numerem
-- [x] 2.10 Karta na stronie głównej pokazuje aktualne liczby
-- [x] 2.11 Obsługa klawiaturą: logiczny tab, widoczny focus, fokus nie ginie po edycji
-- [x] 2.12 Regresja: punkt ewakuacji, alarm i `/alarm` działają jak przed zmianą
+- [x] 2.10 Karta na stronie głównej pokazuje aktualne liczby — 9bd51f4
+- [x] 2.11 Obsługa klawiaturą: logiczny tab, widoczny focus, fokus nie ginie po edycji — 9bd51f4
+- [x] 2.12 Regresja: punkt ewakuacji, alarm i `/alarm` działają jak przed zmianą — 9bd51f4
 
 ### Phase 3: Zmiana zakresu po przeglądzie — potrzeby domownika i import kontaktów
 
 #### Automated
 
-- [x] 3.1 Testy przechodzą: `npm test`
-- [x] 3.2 Lint przechodzi: `npm run lint`
-- [x] 3.3 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 3.4 Build i smoke przechodzą
+- [x] 3.1 Testy przechodzą: `npm test` — 9bd51f4
+- [x] 3.2 Lint przechodzi: `npm run lint` — 9bd51f4
+- [x] 3.3 Sprawdzenie typów przechodzi: `npx astro check` — 9bd51f4
+- [x] 3.4 Build i smoke przechodzą — 9bd51f4
 
 #### Manual
 
-- [x] 3.5 Potrzeby: wpisy (także „leki” jako propozycja) działają i zostają po przeładowaniu
-- [x] 3.6 Import z pliku vCard (jeden i wiele kontaktów) działa
+- [x] 3.5 Potrzeby: wpisy (także „leki” jako propozycja) działają i zostają po przeładowaniu — 9bd51f4
+- [x] 3.6 Import z pliku vCard (jeden i wiele kontaktów) działa — 9bd51f4
 - [ ] 3.7 Contact Picker działa na Chrome/Android, a na iOS przycisku nie ma
