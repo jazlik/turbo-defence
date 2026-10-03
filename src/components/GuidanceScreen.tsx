@@ -8,6 +8,7 @@ import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { bearingDegrees, distanceMeters, formatDistance, relativeBearing } from "@/lib/geo";
+import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
 
 const ARRIVAL_RADIUS_METERS = 25;
@@ -16,19 +17,6 @@ const COMPASS_SILENCE_MS = 1000;
 
 // watchPosition goes silent when the signal is lost; a fix older than this is shown as stale, not live.
 const FIX_STALE_MS = 20_000;
-
-// Waiting for the sky does not help when the browser has no permission or location is off — say what to do instead.
-const LOCATION_PROBLEMS = {
-  denied: {
-    title: "Brak zgody na lokalizację",
-    instruction:
-      "Otwórz ustawienia strony w przeglądarce (ikona obok adresu), zezwól na lokalizację i odśwież tę stronę.",
-  },
-  unavailable: {
-    title: "Telefon nie podaje pozycji",
-    instruction: "Sprawdź, czy usługi lokalizacji są włączone w ustawieniach systemu, i wyjdź pod otwarte niebo.",
-  },
-} as const;
 
 /** "14:32" for today, "12.09, 14:32" otherwise — a position from weeks ago must not read as current. */
 function formatFixTime(timestamp: number): string {
