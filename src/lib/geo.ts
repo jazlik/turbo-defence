@@ -42,28 +42,14 @@ export function formatDistance(meters: number): string {
 export type ParsedCoordinates = { ok: true; coords: Coordinates } | { ok: false; reason: "format" | "range" };
 
 /**
- * Accepts a latitude/longitude pair: "52.2297, 21.0122", separated by a comma, semicolon or
- * whitespace, with dots or Polish decimal commas. Each value may also carry an explicit
- * hemisphere letter (prefix or suffix): N/S for latitude, E/W for longitude, e.g.
- * "52.2297 N, 21.0122 E", "N 52.2297; E 21.0122" or "52.2297, 74.0060 W". A letter decides the
- * sign; a bare number keeps its own sign (negative = S/W).
+ * Accepts "52.2297, 21.0122" (also separated by a semicolon or whitespace) and Polish decimal commas
+ * such as "52,2297; 21,0122" or "52,2297 21,0122".
  */
 export function parseCoordinates(input: string): ParsedCoordinates {
-  const match =
-    /^\s*(?:([NS])\s*)?(-?\d+(?:[.,]\d+)?)(?:\s*([NS]))?\s*[,;\s]\s*(?:([EW])\s*)?(-?\d+(?:[.,]\d+)?)(?:\s*([EW]))?\s*$/.exec(
-      input,
-    );
+  const match = /^\s*(-?\d+(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d+(?:[.,]\d+)?)\s*$/.exec(input);
   if (!match) return { ok: false, reason: "format" };
-  const letters: Array<string | undefined> = match;
-  const latitude = withHemisphere(match[2], letters[1] ?? letters[3], "S");
-  const longitude = withHemisphere(match[5], letters[4] ?? letters[6], "W");
+  const latitude = Number(match[1].replace(",", "."));
+  const longitude = Number(match[2].replace(",", "."));
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return { ok: false, reason: "range" };
   return { ok: true, coords: { latitude, longitude } };
-}
-
-/** Gdy podano literę półkuli, to ona decyduje o znaku; bez niej zostaje znak wpisanej liczby. */
-function withHemisphere(raw: string, letter: string | undefined, negativeLetter: string): number {
-  const value = Number(raw.replace(",", "."));
-  if (letter === undefined) return value;
-  return Math.abs(value) * (letter === negativeLetter ? -1 : 1);
 }

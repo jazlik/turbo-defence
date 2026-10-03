@@ -88,44 +88,6 @@ describe("parseCoordinates", () => {
     }
   });
 
-  it("accepts hemisphere letters as suffixes", () => {
-    expect(parseCoordinates("52.2297 N, 21.0122 E")).toEqual({ ok: true, coords: warsawCentre });
-    expect(parseCoordinates("52.2297 N; 21.0122 E")).toEqual({ ok: true, coords: warsawCentre });
-  });
-
-  it("accepts hemisphere letters as prefixes", () => {
-    expect(parseCoordinates("N 52.2297, E 21.0122")).toEqual({ ok: true, coords: warsawCentre });
-    expect(parseCoordinates("S 33.8688; W 70.6693")).toEqual({
-      ok: true,
-      coords: { latitude: -33.8688, longitude: -70.6693 },
-    });
-  });
-
-  it("turns S and W into negative values", () => {
-    expect(parseCoordinates("33.8688 S, 151.2093 E")).toEqual({
-      ok: true,
-      coords: { latitude: -33.8688, longitude: 151.2093 },
-    });
-    expect(parseCoordinates("52.2297, 74.0060 W")).toEqual({
-      ok: true,
-      coords: { latitude: 52.2297, longitude: -74.006 },
-    });
-  });
-
-  it("accepts hemisphere letters with Polish decimal commas", () => {
-    expect(parseCoordinates("52,2297 N, 21,0122 E")).toEqual({ ok: true, coords: warsawCentre });
-  });
-
-  it("rejects a hemisphere letter on the wrong axis", () => {
-    expect(parseCoordinates("52.2297 E, 21.0122")).toEqual({ ok: false, reason: "format" });
-    expect(parseCoordinates("52.2297, 21.0122 N")).toEqual({ ok: false, reason: "format" });
-  });
-
-  it("rejects out-of-range values even with a hemisphere letter", () => {
-    expect(parseCoordinates("91 N, 0 E")).toEqual({ ok: false, reason: "range" });
-    expect(parseCoordinates("0, 181 W")).toEqual({ ok: false, reason: "range" });
-  });
-
   it("rejects text", () => {
     expect(parseCoordinates("abc")).toEqual({ ok: false, reason: "format" });
     expect(parseCoordinates("52.2297")).toEqual({ ok: false, reason: "format" });
