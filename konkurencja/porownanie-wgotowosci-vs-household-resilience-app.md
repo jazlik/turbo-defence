@@ -3,6 +3,15 @@
 > Stan na 3 października 2026. Dane o #wGotowości pochodzą z opisów w sklepach i z artykułów
 > prasowych. Oficjalna strona MON jest zablokowana zabezpieczeniem CAPTCHA.
 
+> **Uwaga o zakresie.** Kolumna „Household Resilience App” opisuje wizję produktu
+> (`PROJECT.md`), nie zakres MVP na hackathon. Poza MVP są: **role domowników** (FR-005,
+> nice-to-have — w MVP jeden wspólny plan), **symulacje/ćwiczenia** (FR-017, nice-to-have),
+> **szyfrowany transfer planu** (Non-Goal), **przypomnienia o wygasających zapasach**
+> (brak w MVP) i **pełnoekranowe alerty** (Non-Goal, Execution Mode startuje wyłącznie
+> ręcznie). Grywalizacja to jakościowy poziom gotowości i quick winy (FR-008, FR-009),
+> bez punktów. Aktualny zakres: `context/foundation/prd.md`, sekcje Functional Requirements
+> i Non-Goals.
+
 ## Najważniejsze
 
 Oficjalny *Poradnik bezpieczeństwa* (MON, MSWiA i RCB, 16 mln egzemplarzy) wprost każe rodzinom

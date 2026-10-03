@@ -23,11 +23,37 @@ timeline_budget:
 
 Ludzie mają dostęp do poradników i informacji kryzysowych, ale nie przekładają ich na konkretny plan działania dla własnego gospodarstwa domowego. Nie wiedzą, jak się przygotować, a obecne rozwiązania ich do tego nie zachęcają. Kłopot ujawnia się w momencie kryzysu: domownicy są w różnych miejscach, nie mogą się skontaktować, nie ma sieci, brakuje przygotowanych rzeczy i ustaleń, a każdy improwizuje pod presją.
 
-Insight: istniejące narzędzia (RSO, Gdziesieukryć, poradnik GOV) informują, ale nie planują. Wymagają sieci dokładnie wtedy, gdy jej nie ma. Decyzje trzeba podjąć przed kryzysem, a w kryzysie tylko je wykonać. Plan to indywidualna ewakuacja spersonalizowana pod konkretną rodzinę. W kryzysie aplikacja przejmuje kontrolę i prowadzi za rękę.
+Insight: istniejące narzędzia informują, ale nie planują. Poradnik GOV, jego cyfrowa wersja w mObywatelu i #wGotowości (MON) dają wiedzę ogólną dla jednej pełnoletniej osoby, RSO alertuje, GdzieSięUkryć.pl pokazuje najbliższy punkt schronienia. Żadne z nich nie tworzy planu konkretnej rodziny ani nie prowadzi jej krok po kroku w trakcie kryzysu. Większość z nich wymaga sieci dokładnie wtedy, gdy jej nie ma. Decyzje trzeba podjąć przed kryzysem, a w kryzysie tylko je wykonać. Plan to indywidualna ewakuacja spersonalizowana pod konkretną rodzinę. W kryzysie aplikacja przejmuje kontrolę i prowadzi za rękę. Szczegóły: Competitive Positioning.
 
 Skala ×100: reguła domenowa się nie zmienia, bo każda rodzina ma własny plan.
 
 Główny ból, który demo ma udowodnić, ma dwie części: (1) zachęcić i poprowadzić przez przygotowanie, (2) w kryzysie przejąć kontrolę i prowadzić krok po kroku.
+
+## Competitive Positioning
+
+Źródło: `konkurencja/` (stan wiedzy na 2026-10-03), trzy analizy: poradnik bezpieczeństwa w mObywatelu, GdzieSięUkryć.pl, #wGotowości (MON).
+
+Państwo samo potwierdza problem i zostawia go nierozwiązanym. Papierowy poradnik bezpieczeństwa (16 mln egzemplarzy) zawiera wzór rodzinnego planu na kryzys i wprost każe go przećwiczyć, ale cyfrowe odpowiedniki tego nie robią: mObywatel daje pięć sekcji wiedzy ogólnej, #wGotowości quizy i zapisy na szkolenia, GdzieSięUkryć.pl mapę punktów schronienia.
+
+Warstwy, na których nie konkurujemy:
+- **Treść** (zasady postępowania, plecak, sygnały, numery SOS). Darmowa, oficjalna, w aplikacjach, które ludzie już mają. Powołujemy się na nią i personalizujemy (FR-003), nie duplikujemy jej.
+- **Mapa schronów.** Buduje ją PSP w GdzieSięUkryć.pl. W MVP punkt wskazuje organizator ręcznie (FR-004, Non-Goals).
+- **Zasięg i cena.** mObywatel ma ponad 12 mln użytkowników i jest darmowy.
+
+Czym się różnimy:
+- **Execution Mode.** Jedyne z tych narzędzi, które przechodzi od „co się stało?” do „co mam teraz zrobić?”. Duża strzałka zamiast mapy (FR-014), głos (FR-015), jedno wyjście awaryjne na miejsce zapasowe (FR-013). GdzieSięUkryć.pl przekierowuje nawigację do Map Google.
+- **Rodzina jako jednostka.** Aplikacje państwowe działają na jedno konto i jedną tożsamość (mObywatel wymaga pełnoletności i mDowodu, #wGotowości logowania Profilem Zaufanym), a problem zaczyna się dopiero wtedy, gdy domownicy są w różnych miejscach (FR-002, FR-010, FR-011).
+- **Offline-first i dane wyłącznie na urządzeniu.** Według wszystkich trzech analiz to element najtrudniejszy do skopiowania przez aplikację rządową. Dlatego są twardymi NFR, nie udogodnieniem.
+- **Plan konkretnego domu zamiast wiedzy ogólnej.** Checklista dopasowana do składu rodziny (FR-003), quick winy zamiast listy braków (FR-008), jakościowy poziom gotowości (FR-009).
+
+Pozycjonowanie jednym zdaniem: **mObywatel mówi, co wiedzieć. My mówimy, co Twoja rodzina konkretnie zrobi, i prowadzimy ją przez to bez sieci.**
+
+Ryzyka:
+- **#wGotowości ma od marca 2026 moduł „Plan na kryzys”.** Treści nie udało się zweryfikować z zewnątrz. Potencjalnie bezpośredni konkurent rdzenia produktu. Patrz Open Questions.
+- **Państwo może dodać plan rodzinny do mObywatela.** Wzór już istnieje, a aplikacja szybko dostaje nowe moduły (poradnik w lutym, Odyseusz w lipcu 2026).
+- **Gamifikacja nie jest wyróżnikiem.** #wGotowości ma już punkty, odznaki i ranking. Niezależnie potwierdza to decyzję o odrzuceniu punktów i streaków (FR-016).
+- **Spójność z oficjalnymi instrukcjami.** Jeśli Execution Mode powie coś innego niż poradnik rządowy, aplikacja traci zaufanie. Licencja treści poradnika nie była sprawdzana.
+- **Darmowe narzędzia państwowe ustawiają oczekiwanie ceny na zero.** Poza zakresem MVP, istotne dla późniejszej rozmowy o modelu biznesowym.
 
 ## User & Persona
 
@@ -133,7 +159,10 @@ Decyzje zakresowe:
 
 - Cały interfejs i komunikaty głosowe są po polsku.
 - Execution Mode pokazuje pierwszy krok w mniej niż 2 s od zwolnienia przycisku alarmu.
-- Świadomie odpuszczone w MVP: pełne działanie offline i gwarancja, że dane nie opuszczają urządzenia, nie są twardymi wymaganiami. To rozjazd z zasadami projektowymi z `PROJECT.md` (sekcja 3) i z głównym kryterium sukcesu (demo w trybie samolotowym). Patrz Open Questions.
+- **Offline-first (twarde wymaganie).** Po onboardingu i pobraniu mapy cały przepływ MVP, łącznie z trasą i voice guidance, działa w trybie samolotowym. Sieć jest potrzebna wyłącznie na etapie przygotowań (FR-007).
+- **Dane nie opuszczają urządzenia (twarde wymaganie).** Brak kont, serwera i centralnej chmury. Jedyny ruch danych na zewnątrz to przekazanie planu domownikowi (FR-010), które musi odbywać się lokalnie, między urządzeniami, bez pośrednika w chmurze — w MVP bez szyfrowania (Non-Goals).
+
+Oba twarde NFR wynikają z zasad projektowych `PROJECT.md` (sekcja 3), z głównego kryterium sukcesu (demo w trybie samolotowym), z kryterium akceptacji US-01 i z analizy konkurencji (Competitive Positioning). Wcześniejsza decyzja o potraktowaniu ich jako miękkich została wycofana 2026-10-03.
 
 ## Business Logic
 
@@ -157,12 +186,14 @@ Uwaga: model ról zakłada przekazanie planu domownikom. `PROJECT.md` ma tu sprz
 - **Bez własnej bazy i propozycji schronów.** Organizator wskazuje punkt ręcznie. Propozycje schronów i integracja z danymi państwowymi przychodzą po MVP (FR-004).
 - **Bez automatycznego startu z alertów.** Execution Mode uruchamia się tylko ręcznie. Integracja z RSO i innymi alertami przychodzi po MVP (`PROJECT.md` 4.1 pkt 7).
 - **Bez warstwy społeczności.** Brak punktów pomocy, zasobów sąsiedzkich i koordynacji lokalnej, bo MVP obsługuje jedno gospodarstwo domowe.
-- **Bez szyfrowanego transferu planu.** Przekazanie odbywa się w najprostszej formie (FR-010).
-- **Bez gwarancji pełnego offline i prywatności jako twardych wymagań.** Świadoma decyzja, patrz Non-Functional Requirements i Open Questions.
+- **Bez szyfrowanego transferu planu.** Przekazanie odbywa się w najprostszej formie, lokalnie między urządzeniami (FR-010).
 - **Bez punktów i streaków.** Odrzucone w decyzjach zakresowych; zostają tylko poważne kamienie milowe (FR-016).
 - **Poza MVP: role domowników, milestones, emergency drill.** FR-005, FR-016 i FR-017 mają priorytet nice-to-have; w MVP jest jeden wspólny plan.
 
 ## Open Questions
 
-1. **Offline i prywatność poza NFR:** zespół świadomie nie uznał ich za twarde wymagania MVP. Kłóci się to z zasadami z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu (demo w trybie samolotowym), z kryterium akceptacji US-01 („Całość działa w trybie samolotowym”) i z profilem lokalnym bez serwera. Do potwierdzenia: czy `PROJECT.md` aktualizujemy, czy wracamy do tych NFR. Owner: zespół.
-2. **„72H Ready” jako poziom gotowości (FR-009, must-have) i jako milestone (FR-016, nice-to-have):** ten sam przykład występuje w obu wymaganiach. Do rozstrzygnięcia, czym w MVP różni się poziom gotowości od kamienia milowego. Owner: zespół.
+1. **„72H Ready” jako poziom gotowości (FR-009, must-have) i jako milestone (FR-016, nice-to-have):** ten sam przykład występuje w obu wymaganiach. Do rozstrzygnięcia, czym w MVP różni się poziom gotowości od kamienia milowego. Owner: zespół.
+2. **Moduł „Plan na kryzys” w #wGotowości (od marca 2026):** treści nie udało się zweryfikować z zewnątrz. Jeśli to cyfrowa wersja sekcji „Plan działania w kryzysie” z poradnika, rdzeń produktu ma już darmowego konkurenta z autorytetem państwa i pozycjonowanie trzeba przesunąć mocniej na Execution Mode. Do zrobienia: zainstalować aplikację i obejrzeć moduł (kilkanaście minut). Owner: zespół.
+
+Rozstrzygnięte 2026-10-03:
+- **Offline i prywatność poza NFR.** Zespół wcześniej nie uznał ich za twarde wymagania MVP, co kłóciło się z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu, z kryterium akceptacji US-01 i z profilem lokalnym bez serwera. Decyzja: oba wracają jako twarde NFR. Patrz Non-Functional Requirements i Competitive Positioning.
