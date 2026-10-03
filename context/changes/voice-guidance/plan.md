@@ -422,4 +422,4 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 #### Manual
 
 - [ ] 4.3 Cała ścieżka z głosem przechodzi na telefonie w trybie samolotowym
-- [x] 4.4 `roadmap.md` ma `S-03` jako `done`, a PRD opisuje ograniczenia głosu
+- [x] 4.4 `roadmap.md` ma `S-03` jako `done`, a PRD opisuje ograniczenia głosu — 06c2c12
