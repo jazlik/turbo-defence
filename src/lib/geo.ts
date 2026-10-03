@@ -54,7 +54,7 @@ export function parseCoordinates(input: string): ParsedCoordinates {
       input,
     );
   if (!match) return { ok: false, reason: "format" };
-  const letters: Array<string | undefined> = match;
+  const letters: (string | undefined)[] = match;
   const latitude = withHemisphere(match[2], letters[1] ?? letters[3], "S");
   const longitude = withHemisphere(match[5], letters[4] ?? letters[6], "W");
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return { ok: false, reason: "range" };
