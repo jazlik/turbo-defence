@@ -260,3 +260,21 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * iOS Safari does not dispatch touch-originated pointer events to an element with
+ * `display: contents` — Astro's own inline style sets exactly that on every island
+ * root (`astro-island`), which silently breaks `onPointerDown` and therefore every
+ * hold-to-confirm action (alarm, backup-place fallback, arrival confirm) on iPhone.
+ * Confirmed on-device (iOS Safari): removing `display: contents` via the inspector
+ * restores the gesture immediately; this rule makes that removal permanent.
+ *
+ * Astro's rule is unlayered at specificity 0-0-1. Unlayered rules always beat layered
+ * ones regardless of source order or specificity, so this override must also stay
+ * unlayered (not in `@layer base`/`@layer utilities`) AND reach specificity >= 0-0-2 —
+ * either condition alone yields a rule that silently does nothing. Do not "simplify"
+ * this selector down to a bare `astro-island` type selector.
+ */
+html astro-island {
+  display: block;
+}

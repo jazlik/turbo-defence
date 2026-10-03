@@ -14,27 +14,33 @@ import Layout from "@/layouts/Layout.astro";
         drogi jest punkt ewakuacji.
       </p>
       <div class="mt-8 space-y-4">
-        <PlaceCard
-          client:only="react"
-          kind="meeting"
-          title="Miejsce spotkania"
-          description="Tu zbiera się rodzina zaraz po alarmie."
-          emphasis="primary"
-        />
-        <PlaceCard
-          client:only="react"
-          kind="backup"
-          title="Miejsce zapasowe"
-          description="Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne."
-          emphasis="secondary"
-        />
-        <PlaceCard
-          client:only="react"
-          kind="shelter"
-          title="Punkt ewakuacji"
-          description="Twój punkt na końcu drogi — używany, gdy nie ma przygotowanej trasy do schronu PSP."
-          emphasis="secondary"
-        />
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="meeting"
+            title="Miejsce spotkania"
+            description="Tu zbiera się rodzina zaraz po alarmie."
+            emphasis="primary"
+          />
+        </div>
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="backup"
+            title="Miejsce zapasowe"
+            description="Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne."
+            emphasis="secondary"
+          />
+        </div>
+        <div>
+          <PlaceCard
+            client:only="react"
+            kind="shelter"
+            title="Punkt ewakuacji"
+            description="Twój punkt na końcu drogi — używany, gdy nie ma przygotowanej trasy do schronu PSP."
+            emphasis="secondary"
+          />
+        </div>
       </div>
     </div>
   </main>

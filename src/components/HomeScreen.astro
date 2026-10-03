@@ -27,7 +27,9 @@ import ReadinessScreen from "@/components/ReadinessScreen";
     </header>
 
     <main class="flex-1 space-y-6 py-8 sm:py-12">
-      <ReadinessScreen client:only="react" />
+      <div>
+        <ReadinessScreen client:only="react" />
+      </div>
 
       <!-- Zostawia miejsce na przyklejony alarm, żeby nie zasłaniał ostatniego bloku. -->
       <div class="h-44" aria-hidden="true"></div>

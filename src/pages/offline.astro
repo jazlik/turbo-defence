@@ -16,10 +16,18 @@ import Layout from "@/layouts/Layout.astro";
         Przygotuj teraz to, czego w kryzysie nie pobierzesz: aplikację na urządzeniu, mapę regionu i trasę do schronu.
       </p>
       <div class="mt-8 space-y-6">
-        <OfflineShellCard client:only="react" />
-        <InstallCard client:only="react" />
-        <MapPackageCard client:only="react" />
-        <RouteCard client:only="react" />
+        <div>
+          <OfflineShellCard client:only="react" />
+        </div>
+        <div>
+          <InstallCard client:only="react" />
+        </div>
+        <div>
+          <MapPackageCard client:only="react" />
+        </div>
+        <div>
+          <RouteCard client:only="react" />
+        </div>
       </div>
     </div>
   </main>

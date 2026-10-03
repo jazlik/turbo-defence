@@ -63,11 +63,13 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Device state keys.** `wrw.sensors` (`@/lib/services/sensor-storage`, `schemaVersion: 1`) records whether location and compass were checked on `/czujniki`; like `wrw.voice`, `wrw.navigation` and `wrw.map` it is per-device, outside `HouseholdPlan`. Add a key only for state that cannot be derived from existing data.
 - **The home page is the readiness screen** (`/`), with the alarm docked to the bottom (`AlarmButton compact`). Configurators are subpages (`/miejsca`, `/domownicy`, `/plecak`, `/offline`, `/czujniki`) that return through `PageBackLink` ("← Gotowość"). `useReadiness` mounts `useRouteRefresh` and `useMapPackage` on purpose: route refresh (FR-007) and resuming an interrupted map download only run while those hooks are mounted, so do not remove them from `/` without moving that duty.
 - **Hold-to-confirm actions** share one state machine: `useHoldAction` in `src/components/hooks/useHoldAction.ts` (pointer + keyboard events, pointer-capture release, rAF progress ring). `AlarmButton` and `HoldButton` build on it — do not write a second copy, and do not change the 2000 ms duration, which was field-tested.
+- **Every `client:only="react"` island mount wraps in an explicit block element**, never a bare direct child of a `space-y-*` container. `global.css` overrides Astro's `display: contents` on `astro-island` to `block` (iOS Safari does not deliver touch-originated pointer events to a `display: contents` root — see that rule's comment); without the wrapper, `space-y-*` spacing would then depend on the island's own box instead of a layout-stable element.
 
 ### Environment
 
 - Node.js v22.14.0 (see `.nvmrc`)
 - No environment variables or secrets are needed to build.
+- **Supported platforms: iOS Safari and Android Chrome.** Islands (`client:only="react"`) mount on an `astro-island` root; interactions driven by pointer events (hold-to-confirm, drag) need confirming on iOS specifically — `onClick` alone is not a substitute, because iOS synthesizes click from touch even when pointer events never fire, which can mask a broken pointer path. A field-test record that doesn't name the device and browser does not count as verified on that platform.
 - Deploy: assets-only Worker `w-razie-w` via `npx wrangler deploy` (CI deploys from `main`).
 
 ## CI
