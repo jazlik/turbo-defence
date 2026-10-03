@@ -56,4 +56,4 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) triggers on push and pull r
 
 Required repository secrets: `CLOUDFLARE_API_TOKEN` ("Edit Cloudflare Workers" template), `CLOUDFLARE_ACCOUNT_ID` (`npx wrangler whoami`).
 
-Production URL: `https://w-razie-w.<subdomain>.workers.dev` (fill in after the first deploy).
+Production URL: `https://w-razie-w.jzogala.workers.dev`.
