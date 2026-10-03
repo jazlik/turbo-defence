@@ -52,13 +52,20 @@ export default function MapPackageCard() {
         )}
 
         {supported && !ready && needsInstall && (
-          <p className="text-attention-foreground flex items-start gap-2">
-            <Smartphone className="mt-0.5 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
-            <span>
-              Najpierw dodaj aplikację do ekranu początkowego (Udostępnij → Do ekranu początkowego) i pobierz mapę w
-              niej. Mapa pobrana w Safari nie będzie widoczna w aplikacji.
-            </span>
-          </p>
+          <div className="space-y-3">
+            <p className="flex items-start gap-2 font-medium">
+              <Smartphone className="mt-0.5 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+              Mapę offline pobierzesz w aplikacji na ekranie początkowym
+            </p>
+            <ol className="text-muted-foreground list-decimal space-y-1 pl-6 text-sm">
+              <li>Stuknij „Udostępnij” (kwadrat ze strzałką) na dole Safari.</li>
+              <li>Wybierz „Do ekranu początkowego” i potwierdź „Dodaj”.</li>
+              <li>Otwórz „W razie W” z ekranu początkowego — tam pojawi się „Pobierz mapę”.</li>
+            </ol>
+            <p className="text-muted-foreground text-sm">
+              Alarm działa także tutaj, w przeglądarce — prowadzi strzałką, bez mapy.
+            </p>
+          </div>
         )}
 
         {supported && !ready && !needsInstall && downloading && (

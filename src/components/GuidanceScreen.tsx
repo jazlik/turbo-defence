@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Compass,
   History,
+  LoaderCircle,
+  LocateFixed,
   Map as MapIcon,
   MapPinOff,
   Navigation2,
@@ -19,26 +21,29 @@ import {
 
 import DirectionArrow from "@/components/DirectionArrow";
 import HoldButton from "@/components/HoldButton";
-import { useGeolocation } from "@/components/hooks/useGeolocation";
+import { requestCurrentPosition, useGeolocation } from "@/components/hooks/useGeolocation";
 import MapOverlay, { prefetchExecutionMap, type MapNotice } from "@/components/map/MapOverlay";
 import { useNow } from "@/components/hooks/useNow";
 import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
-import { buildSteps, resumeIndex, stepContent, targetPlaceKind } from "@/lib/evacuation-steps";
+import { buildSteps, resumeIndex, stepContent, targetPlaceKind, type EvacuationStep } from "@/lib/evacuation-steps";
 import { formatClockTime } from "@/lib/format";
 import { formatDistance } from "@/lib/geo";
 import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
 import { ARRIVAL_RADIUS_METERS, deriveGuidance, type DistanceKind, type GuidanceMode } from "@/lib/navigation";
 import { prepareRoute } from "@/lib/route-progress";
 import { isMapReady, readMapPackage } from "@/lib/services/map-storage";
-import { readNavigation } from "@/lib/services/navigation-storage";
+import { findEmergencyTarget } from "@/lib/services/emergency-target";
+import { readNavigation, writeNavigation } from "@/lib/services/navigation-storage";
+import { loadShelters } from "@/lib/services/route-refresh";
+import { walkingRouter } from "@/lib/services/routing";
 import { resolveStepTarget, shelterAlternateAvailable, shelterFallbackContent } from "@/lib/step-target";
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
 import { clearRun, readRun, writeRun } from "@/lib/services/run-storage";
 import type { GuidanceVoiceState } from "@/lib/voice";
-import type { EvacuationRun } from "@/types";
+import type { Coordinates, Destination, EvacuationRun } from "@/types";
 
 // iOS forgets the motion permission between PWA launches; after this much compass silence offer to re-enable it.
 const COMPASS_SILENCE_MS = 1000;
@@ -66,19 +71,80 @@ function formatFixTime(timestamp: number): string {
   return `${date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}, ${time}`;
 }
 
-function MissingPlaceScreen({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
+/** Alarm started without a prepared target, found on the spot: straight-line guidance only, said out loud. */
+const EMERGENCY_STEP: EvacuationStep = {
+  id: "emergency",
+  kind: "navigate",
+  title: "Idź do najbliższego schronu",
+  instruction: "Prowadzenie awaryjne w linii prostej, bez trasy po drogach. Omijaj przeszkody i trzymaj kierunek.",
+  place: "shelter",
+  fallback: null,
+};
+
+type FinderState = "idle" | "searching" | "no-position" | "no-candidates";
+
+const fetchJson = async (url: string): Promise<unknown> => (await fetch(url)).json();
+
+/**
+ * Never a dead end in alarm mode: without a prepared target the screen offers to find the nearest PSP shelter now
+ * (online: with a walking route; offline: straight-line from the local snapshot). Manual places stay one link away.
+ */
+function FindTargetScreen({
+  voice,
+  state,
+  onFind,
+}: {
+  voice: ReturnType<typeof useVoiceGuidance>;
+  state: FinderState;
+  onFind: () => void;
+}) {
+  const online = typeof navigator === "undefined" || navigator.onLine;
   return (
     <main className="flex min-h-screen flex-col justify-between gap-8 px-4 py-8">
       <div>
         <MapPinOff className="text-guidance size-12" strokeWidth={2} aria-hidden="true" />
-        <h1 className="font-heading mt-6 text-3xl">Nie wskazano żadnego miejsca</h1>
+        <h1 className="font-heading mt-6 text-3xl">Nie ma przygotowanego celu</h1>
         <p className="text-muted-foreground mt-3 text-lg">
-          Bez zapisanego miejsca nie mogę prowadzić. Wróć do planu i ustaw miejsce spotkania albo punkt ewakuacji —
-          zajmie to chwilę.
+          {online
+            ? "Znajdę najbliższy punkt schronienia i przygotuję trasę pieszą. Do serwisu tras trafi tylko Twoja pozycja."
+            : "Bez internetu wskażę najbliższy punkt schronienia z danych zapisanych w telefonie — kierunek w linii prostej, bez trasy po drogach."}
         </p>
+        <div role="status" aria-live="polite" className="mt-4 text-lg empty:hidden">
+          {state === "searching" && (
+            <p className="text-muted-foreground flex items-center gap-2">
+              <LoaderCircle
+                className="size-5 animate-spin motion-reduce:animate-none"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              Szukam najbliższego schronu…
+            </p>
+          )}
+          {state === "no-position" && (
+            <p className="text-attention-foreground">
+              Nie znam Twojej pozycji. Wyjdź pod otwarte niebo, sprawdź zgodę na lokalizację i spróbuj ponownie.
+            </p>
+          )}
+          {state === "no-candidates" && (
+            <p className="text-attention-foreground">
+              W pobliżu nie ma punktu schronienia z danych PSP (na razie Małopolska). Wskaż miejsce w planie.
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex flex-col items-center gap-3">
-        <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
+        <Button
+          type="button"
+          size="lg"
+          className="min-h-14 w-full text-lg font-semibold"
+          disabled={state === "searching"}
+          onClick={onFind}
+        >
+          <LocateFixed className="size-6" strokeWidth={2} aria-hidden="true" />
+          Znajdź najbliższy schron teraz
+        </Button>
+        <VoiceUnlockButton voice={voice} />
+        <Button asChild variant="secondary" className="min-h-14 w-full text-base">
           <a href="/">Ustaw miejsca w planie</a>
         </Button>
         <VoiceToggle voice={voice} />
@@ -158,8 +224,12 @@ function readSession() {
 }
 
 export default function GuidanceScreen() {
-  const [session] = useState(readSession);
-  const { plan, steps, navigation, prepared, mapPackage } = session;
+  const [session, setSession] = useState(readSession);
+  const { plan, navigation, prepared, mapPackage } = session;
+  // Found on the spot without a route (offline or routing failed): one straight-line step to the nearest PSP point.
+  const [emergency, setEmergency] = useState<Destination | null>(null);
+  const [finder, setFinder] = useState<FinderState>("idle");
+  const steps = emergency ? [EMERGENCY_STEP] : session.steps;
   const mapReady = isMapReady(mapPackage);
   // Happy path: with a saved route and the offline map, the map is the default view; the big arrow is the
   // fallback (no map, no route, map or storage error) and stays one tap away.
@@ -178,7 +248,9 @@ export default function GuidanceScreen() {
   const step = steps.at(stepIndex);
   const nextStep = steps.at(stepIndex + 1);
   const targetKind = step ? targetPlaceKind(step, run) : null;
-  const point = resolveStepTarget(targetKind, plan, navigation, run?.fallbackActive ?? false);
+  const point = emergency
+    ? { label: emergency.label, coords: emergency.coords, source: "psp" as const, route: null, role: null }
+    : resolveStepTarget(targetKind, plan, navigation, run?.fallbackActive ?? false);
   // The shelter step's "niedostępne" switches to the prepared PSP route B (S-04).
   const shelterFallback =
     step?.kind === "navigate" &&
@@ -186,7 +258,8 @@ export default function GuidanceScreen() {
     point?.source === "psp" &&
     shelterAlternateAvailable(navigation);
 
-  const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: steps.length > 0 });
+  // Alarm mode always tracks position — also before a target exists, so "Znajdź" can use a live fix.
+  const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: true });
   const { heading, source } = useHeading(coords, accuracyMeters);
   const [compassSilent, setCompassSilent] = useState(false);
   const now = useNow(5_000);
@@ -279,7 +352,59 @@ export default function GuidanceScreen() {
     window.location.assign("/");
   };
 
-  const content = step ? (shelterFallbackContent(step, point) ?? stepContent(step, run)) : null;
+  const content = step
+    ? emergency
+      ? { title: EMERGENCY_STEP.title, instruction: EMERGENCY_STEP.instruction }
+      : (shelterFallbackContent(step, point) ?? stepContent(step, run))
+    : null;
+
+  const findTarget = async () => {
+    setFinder("searching");
+    const fresh = coords !== null && fixedAt !== null && Date.now() - fixedAt < FIX_STALE_MS ? coords : null;
+    const position: Coordinates | null =
+      fresh ??
+      (await requestCurrentPosition().then((result) => (result.ok ? result.fix.coords : null))) ??
+      plan.lastKnownPosition?.coords ??
+      null;
+    if (!position) {
+      setFinder("no-position");
+      return;
+    }
+    // Same as every live fix: guidance starts from this position until the watcher delivers a newer one.
+    saveLastKnownPosition(position);
+    const shelters = await loadShelters(fetchJson).catch(() => []);
+    const outcome = await findEmergencyTarget({
+      previous: navigation,
+      origin: position,
+      shelters,
+      online: navigator.onLine,
+      router: walkingRouter,
+    });
+    if (outcome.kind === "none") {
+      setFinder("no-candidates");
+      return;
+    }
+    clearRun();
+    setRun(null);
+    setResumePrompt(false);
+    setFinder("idle");
+    if (outcome.kind === "direct") {
+      setSession(readSession());
+      setEmergency(outcome.destination);
+      setStepIndex(0);
+      return;
+    }
+    // Route prepared: from here it is the normal prepared path, started straight at the shelter step.
+    writeNavigation(outcome.navigation);
+    const next = readSession();
+    setSession(next);
+    setStepIndex(
+      Math.max(
+        0,
+        next.steps.findIndex((candidate) => candidate.id === "shelter"),
+      ),
+    );
+  };
 
   const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
   // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
@@ -365,7 +490,8 @@ export default function GuidanceScreen() {
 
   const voice = useVoiceGuidance(voiceState);
 
-  if (step === undefined || content === null) return <MissingPlaceScreen voice={voice} />;
+  if (step === undefined || content === null)
+    return <FindTargetScreen voice={voice} state={finder} onFind={() => void findTarget()} />;
 
   if (resumePrompt) {
     return (
@@ -439,7 +565,7 @@ export default function GuidanceScreen() {
 
   // `buildSteps` tworzy krok `navigate` tylko dla ustawionego miejsca, więc to stan nieosiągalny
   // przy spójnym planie — ekran prowadzenia nigdy nie pokazuje kroku bez celu.
-  if (point === null) return <MissingPlaceScreen voice={voice} />;
+  if (point === null) return <FindTargetScreen voice={voice} state={finder} onFind={() => void findTarget()} />;
 
   const mapAvailable = mapReady && !mapFailed && point.route !== null;
 
@@ -566,6 +692,11 @@ export default function GuidanceScreen() {
             <p className="text-muted-foreground text-lg">
               {guidance ? DISTANCE_CAPTIONS[guidance.distanceKind] : "w linii prostej"}
             </p>
+            {emergency && (
+              <p className="text-attention-foreground text-base">
+                Prowadzenie awaryjne w linii prostej — bez wyznaczonej trasy po drogach.
+              </p>
+            )}
             {guidance?.mode === "direct" && point.route && (
               <p className="text-muted-foreground text-base">Jesteś daleko od zapisanej trasy — idź w kierunku celu.</p>
             )}

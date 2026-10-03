@@ -7,6 +7,7 @@ import BackpackLinkCard from "@/components/BackpackLinkCard";
 import HouseholdLinkCard from "@/components/HouseholdLinkCard";
 import MapPackageCard from "@/components/MapPackageCard";
 import PlaceCard from "@/components/PlaceCard";
+import ReadinessStatus from "@/components/ReadinessStatus";
 import RouteCard from "@/components/RouteCard";
 ---
 
@@ -49,6 +50,7 @@ import RouteCard from "@/components/RouteCard";
         <div class="mt-4">
           <AlarmButton client:only="react" />
         </div>
+        <ReadinessStatus client:only="react" />
       </section>
 
       <MapPackageCard client:only="react" />
