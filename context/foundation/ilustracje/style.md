@@ -61,7 +61,7 @@ Potem: `npm run illustrations:sheet -- context/foundation/ilustracje/kierunki-v1
 
 ## Ścieżka poradnika — propozycja do akceptacji
 
-Poradnik po pierwszym wejściu: **5 kart do przeklikania**, jedna karta = jedna core funkcja z [roadmapy](../roadmap.md), w kolejności przepływu MVP z PRD. Copy osobno; tu tylko sceny. Prototyp do przeklikania: `/prototyp/poradnik` (`src/pages/prototyp/poradnik.astro`, tylko na tym branchu, nielinkowany); karty 1–3 mają na razie zastępcze obrazy z rund eksploracji.
+Poradnik po pierwszym wejściu: **5 kart do przeklikania**, jedna karta = jedna core funkcja z [roadmapy](../roadmap.md), w kolejności przepływu MVP z PRD. Copy osobno; tu tylko sceny. Prototyp do przeklikania: `/prototyp/poradnik` (`src/pages/prototyp/poradnik.astro`, tylko na tym branchu, nielinkowany); wszystkie 5 kart ma wybrane ilustracje.
 
 | Karta | Funkcja (roadmapa)                          | Co ma zrozumieć użytkownik                    | Scena (`Styl: D`)                                                                                                                                        | Obiekt w stali |
 | ----- | ------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
@@ -89,6 +89,4 @@ Rodzina spójna: twarz c3, włosy konturem, ta sama grubość kreski we wszystki
 | 4     | **do powtórki** | brak obiektu w stali (telefon jest drobny i ciemny), „schron” wygląda jak przystanek; scena czyta się jak spacer z telefonem |
 | 5     | **c1**          | babcia czytelna (siwy kok); w c2 wygląda na młodą kobietę                                                                    |
 
-**Karta 4 — powtórka (2 kandydatów, `karta-4-c3.png`, `-c4.png`):** łączy się z kartą 3 — prowadzenie do tego samego miejsca spotkania.
-
-> An adult walks calmly along a dashed route line drawn on the ground, holding a phone at chest height, towards a bench under a tree in the distance. The phone is a clearly visible solid steel blue shape (#536B75), larger than in a typical scene; it is the only steel object. No buildings, no signs.
+**Wybór człowieka (2026-10-03):** 1-c1, 2-c2, 3-c2, 4-c1, 5-c1 — karta 4 bez powtórki. Wyeksportowane do prototypu (`public/prototyp/poradnik/karta-<N>.webp`).
