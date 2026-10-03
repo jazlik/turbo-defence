@@ -366,24 +366,24 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 
 #### Automated
 
-- [x] 1.1 Testy przechodzą: `npm test`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Typy przechodzą: `npx astro check`
-- [x] 1.4 Build przechodzi: `npm run build`
+- [x] 1.1 Testy przechodzą: `npm test` — c6856cd
+- [x] 1.2 Lint przechodzi: `npm run lint` — c6856cd
+- [x] 1.3 Typy przechodzą: `npx astro check` — c6856cd
+- [x] 1.4 Build przechodzi: `npm run build` — c6856cd
 
 #### Manual
 
-- [x] 1.5 Celowe zepsucie odmiany wywala test
+- [x] 1.5 Celowe zepsucie odmiany wywala test — c6856cd
 
 ### Phase 2: Usługa mowy i test głosu na `/czujniki`
 
 #### Automated
 
-- [ ] 2.1 Lint przechodzi: `npm run lint`
-- [ ] 2.2 Typy przechodzą: `npx astro check`
-- [ ] 2.3 Testy przechodzą: `npm test`
-- [ ] 2.4 Build przechodzi: `npm run build`
-- [ ] 2.5 Smoke przechodzi: `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint`
+- [x] 2.2 Typy przechodzą: `npx astro check`
+- [x] 2.3 Testy przechodzą: `npm test`
+- [x] 2.4 Build przechodzi: `npm run build`
+- [x] 2.5 Smoke przechodzi: `npm run smoke`
 
 #### Manual
 
