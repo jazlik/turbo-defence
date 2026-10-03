@@ -225,3 +225,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Wibracje w Execution Mode** — Why parked: decyzja zespołu w US-01 (odstępstwo od `PROJECT.md` 4.1 pkt 6).
 
 ## Done
+- **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.
