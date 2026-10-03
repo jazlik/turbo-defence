@@ -31,7 +31,7 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | S-01 | guided-to-point-offline  | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością | F-01             | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | proposed |
 | S-02 | step-flow-and-fallback   | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe | S-01             | US-01, FR-013                              | proposed |
 | S-03 | voice-guidance           | słyszeć kolejne kroki po polsku i wyłączyć głos                                      | S-01             | US-01, FR-015                              | proposed |
-| S-04 | offline-map-and-route    | pobrać mapę i trasę do punktu i zobaczyć je offline jako drugi poziom prowadzenia    | S-01             | US-01, FR-007, FR-014                      | proposed |
+| S-04 | offline-map-and-route    | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01             | US-01, FR-007, FR-014                      | proposed |
 | S-05 | household-members        | dodać domowników i kontakty awaryjne                                                 | S-01             | FR-002                                     | proposed |
 | S-06 | personalized-backpack    | odhaczać checklistę plecaka dopasowaną do składu rodziny                             | S-05             | FR-003                                     | proposed |
 | S-07 | first-run-onboarding     | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy | S-04, S-06       | US-01, FR-001                              | proposed |
@@ -117,15 +117,17 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ### S-04: Mapa i trasa offline
 
-- **Outcome:** użytkownik może pobrać mapę i trasę do punktu ewakuacji, a w trybie prowadzenia otworzyć je offline jako drugi poziom pod strzałką.
+- **Outcome:** użytkownik może pobrać na urządzenie mapę regionu; gdy jest sieć, aplikacja odświeża trasę z jego bieżącej lokalizacji do punktu, a po utracie sieci w trybie prowadzenia otwiera mapę z ostatnią przygotowaną trasą jako drugi poziom pod strzałką. Bez przeliczania trasy offline (PRD: „Mapa i nawigacja offline w MVP”).
 - **Change ID:** offline-map-and-route
 - **PRD refs:** US-01, FR-007, FR-014
 - **Prerequisites:** S-01
 - **Parallel with:** S-02, S-03, S-05
 - **Blockers:** —
 - **Unknowns:**
-  - Skąd mapa i trasa offline (otwarte w `PROJECT.md` sekcja 7) i czy licencja pozwala pobrać fragment na urządzenie? — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
-- **Risk:** najdroższy element według shape-notes; jako drugi poziom pod strzałką może zostać okrojony (np. tylko obszar wokół trasy) bez utraty głównego kryterium sukcesu.
+  - Skąd mapa regionu i serwis przygotowujący trasę (otwarte w `PROJECT.md` sekcja 7), czy licencja pozwala pobrać region na urządzenie i ile miejsca zajmie? — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
+  - Czy aplikacja webowa może odświeżać lokalizację i trasę w tle, gdy nie jest otwarta (przeglądarki mocno to ograniczają)? — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
+  - Wysyłanie lokalizacji do serwisu tras a NFR „Dane nie opuszczają urządzenia” (PRD Open Question 3). — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
+- **Risk:** najdroższy element według shape-notes; jako drugi poziom pod strzałką może zostać okrojony (np. mniejszy obszar mapy) bez utraty głównego kryterium sukcesu.
 - **Status:** proposed
 
 ### S-05: Domownicy i kontakty awaryjne
@@ -199,7 +201,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)     | no                    | Po F-01                                      |
 | S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe             | no                    | Po S-01                                      |
 | S-03       | voice-guidance          | Głos prowadzący po polsku                                      | no                    | Po S-01                                      |
-| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                         | no                    | Po S-01; źródło map do ustalenia w planie    |
+| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                         | no                    | Po S-01; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                                  | no                    | Po S-01                                      |
 | S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                            | no                    | Po S-05                                      |
 | S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                         | no                    | Po S-04 i S-06                               |
@@ -216,6 +218,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Własna baza i propozycje schronów** — Why parked: PRD §Non-Goals; punkt wskazywany ręcznie (FR-004).
 - **Automatyczny start z alertów (RSO)** — Why parked: PRD §Non-Goals; Execution Mode tylko ręcznie.
 - **Warstwa społeczności** — Why parked: PRD §Non-Goals; MVP obsługuje jedno gospodarstwo domowe.
+- **Przeliczanie trasy offline** — Why parked: PRD §Non-Goals; w MVP po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci.
 - **Szyfrowany transfer planu** — Why parked: PRD §Non-Goals; przekazanie w najprostszej formie (FR-010).
 - **Twarde gwarancje pełnego offline i prywatności** — Why parked: PRD §Non-Goals i Otwarte pytanie 1.
 - **Punkty i streaki** — Why parked: PRD §Non-Goals; odrzucone w decyzjach zakresowych.
