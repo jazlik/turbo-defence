@@ -61,4 +61,7 @@ jobs:
           wranglerVersion: "4.131.1"
           command: deploy
       - name: Smoke test live deployment
-        run: BASE_URL="${{ steps.deploy.outputs.deployment-url }}" EXPECT_HEADERS=1 npm run smoke
+        run: |
+          URL="${{ steps.deploy.outputs.deployment-url }}"
+          for i in $(seq 1 30); do curl -sf -o /dev/null "$URL/" && break; sleep 2; done
+          BASE_URL="$URL" EXPECT_HEADERS=1 npm run smoke
