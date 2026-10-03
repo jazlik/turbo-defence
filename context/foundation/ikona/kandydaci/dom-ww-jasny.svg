@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Dom chroniący rodzinę przed dwoma znakami W — wariant jasny</title>
+  <rect width="512" height="512" fill="#F1F2F3"/>
+  <g fill="none" stroke="#536B75" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m124 136 20 64 22-42 22 42 20-64" transform="rotate(10 166 168)"/>
+    <path d="m388 136-20 64-22-42-22 42-20-64" transform="rotate(-10 346 168)"/>
+  </g>
+  <g fill="none" stroke="#2F3E45" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m120 286 136-98 136 98"/>
+    <path d="M140 272v120M372 272v120"/>
+  </g>
+  <g fill="#2F3E45">
+    <circle cx="202" cy="306" r="22"/>
+    <rect x="168" y="334" width="68" height="58" rx="29"/>
+    <circle cx="310" cy="306" r="22"/>
+    <rect x="276" y="334" width="68" height="58" rx="29"/>
+    <circle cx="256" cy="334" r="17"/>
+    <rect x="232" y="356" width="48" height="36" rx="18"/>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Dom chroniony przed znakiem W — uproszczony favicon</title>
+  <rect width="512" height="512" fill="#536B75"/>
+  <path d="m196 92 28 74 32-50 32 50 28-74" fill="none" stroke="#E3E7E9" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m126 300 130-90 130 90"/>
+    <path d="M146 286v108M366 286v108"/>
+  </g>
+</svg>

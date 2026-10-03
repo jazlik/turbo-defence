@@ -18,6 +18,7 @@
 | **sciezka**   | przerywana ścieżka zakończona punktem (kółko w kółku)                        | prowadzi do punktu, także bez sieci                 |
 | **plecak**    | uproszczony plecak z jedną kieszenią                                         | jestem przygotowany                                 |
 | **w-znak**    | litera W narysowana kreską, której środkowy wierzchołek jest punktem / domem | nazwa „W razie W” + znaczenie                       |
+| **dom-ww**    | otwarty kontur domu z rodziną; dwa znaki W zatrzymują się nad dachem         | dom chroni moich ludzi „w razie W”                  |
 
 Każdy koncept w **dwóch wariantach**:
 
@@ -45,7 +46,9 @@ Pracuj na branchu `feat/app-icon`. **Nie używaj generatora obrazów** — ikon�
 
 **W-znak.** Jest prosty, własny i działa w 16 px lepiej niż obecna litera zależna od fontu. Znaczenie punktu w środkowym wierzchołku wymaga jednak znajomości nazwy i nie komunikuje samodzielnie rodzinnego planu.
 
-**Rekomendacja robocza: `dom-punkt-stal`.** Najlepiej równoważy znaczenie, odrębność i czytelność w każdym pokazanym kontekście, bez skojarzeń alarmowych lub survivalowych. Ostateczny wybór należy do człowieka; kandydaci nie zastępują jeszcze ikony w `public/`.
+**Dom-WW.** Najmocniej opowiada pełną ideę marki: rodzina pozostaje wewnątrz domu, a dwa znaki „W” zatrzymują się nad dachem. Pełny znak jest jednak gęstszy od pozostałych i w 16 px wymaga osobnego uproszczenia `dom-ww-favicon.svg`; wariant z jednym W okazał się czytelniejszy niż dom z trzema małymi postaciami.
+
+**Rekomendacja robocza pozostaje: `dom-punkt-stal`.** Najlepiej równoważy znaczenie, odrębność i czytelność jednym niezmiennym znakiem w każdym pokazanym kontekście, bez skojarzeń alarmowych lub survivalowych. `dom-ww-stal` jest bardziej narracyjną alternatywą, jeśli zespół zaakceptuje osobny wariant favicon. Ostateczny wybór należy do człowieka; kandydaci nie zastępują jeszcze ikony w `public/`.
 
 ## Po wyborze
 
