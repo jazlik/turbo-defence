@@ -1,6 +1,6 @@
-# Household Resilience App
+# W razie W
 
-Aplikacja pomagająca gospodarstwu domowemu przygotować własny plan kryzysowy, przećwiczyć go i wykonać w uproszczonym trybie działania.
+Statyczna aplikacja PWA, działająca offline, która pomaga gospodarstwu domowemu przygotować własny plan kryzysowy, przećwiczyć go i wykonać w uproszczonym trybie działania. Zbudowana w Astro 7, React 19 i Tailwind 4; wdrażana do Cloudflare Workers jako zestaw statycznych assetów.
 
 ## Źródła prawdy
 
@@ -14,3 +14,13 @@ Aplikacja pomagająca gospodarstwu domowemu przygotować własny plan kryzysowy,
 Warstwa wizualna produktu jest definiowana w `JEZYK_WIZUALNY.md`. Przy projektowaniu lub implementacji UI, mockupów, wizualizacji, prezentacji i grafik przedstawiających produkt należy traktować ten dokument jako obowiązujące źródło prawdy.
 
 Materiały w `context/foundation/analogi/` dokumentują research i nie zastępują aktualnej specyfikacji produktu ani języka wizualnego.
+
+## Development
+
+```bash
+nvm use
+npm ci
+npm run dev
+```
+
+No environment variables or backend are required.
