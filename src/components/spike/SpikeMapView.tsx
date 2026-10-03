@@ -8,6 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { useHeading } from "@/components/hooks/useHeading";
 import { distanceMeters } from "@/lib/geo";
+import { readMapPalette } from "@/components/map/ExecutionMap";
 import { buildMapStyle } from "@/lib/map-style";
 
 setWorkerUrl(maplibreWorkerUrl);
@@ -39,7 +40,7 @@ export default function SpikeMapView({ file }: { file: File }) {
     protocol.add(new PMTiles(new FileSource(file)));
     const map = new MapLibreMap({
       container: container.current,
-      style: buildMapStyle(file.name),
+      style: buildMapStyle(file.name, readMapPalette()),
       center: PLACES["Kraków Rynek z17"].center,
       zoom: 16,
       dragRotate: false,

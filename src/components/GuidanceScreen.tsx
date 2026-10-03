@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Compass, MapPinOff, Route, Satellite } from "lucide-react";
+import { CheckCircle2, Compass, Map as MapIcon, MapPinOff, Route, Satellite } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
 import { useGuidance } from "@/components/hooks/useGuidance";
+import MapOverlay, { prefetchExecutionMap } from "@/components/map/MapOverlay";
 import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission } from "@/components/hooks/useHeading";
 import { formatClockTime } from "@/lib/format";
 import { formatDistance } from "@/lib/geo";
 import { ARRIVAL_RADIUS_METERS, type DistanceKind } from "@/lib/navigation";
+import { isMapReady, readMapPackage } from "@/lib/services/map-storage";
+
+// Map prefetch waits for the first render to settle; Safari has no requestIdleCallback.
+const MAP_PREFETCH_FALLBACK_MS = 1500;
 
 // iOS forgets the motion permission between PWA launches; after this much compass silence offer to re-enable it.
 const COMPASS_SILENCE_MS = 1000;
@@ -49,10 +54,31 @@ export default function GuidanceScreen() {
     isStale,
     staleSince,
     locationProblem: problem,
+    position,
+    heading,
   } = useGuidance();
   const [compassSilent, setCompassSilent] = useState(false);
+  // Synchronous metadata read: whether the offline map is usable is known in the first render, without OPFS.
+  const [mapPackage] = useState(readMapPackage);
+  const mapReady = isMapReady(mapPackage);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useScreenWakeLock();
+
+  useEffect(() => {
+    if (!mapReady) return;
+    const idleWindow: Partial<Pick<Window, "requestIdleCallback">> = window;
+    if (idleWindow.requestIdleCallback) {
+      const handle = idleWindow.requestIdleCallback(prefetchExecutionMap);
+      return () => {
+        window.cancelIdleCallback(handle);
+      };
+    }
+    const timer = window.setTimeout(prefetchExecutionMap, MAP_PREFETCH_FALLBACK_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [mapReady]);
 
   useEffect(() => {
     if (!headingPermissionRequired()) return;
@@ -88,6 +114,24 @@ export default function GuidanceScreen() {
   const guiding = distance !== null && !arrived && !nearOnStaleData;
   const isShelter = destination.source === "psp";
   const showCompassButton = compassSilent && source !== "compass" && !arrived;
+
+  if (mapOpen && mapReady) {
+    return (
+      <MapOverlay
+        mapPackage={mapPackage}
+        destination={destination}
+        route={route}
+        guidance={guidance}
+        distanceCaption={DISTANCE_CAPTIONS[distanceKind]}
+        position={position}
+        heading={heading}
+        isStale={isStale}
+        onClose={() => {
+          setMapOpen(false);
+        }}
+      />
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
@@ -174,6 +218,19 @@ export default function GuidanceScreen() {
           >
             <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
             Włącz kompas
+          </Button>
+        )}
+        {mapReady && !arrived && (
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full text-base"
+            onClick={() => {
+              setMapOpen(true);
+            }}
+          >
+            <MapIcon className="size-5" strokeWidth={2} aria-hidden="true" />
+            Mapa
           </Button>
         )}
         <ExitLink />

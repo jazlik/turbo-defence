@@ -65,3 +65,9 @@ Po zakończeniu S-04: lokalny `S04_HANDOVER_LOCAL.md` (nie commitować).
 - Live end-to-end (real OSRM + PSP snapshot): Rynek → A "Rynek Główny 1" 80 m, B "Rynek Główny 46" 163 m; Nowa Huta → A "Osiedle Centrum A 1" 195 m, B 241 m; Tarnów → A "ul. Rynek 16" 15 m, B "ul. Kupiecka 3" 267 m. 2.5–10 s per refresh (FOSSGIS throttles bursts).
 - Snapshot is 532 KB (6 097 points); `public/data/` is in `.prettierignore` so lint-staged does not pretty-print it.
 
+## Phase 5 — implementation notes (2026-10-03)
+
+- Map palette comes only from Execution tokens (no new colours): background/earth `--background`, buildings `--surface-secondary` (`--surface` was indistinguishable from the background), roads `--secondary-pressed`, labels `--muted-foreground`, route `--guidance`, destination `--safe`, user `--foreground` (dimmed when stale).
+- Desktop: /alarm shows the "Mapa" button only with a ready package; the map chunk (1.08 MB) is prefetched in idle after the first render; GuidanceScreen chunk is 21.7 KB with no MapLibre. Overlay renders route, destination, user, Polish labels and buildings from OPFS; north-up note without heading.
+- Testing artefact, not a product bug: the automation tab is `visibilityState: hidden`, so requestAnimationFrame never fires and MapLibre only paints when a screenshot forces a frame (the "blank map" seen in the Phase 1 spike too).
+

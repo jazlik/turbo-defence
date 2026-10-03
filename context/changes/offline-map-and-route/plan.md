@@ -928,10 +928,10 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [x] 4.1 Testy logiki wznowienia i stanu `wrw.map` przechodzą: `npm test`
-- [x] 4.2 Lint i typy przechodzą: `npm run lint`, `npx astro check`
-- [x] 4.3 Build przechodzi, chunk workera w `dist/` i w precache
-- [x] 4.4 Smoke przechodzi: `npm run smoke`
+- [x] 4.1 Testy logiki wznowienia i stanu `wrw.map` przechodzą: `npm test` — e001f7a
+- [x] 4.2 Lint i typy przechodzą: `npm run lint`, `npx astro check` — e001f7a
+- [x] 4.3 Build przechodzi, chunk workera w `dist/` i w precache — e001f7a
+- [x] 4.4 Smoke przechodzi: `npm run smoke` — e001f7a
 
 #### Manual
 
@@ -943,10 +943,10 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [ ] 5.1 Lint, typy i testy przechodzą
-- [ ] 5.2 Build bez ostrzeżeń Workboxa: `npm run build`
-- [ ] 5.3 Smoke z asercjami precache fontów i snapshotu: `npm run smoke`
-- [ ] 5.4 Wejście `alarm.html` nie importuje statycznie `maplibre-gl`
+- [x] 5.1 Lint, typy i testy przechodzą
+- [x] 5.2 Build bez ostrzeżeń Workboxa: `npm run build`
+- [x] 5.3 Smoke z asercjami precache fontów i snapshotu: `npm run smoke`
+- [x] 5.4 Wejście `alarm.html` nie importuje statycznie `maplibre-gl`
 
 #### Manual
 
