@@ -1,0 +1,14 @@
+---
+// Phase 1 spike only (removed in Phase 6): not linked from the UI.
+import MapSpike from "@/components/spike/MapSpike";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Spike mapy — W razie W" mode="execution">
+  <main class="mx-auto min-h-screen max-w-2xl bg-background px-4 py-6 text-foreground">
+    <h1 class="font-heading text-2xl">Spike: mapa offline</h1>
+    <div class="mt-4">
+      <MapSpike client:only="react" />
+    </div>
+  </main>
+</Layout>

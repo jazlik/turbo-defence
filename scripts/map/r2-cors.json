@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://w-razie-w.jzogala.workers.dev",
+          "http://localhost:4321",
+          "https://spike-w-razie-w.jzogala.workers.dev"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["range"]
+      },
+      "exposeHeaders": ["Content-Range", "Content-Length", "Accept-Ranges", "ETag"],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}
