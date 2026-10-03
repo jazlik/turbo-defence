@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
 import { Contact, FileUp, Pencil, Phone, PenLine, Save, Smartphone, Trash2, X } from "lucide-react";
 
-import { focusSoon, StatusLine, TextField, type RecordFeedback } from "@/components/HouseholdFormParts";
+import { focusSoon, STORAGE_ERROR, StatusLine, TextField, type RecordFeedback } from "@/components/HouseholdFormParts";
 import { Button } from "@/components/ui/button";
 import {
   addContact,
@@ -45,9 +45,12 @@ export default function EmergencyContactsCard() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const ids = { name: useId(), phone: useId(), relation: useId(), search: useId() };
 
-  const persist = (next: EmergencyContact[]) => {
-    writePlan({ ...readPlan(), contacts: next });
-    setContacts(next);
+  /** `false` when the device refused the write: the caller must not confirm a save that did not happen. */
+  const persist = (next: EmergencyContact[]): boolean => {
+    const saved = writePlan({ ...readPlan(), contacts: next });
+    if (saved) setContacts(next);
+    else setFeedback({ text: STORAGE_ERROR, tone: "warning" });
+    return saved;
   };
 
   const resetForm = () => {
@@ -123,7 +126,7 @@ export default function EmergencyContactsCard() {
     let next = current;
     const picked = candidates.filter((_, index) => chosen.has(index));
     for (const input of picked) next = addContact(next, input);
-    persist(next);
+    if (!persist(next)) return;
     setFeedback({
       text: `Dodano z importu: ${next.length - current.length}${skipped > 0 ? ` (pominięto: ${skipped}, zły numer lub duplikat)` : ""}.`,
     });
@@ -141,11 +144,11 @@ export default function EmergencyContactsCard() {
     }
     const current = readPlan().contacts;
     if (editingId) {
-      persist(updateContact(current, editingId, result.value));
+      if (!persist(updateContact(current, editingId, result.value))) return;
       setFeedback({ text: `Zapisano zmiany: ${result.value.name}.` });
       focusSoon(() => document.getElementById(`contact-edit-${editingId}`));
     } else {
-      persist(addContact(current, result.value));
+      if (!persist(addContact(current, result.value))) return;
       setFeedback({ text: `Dodano: ${result.value.name}.` });
     }
     resetForm();
@@ -167,7 +170,7 @@ export default function EmergencyContactsCard() {
   };
 
   const remove = (contact: EmergencyContact) => {
-    persist(removeContact(readPlan().contacts, contact.id));
+    if (!persist(removeContact(readPlan().contacts, contact.id))) return;
     if (editingId === contact.id) resetForm();
     setFeedback({ text: `Usunięto: ${contact.name}.` });
     focusSoon(() => headingRef.current);

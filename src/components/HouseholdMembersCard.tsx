@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type SyntheticEvent } from "react";
 import { Baby, Check, PawPrint, Pencil, Plus, Save, Trash2, UserRound, Users, X } from "lucide-react";
 
-import { focusSoon, StatusLine, TextField, type RecordFeedback } from "@/components/HouseholdFormParts";
+import { focusSoon, STORAGE_ERROR, StatusLine, TextField, type RecordFeedback } from "@/components/HouseholdFormParts";
 import { Button } from "@/components/ui/button";
 import {
   addCustomNeed,
@@ -40,9 +40,12 @@ export default function HouseholdMembersCard() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const ids = { name: useId(), category: useId(), customNeed: useId() };
 
-  const persist = (next: HouseholdMember[]) => {
-    writePlan({ ...readPlan(), members: next });
-    setMembers(next);
+  /** `false` when the device refused the write: the caller must not confirm a save that did not happen. */
+  const persist = (next: HouseholdMember[]): boolean => {
+    const saved = writePlan({ ...readPlan(), members: next });
+    if (saved) setMembers(next);
+    else setFeedback({ text: STORAGE_ERROR, tone: "warning" });
+    return saved;
   };
 
   const resetForm = () => {
@@ -80,11 +83,11 @@ export default function HouseholdMembersCard() {
     }
     const current = readPlan().members;
     if (editingId) {
-      persist(updateMember(current, editingId, result.value));
+      if (!persist(updateMember(current, editingId, result.value))) return;
       setFeedback({ text: `Zapisano zmiany: ${result.value.name}.` });
       focusSoon(() => document.getElementById(`member-edit-${editingId}`));
     } else {
-      persist(addMember(current, result.value));
+      if (!persist(addMember(current, result.value))) return;
       setFeedback({ text: `Dodano: ${result.value.name}.` });
       focusSoon(() => nameRef.current);
     }
@@ -108,7 +111,7 @@ export default function HouseholdMembersCard() {
   };
 
   const remove = (member: HouseholdMember) => {
-    persist(removeMember(readPlan().members, member.id));
+    if (!persist(removeMember(readPlan().members, member.id))) return;
     if (editingId === member.id) resetForm();
     setFeedback({ text: `Usunięto: ${member.name}.` });
     focusSoon(() => headingRef.current);

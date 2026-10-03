@@ -269,6 +269,8 @@ Plan zawiera najwyżej 40 małych rekordów, więc rozmiar `localStorage` i kosz
 
 ## Migration Notes
 
+> **Aktualizacja po merge z `main` (S-02):** S-02 wdrożyło już `schemaVersion: 2` (`places` zamiast `evacuationPoint`), więc plan z S-05 jest wersją **3**. `parsePlan` migruje v1 (punkt ewakuacji → `places.shelter`) i v2 (miejsca bez zmian) do v3 z pustymi listami `members` i `contacts`. Wszystkie wzmianki o „v2” w tym planie dotyczą kształtu z S-05, czyli obecnej v3.
+
 Migracja jednokierunkowa v1→v2 w `parsePlan`; zapis dopiero przy następnym `writePlan`. Brak ścieżki wstecz: telefon z nowszą wersją, który wróciłby do starego kodu, odczytałby plan jako pusty (stare zachowanie dla nieznanej wersji). Akceptowalne, bo wdrożenie idzie tylko do przodu.
 
 ## References

@@ -118,15 +118,24 @@ describe("pickPolishVoice", () => {
 
 describe("phraseFor", () => {
   const label = "Szkoła";
+  const title = "Idź do punktu ewakuacji";
+  const guidingAt = (
+    meters: number,
+    live: boolean,
+    over: Partial<{ title: string; label: string; fallback: boolean }> = {},
+  ) => ({ kind: "guiding", title, label, meters, live, fallback: false, ...over }) satisfies GuidanceVoiceState;
 
   it("returns non-empty text on entry into every variant", () => {
     const states: GuidanceVoiceState[] = [
-      { kind: "noPoint" },
+      { kind: "noSteps" },
+      { kind: "resume", title: "Idź do miejsca spotkania" },
+      { kind: "action", title: "Zabierz plecak ewakuacyjny", instruction: "Weź przygotowany plecak i wyjdź z domu." },
       { kind: "searching", label },
       { kind: "locationProblem", label, problem: "denied" },
-      { kind: "guiding", label, meters: 480, live: true },
-      { kind: "guiding", label, meters: 480, live: false },
-      { kind: "arrived", label },
+      guidingAt(480, true),
+      guidingAt(480, false),
+      { kind: "arrived", label, next: "Idź do punktu ewakuacji" },
+      { kind: "arrived", label, next: null },
     ];
     for (const state of states) {
       const text = phraseFor(state, null);
@@ -139,15 +148,11 @@ describe("phraseFor", () => {
   });
 
   it("signals loss of GPS when guiding live → stale", () => {
-    const prev: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: true };
-    const next: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: false };
-    expect(phraseFor(next, prev)).toContain("Utracono sygnał GPS");
+    expect(phraseFor(guidingAt(300, false), guidingAt(300, true))).toContain("Utracono sygnał GPS");
   });
 
   it("signals GPS recovery when guiding stale → live", () => {
-    const prev: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: false };
-    const next: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: true };
-    expect(phraseFor(next, prev)).toContain("Odzyskano sygnał GPS");
+    expect(phraseFor(guidingAt(300, true), guidingAt(300, false))).toContain("Odzyskano sygnał GPS");
   });
 
   it("does not report a lost signal when locationProblem → searching", () => {
@@ -157,8 +162,40 @@ describe("phraseFor", () => {
   });
 
   it("signals loss of GPS when guiding → searching", () => {
-    const prev: GuidanceVoiceState = { kind: "guiding", label, meters: 300, live: true };
     const next: GuidanceVoiceState = { kind: "searching", label };
-    expect(phraseFor(next, prev)).toContain("Utracono sygnał GPS");
+    expect(phraseFor(next, guidingAt(300, true))).toContain("Utracono sygnał GPS");
+  });
+
+  it("announces the switch to the backup place when the fallback turns on", () => {
+    const prev = guidingAt(300, true, { title: "Idź do miejsca spotkania", label: "Boisko" });
+    const next = guidingAt(900, true, { title: "Idź do miejsca zapasowego", label: "Kościół", fallback: true });
+    const text = phraseFor(next, prev);
+    expect(text).toContain("Punkt niedostępny");
+    expect(text).toContain("Kościół");
+  });
+
+  it("announces the new target when the step changes without a fallback", () => {
+    const prev = guidingAt(300, true, { title: "Idź do miejsca spotkania", label: "Boisko" });
+    const next = guidingAt(1200, true, { title: "Idź do punktu ewakuacji", label: "Szkoła" });
+    const text = phraseFor(next, prev);
+    expect(text).toContain("Idź do punktu ewakuacji");
+    expect(text).toContain("Szkoła");
+    expect(text).not.toContain("Punkt niedostępny");
+  });
+
+  it("names the next step on an intermediate arrival and closes the run on the last one", () => {
+    const intermediate = phraseFor({ kind: "arrived", label: "Boisko", next: "Idź do punktu ewakuacji" }, null);
+    expect(intermediate).toContain("Idź do punktu ewakuacji");
+    const last = phraseFor({ kind: "arrived", label: "Szkoła", next: null }, null);
+    expect(last).toContain("koniec zaplanowanej drogi");
+  });
+
+  it("reads the action step title and its instruction", () => {
+    const text = phraseFor(
+      { kind: "action", title: "Zabierz plecak ewakuacyjny", instruction: "Weź przygotowany plecak." },
+      null,
+    );
+    expect(text).toContain("Zabierz plecak ewakuacyjny");
+    expect(text).toContain("Weź przygotowany plecak.");
   });
 });

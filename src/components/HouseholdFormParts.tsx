@@ -3,6 +3,10 @@ import { CheckCircle2, TriangleAlert } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/** A silent failed save is worse than no save: the user would leave believing the data is on the device. */
+export const STORAGE_ERROR =
+  "Nie udało się zapisać na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny w ustawieniach przeglądarki i spróbuj ponownie.";
+
 export type RecordFeedback = { text: string; tone?: "warning" } | null;
 
 interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "onChange" | "value"> {

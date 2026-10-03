@@ -18,6 +18,8 @@ const html = await home.text();
 if (!html.includes('lang="pl"')) fail('/ is missing lang="pl"');
 if (!html.includes("manifest.webmanifest")) fail("/ does not link manifest.webmanifest");
 if (!html.includes("data-offline-status")) fail("/ is missing the offline status element");
+// The three place cards are client:only islands; the section heading is their only static trace in the HTML.
+if (!html.includes('id="places-title"')) fail("/ is missing the places section heading");
 
 const manifestRes = await get("/manifest.webmanifest");
 const manifest = await manifestRes.json();

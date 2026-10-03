@@ -2,8 +2,8 @@
 import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import AlarmButton from "@/components/AlarmButton";
-import EvacuationPointCard from "@/components/EvacuationPointCard";
 import HouseholdLinkCard from "@/components/HouseholdLinkCard";
+import PlaceCard from "@/components/PlaceCard";
 ---
 
 <div class="min-h-screen bg-background px-4 text-foreground sm:px-8">
@@ -33,7 +33,7 @@ import HouseholdLinkCard from "@/components/HouseholdLinkCard";
       <div>
         <h1 class="font-heading text-3xl tracking-[-0.015em] sm:text-4xl">Plan na wypadek ewakuacji</h1>
         <p class="mt-3 text-lg text-muted-foreground">
-          Wskaż punkt, do którego idziecie, i sprawdź czujniki telefonu. Plan zostaje na tym urządzeniu.
+          Wskaż miejsca, do których idziecie, i sprawdź czujniki telefonu. Plan zostaje na tym urządzeniu.
         </p>
       </div>
 
@@ -47,9 +47,39 @@ import HouseholdLinkCard from "@/components/HouseholdLinkCard";
         </div>
       </section>
 
-      <div>
-        <EvacuationPointCard client:only="react" />
-      </div>
+      <section aria-labelledby="places-title" class="space-y-4">
+        <div>
+          <h2 id="places-title" class="font-heading text-2xl tracking-[-0.015em]">
+            Miejsca
+          </h2>
+          <p class="mt-1 text-muted-foreground">
+            Prowadzenie idzie po kolei: najpierw miejsce spotkania, a gdy jest niedostępne — miejsce zapasowe. Na końcu
+            drogi jest punkt ewakuacji.
+          </p>
+        </div>
+
+        <PlaceCard
+          client:only="react"
+          kind="meeting"
+          title="Miejsce spotkania"
+          description="Tu zbiera się rodzina zaraz po alarmie."
+          emphasis="primary"
+        />
+        <PlaceCard
+          client:only="react"
+          kind="backup"
+          title="Miejsce zapasowe"
+          description="Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne."
+          emphasis="secondary"
+        />
+        <PlaceCard
+          client:only="react"
+          kind="shelter"
+          title="Punkt ewakuacji"
+          description="Cel ewakuacji — tam prowadzi ostatni krok."
+          emphasis="secondary"
+        />
+      </section>
 
       <HouseholdLinkCard client:only="react" />
 

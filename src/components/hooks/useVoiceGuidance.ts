@@ -18,7 +18,10 @@ const ARRIVAL_JITTER_METERS = 50;
 export type VoiceStatus = "loading" | "ready" | "blocked" | "unavailable" | "off";
 
 function stateKey(state: GuidanceVoiceState): string {
-  if (state.kind === "guiding") return `guiding:${state.live ? "live" : "stale"}`;
+  // Tytuł kroku wchodzi do klucza: bez tego przejście z miejsca spotkania na punkt ewakuacji
+  // (oba to `guiding:live`) nie zmieniłoby klucza i głos przemilczałby zmianę celu.
+  if (state.kind === "guiding") return `guiding:${state.title}:${state.live ? "live" : "stale"}`;
+  if (state.kind === "arrived") return `arrived:${state.label}`;
   if (state.kind === "locationProblem") return `locationProblem:${state.problem}`;
   return state.kind;
 }
@@ -33,7 +36,9 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
   const stateRef = useRef(state);
   const announcedRef = useRef<GuidanceVoiceState | null>(null);
   const lastMarkRef = useRef<number | null>(null);
-  const arrivedOnceRef = useRef(false);
+  // Nazwa miejsca, którego dojście już ogłoszono. Sekwencja ma wiele dojść, więc pojedyncza flaga
+  // uciszyłaby każde kolejne; tłumimy tylko powtórkę dla tego samego miejsca (drganie na progu).
+  const arrivedPlaceRef = useRef<string | null>(null);
   const speechSeqRef = useRef(0);
 
   useEffect(() => {
@@ -93,7 +98,7 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
     (current: GuidanceVoiceState) => {
       announcedRef.current = current;
       lastMarkRef.current = current.kind === "guiding" && current.live ? distanceMark(current.meters) : null;
-      if (current.kind === "arrived") arrivedOnceRef.current = true;
+      if (current.kind === "arrived") arrivedPlaceRef.current = current.label;
       say(phraseFor(current, null));
     },
     [say],
@@ -118,9 +123,16 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
       announcedRef.current = current;
       lastMarkRef.current = current.kind === "guiding" && current.live ? distanceMark(current.meters) : null;
       if (current.kind === "arrived") {
-        if (arrivedOnceRef.current) return;
-        arrivedOnceRef.current = true;
-      } else if (previous.kind === "arrived" && current.kind === "guiding" && current.meters < ARRIVAL_JITTER_METERS) {
+        if (arrivedPlaceRef.current === current.label) return;
+        arrivedPlaceRef.current = current.label;
+      } else if (
+        previous.kind === "arrived" &&
+        current.kind === "guiding" &&
+        // Tylko to samo miejsce to drganie na progu. Inny cel to prawdziwe przejście na następny
+        // krok i trzeba je powiedzieć, nawet gdy następne miejsce jest blisko.
+        current.label === previous.label &&
+        current.meters < ARRIVAL_JITTER_METERS
+      ) {
         return;
       }
       say(phraseFor(current, previous));
@@ -137,7 +149,8 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
     if (announced?.kind !== "guiding" || !announced.live) return;
     const next = nextDistanceAnnouncement(lastMarkRef.current, liveMeters);
     lastMarkRef.current = next.mark;
-    if (next.announce) say(`Do punktu ${spokenDistance(liveMeters)}.`);
+    // „Do celu”, nie „do punktu”: celem bywa też miejsce spotkania i miejsce zapasowe.
+    if (next.announce) say(`Do celu ${spokenDistance(liveMeters)}.`);
   }, [active, liveMeters, say]);
 
   // Both run inside a click handler: speak() must start synchronously to count as the user gesture on iOS.

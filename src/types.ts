@@ -3,7 +3,10 @@ export interface Coordinates {
   longitude: number;
 }
 
-export interface EvacuationPoint {
+/** Trzy miejsca planu: punkt zbiórki, jego zamiennik i docelowy punkt ewakuacji (FR-004). */
+export type PlaceKind = "meeting" | "backup" | "shelter";
+
+export interface Place {
   label: string;
   coords: Coordinates;
 }
@@ -37,11 +40,22 @@ export interface EmergencyContact {
 }
 
 export interface HouseholdPlan {
-  schemaVersion: 2;
-  evacuationPoint: EvacuationPoint | null;
+  schemaVersion: 3;
+  places: Record<PlaceKind, Place | null>;
   lastKnownPosition: LastKnownPosition | null;
   members: HouseholdMember[];
   contacts: EmergencyContact[];
   /** ISO 8601 */
+  updatedAt: string;
+}
+
+export interface EvacuationRun {
+  schemaVersion: 1;
+  /** Identyfikator kroku, nie indeks — plan mógł się zmienić między przebiegami. */
+  stepId: string;
+  fallbackActive: boolean;
+  /** ISO 8601 */
+  startedAt: string;
+  /** ISO 8601 — od tego liczy się próg świeżości */
   updatedAt: string;
 }
