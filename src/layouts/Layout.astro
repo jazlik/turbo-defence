@@ -1,7 +1,5 @@
 ---
 import "../styles/global.css";
-import Banner from "@/components/Banner.astro";
-import { missingConfigs } from "@/lib/config-status";
 
 interface Props {
   title?: string;
@@ -11,28 +9,18 @@ const { title = "W razie W" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="W razie W — aplikacja do przygotowania domu na sytuacje kryzysowe, działająca offline."
+    />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>{title}</title>
   </head>
   <body>
-    {missingConfigs.map((cfg) => (
-      <Banner variant="error">
-        <strong>Uwaga:</strong> {cfg.message}
-        {cfg.docsUrl && (
-          <>
-            {" "}
-            <a href={cfg.docsUrl} target="_blank" rel="noopener noreferrer">
-              {cfg.docsLabel ?? "Dokumentacja"}
-            </a>
-            .
-          </>
-        )}
-      </Banner>
-    ))}
     <slot />
   </body>
 </html>
