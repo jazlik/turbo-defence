@@ -60,11 +60,13 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Navigation core** is `src/lib/navigation.ts` (`deriveGuidance`): `GuidanceScreen` (every navigate step) and the map render its result and never compute distance or bearing themselves. Saved walking routes live in a third key, `wrw.navigation` (`@/lib/services/navigation-storage`, device state, not part of the shared household plan); the shelter step follows the saved PSP route A (B after "niedostępne") and falls back to `places.shelter`. Routing APIs stay behind `src/lib/services/routing/`.
 - **Execution Mode screens** use `<Layout mode="execution">` and the tokens from `src/styles/global.css` via Tailwind classes (`bg-background`, `text-guidance`, `text-safe`…); no hex values in components.
 - **Hold-to-confirm actions** share one state machine: `useHoldAction` in `src/components/hooks/useHoldAction.ts` (pointer + keyboard events, pointer-capture release, rAF progress ring). `AlarmButton` and `HoldButton` build on it — do not write a second copy, and do not change the 2000 ms duration, which was field-tested.
+- **Every `client:only="react"` island mount wraps in an explicit block element**, never a bare direct child of a `space-y-*` container. `global.css` overrides Astro's `display: contents` on `astro-island` to `block` (iOS Safari does not deliver touch-originated pointer events to a `display: contents` root — see that rule's comment); without the wrapper, `space-y-*` spacing would then depend on the island's own box instead of a layout-stable element.
 
 ### Environment
 
 - Node.js v22.14.0 (see `.nvmrc`)
 - No environment variables or secrets are needed to build.
+- **Supported platforms: iOS Safari and Android Chrome.** Islands (`client:only="react"`) mount on an `astro-island` root; interactions driven by pointer events (hold-to-confirm, drag) need confirming on iOS specifically — `onClick` alone is not a substitute, because iOS synthesizes click from touch even when pointer events never fire, which can mask a broken pointer path. A field-test record that doesn't name the device and browser does not count as verified on that platform.
 - Deploy: assets-only Worker `w-razie-w` via `npx wrangler deploy` (CI deploys from `main`).
 
 ## CI
