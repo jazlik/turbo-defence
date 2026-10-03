@@ -450,21 +450,21 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Automated
 
-- [x] 3.1 Lint przechodzi: `npm run lint`
-- [x] 3.2 Typy przechodzą: `npx astro check`
-- [x] 3.3 Testy przechodzą: `npm test`
-- [x] 3.4 Build przechodzi: `npm run build`
-- [x] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke`
-- [x] 3.6 `/sw.js` zawiera `alarm.html` w liście precache
+- [x] 3.1 Lint przechodzi: `npm run lint` — 766f23e
+- [x] 3.2 Typy przechodzą: `npx astro check` — 766f23e
+- [x] 3.3 Testy przechodzą: `npm test` — 766f23e
+- [x] 3.4 Build przechodzi: `npm run build` — 766f23e
+- [x] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke` — 766f23e
+- [x] 3.6 `/sw.js` zawiera `alarm.html` w liście precache — 766f23e
 
 #### Manual
 
-- [x] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
-- [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu
+- [x] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper) — 766f23e
+- [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu — 766f23e
 - [ ] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu
-- [x] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
-- [x] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
-- [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd
+- [x] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu" — 766f23e
+- [x] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu — 766f23e
+- [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd — 766f23e
 - [ ] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu
 - [ ] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu
 
@@ -479,5 +479,5 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 - [ ] 4.3 Cała ścieżka przechodzi na telefonie w trybie samolotowym
 - [ ] 4.4 Plan przeżywa zamknięcie i ponowne otwarcie aplikacji bez sieci
-- [ ] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed`
-- [ ] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP
+- [x] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed`
+- [x] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP

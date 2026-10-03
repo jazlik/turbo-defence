@@ -18,6 +18,7 @@ Materials in `context/foundation/analogi/` are research references, not UI speci
 - `npm run build` — production build (fully static output in `dist/`)
 - `npm run preview` — preview production build
 - `npm run lint` — ESLint with type-checked rules
+- `npm test` — Vitest, pure functions in `src/lib/` only (node environment, no jsdom, no React component tests)
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
 - `npm run smoke` — dependency-free HTTP smoke test of the served build (`scripts/smoke.mjs`, added in the `offline-app-shell` change, Phase 2), `BASE_URL` env (default `http://localhost:4321`).
@@ -49,6 +50,8 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
 - **Language**: UI copy is Polish (`<html lang="pl">`).
+- **Islands reading localStorage** (e.g. the household plan via `@/lib/services/plan-storage`) mount as `client:only="react"` — static HTML would not contain the saved data and hydration would mismatch.
+- **Execution Mode screens** use `<Layout mode="execution">` and the tokens from `src/styles/global.css` via Tailwind classes (`bg-background`, `text-guidance`, `text-safe`…); no hex values in components.
 
 ### Environment
 
