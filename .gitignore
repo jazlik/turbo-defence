@@ -31,3 +31,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# offline map packages (built by scripts/map, uploaded to R2)
+dist-map/

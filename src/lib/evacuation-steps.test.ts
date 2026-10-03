@@ -53,6 +53,10 @@ describe("buildSteps", () => {
     expect(buildSteps(planWith({ backup: place("Park") }))).toEqual([]);
   });
 
+  it("adds the shelter step for a saved PSP route even without a manual shelter (S-04)", () => {
+    expect(buildSteps(planWith({}), { shelterRoute: true }).map((step) => step.id)).toEqual(["backpack", "shelter"]);
+  });
+
   it("offers the backup place only on the meeting step and only when it is set", () => {
     expect(navigateStep(buildSteps(fullPlan), "meeting").fallback).toBe("backup");
     expect(navigateStep(buildSteps(fullPlan), "shelter").fallback).toBeNull();

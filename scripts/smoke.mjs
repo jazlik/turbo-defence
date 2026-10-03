@@ -42,6 +42,10 @@ const swSource = await sw.text();
 for (const page of ["index.html", "alarm.html", "czujniki.html", "domownicy.html", "plecak.html"]) {
   if (!swSource.includes(page)) fail(`/sw.js precache list does not include ${page}`);
 }
+// Offline guidance data: PSP shelter snapshot and map glyphs must be precached (S-04).
+for (const asset of ["data/shelters-malopolska.json", "map/fonts/noto-sans-regular/0-255.pbf"]) {
+  if (!swSource.includes(asset)) fail(`/sw.js precache list does not include ${asset}`);
+}
 
 if (expectHeaders) {
   const cc = sw.headers.get("cache-control") ?? "";

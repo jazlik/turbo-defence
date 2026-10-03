@@ -5,7 +5,9 @@ import AlarmButton from "@/components/AlarmButton";
 import AppMark from "@/components/AppMark.astro";
 import BackpackLinkCard from "@/components/BackpackLinkCard";
 import HouseholdLinkCard from "@/components/HouseholdLinkCard";
+import MapPackageCard from "@/components/MapPackageCard";
 import PlaceCard from "@/components/PlaceCard";
+import RouteCard from "@/components/RouteCard";
 ---
 
 <div class="min-h-screen bg-background px-4 text-foreground sm:px-8">
@@ -49,6 +51,10 @@ import PlaceCard from "@/components/PlaceCard";
         </div>
       </section>
 
+      <MapPackageCard client:only="react" />
+
+      <RouteCard client:only="react" />
+
       <section aria-labelledby="places-title" class="space-y-4">
         <div>
           <h2 id="places-title" class="font-heading text-2xl tracking-[-0.015em]">
@@ -78,7 +84,7 @@ import PlaceCard from "@/components/PlaceCard";
           client:only="react"
           kind="shelter"
           title="Punkt ewakuacji"
-          description="Cel ewakuacji — tam prowadzi ostatni krok."
+          description="Twój punkt na końcu drogi — używany, gdy nie ma przygotowanej trasy do schronu PSP."
           emphasis="secondary"
         />
       </section>

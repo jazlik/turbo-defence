@@ -32,7 +32,12 @@ const NAVIGATION_CONTENT: Record<PlaceKind, { title: string; instruction: string
  * Plan → sekwencja kroków. Wyliczana przy każdym wejściu w tryb alarmu, nigdy nie przechowywana:
  * zmiana planu między przebiegami ma od razu zmieniać kroki.
  */
-export function buildSteps(plan: HouseholdPlan): EvacuationStep[] {
+export interface StepOptions {
+  /** A saved PSP route exists (S-04): the shelter step exists even without a manually set shelter. */
+  shelterRoute?: boolean;
+}
+
+export function buildSteps(plan: HouseholdPlan, { shelterRoute = false }: StepOptions = {}): EvacuationStep[] {
   const navigation: EvacuationStep[] = [];
 
   if (plan.places.meeting !== null) {
@@ -45,7 +50,7 @@ export function buildSteps(plan: HouseholdPlan): EvacuationStep[] {
     });
   }
 
-  if (plan.places.shelter !== null) {
+  if (plan.places.shelter !== null || shelterRoute) {
     navigation.push({
       id: "shelter",
       kind: "navigate",

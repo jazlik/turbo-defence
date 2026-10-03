@@ -69,7 +69,16 @@ export type GuidanceVoiceState =
   | { kind: "action"; title: string; instruction: string }
   | { kind: "searching"; label: string }
   | { kind: "locationProblem"; label: string; problem: "denied" | "unavailable" }
-  | { kind: "guiding"; title: string; label: string; meters: number; live: boolean; fallback: boolean }
+  | {
+      kind: "guiding";
+      title: string;
+      label: string;
+      meters: number;
+      live: boolean;
+      fallback: boolean;
+      /** S-04: the distance is the remaining route length, not a straight line. */
+      alongRoute?: boolean;
+    }
   | { kind: "arrived"; label: string; next: string | null };
 
 /** Full or short phrase for the given state transition. */
@@ -98,9 +107,10 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
 
     case "guiding": {
       const dist = spokenDistance(state.meters);
+      const measured = state.alongRoute ? "trasą" : "w linii prostej";
       if (entry) {
         const staleSuffix = state.live ? "" : " Dane z ostatniej znanej pozycji.";
-        return `${state.title}: ${state.label}. ${dist} w linii prostej.${staleSuffix}`;
+        return `${state.title}: ${state.label}. ${dist} ${measured}.${staleSuffix}`;
       }
 
       // Cel się zmienił: albo wyjście awaryjne na miejsce zapasowe, albo następny krok sekwencji.
@@ -114,7 +124,7 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
 
       // Wejście w prowadzenie z kroku akcji, z ekranu wznowienia albo z dojścia na poprzedni krok.
       if (previous.kind === "action" || previous.kind === "resume" || previous.kind === "arrived") {
-        return `${state.title}: ${state.label}. ${dist} w linii prostej.`;
+        return `${state.title}: ${state.label}. ${dist} ${measured}.`;
       }
 
       // Transition from searching / locationProblem → guiding (got signal)

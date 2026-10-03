@@ -27,9 +27,10 @@ export function createEmptyPlan(): HouseholdPlan {
   };
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
 
-function parseCoords(value: unknown): Coordinates | null {
+export function parseCoords(value: unknown): Coordinates | null {
   if (!isRecord(value)) return null;
   const { latitude, longitude } = value;
   if (typeof latitude !== "number" || typeof longitude !== "number") return null;
