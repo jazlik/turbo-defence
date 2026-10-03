@@ -399,6 +399,17 @@ Pierwsza migracja schematu planu w tym projekcie. `schemaVersion: 1` z pojedyncz
 - Automat przytrzymania do wydzielenia: `src/components/AlarmButton.tsx:16-48`
 - Wzorzec walidacji i migracji: `src/lib/services/plan-storage.ts:39-67`
 
+## Addendum (faza 4) — odstępstwa od kontraktów faz 1–3
+
+Dopisane przy domykaniu S-02. Każda pozycja jest już w kodzie i w zielonej weryfikacji automatycznej; trafia tu, bo nie wynikała z kontraktów powyżej, a następny slice będzie jej szukał w planie. Źródło: `reviews/impl-review-phase-1-3.md` (F8 — pozycje 1–3, F2 — ekran wznowienia).
+
+1. **`stepContent(step, run)` w `src/lib/evacuation-steps.ts`** plus wpis `NAVIGATION_CONTENT.backup`. Wymagane przez klauzulę fazy 3 „tytuł kroku zmienia się na wariant dla miejsca zapasowego", ale nieobecne w kontrakcie `evacuation-steps.ts`, który wymieniał tylko `buildSteps`, `resumeIndex` i `targetPlaceKind`. Treść kroków zostaje w jednym pliku, zgodnie z intencją kontraktu.
+2. **Stan `confirmedArrival` w `GuidanceScreen`.** Tabela stanów fazy 3 warunkuje „Koniec sekwencji" na dojściu potwierdzonym przez GPS. Ręczne „Potwierdź dojście" na **ostatnim** kroku musi dawać ten sam stan końcowy, inaczej sekwencji nie da się domknąć bez zasięgu GPS — stąd osobna flaga. Dodana ścieżka, nie zmiana istniejącej.
+3. **`useGeolocation({ watch: steps.length > 0 })`** zamiast dawnego `watch: point !== null`. Watcher chodzi teraz także na kroku akcji („Zabierz plecak"), który nie ma celu — żeby fix był ciepły w momencie wejścia w prowadzenie (NFR pierwszego kroku). Jest to zmiana zachowania wewnątrz warstwy czujników, którą kontrakt fazy 3 zamroził jako „bez zmian", więc zostaje odnotowana jawnie.
+4. **Ekran wznowienia przerwanego przebiegu** (`resumePrompt` w `GuidanceScreen`, akcje „Kontynuuj: <krok>" i „Zacznij od początku"). Kontrakt fazy 3 zakładał ciche wznowienie na zapisanym kroku. Review wykazało, że „Wyjdź z trybu alarmu" nie czyści przebiegu, więc przypadkowy alarm sprzed godziny mógł w cichym wznowieniu pominąć krok z plecakiem — jedyny krok, którego pominąć nie wolno. Wznowienie jest więc jawne, ale tylko gdy przebieg wskazuje krok dalszy niż pierwszy; świeży alarm nie ma przebiegu i nie widzi tego ekranu, więc pomiar NFR z 3.6 jest nietknięty.
+
+Pozycje F8.4 (wspólny akapit `<p id="hold-hint">`) i F8.5 (korekty treści) nie wymagają wpisu. Świadomie **nieprzyjęte** zalecenia review: F6 (podpowiedź `sr-only` wewnątrz przycisku wchodzi do nazwy dostępnej) i F9 (nazwy miejsca nie da się zmienić bez ponownego ustawienia współrzędnych — zachowanie odziedziczone z `EvacuationPointCard`). Oba są długiem do S-07 albo do osobnej zmiany dostępności.
+
 ## Progress
 
 > Konwencja: `- [ ]` do zrobienia, `- [x]` zrobione. Po zakończeniu kroku dopisz ` — <commit sha>`. Nie zmieniaj tytułów kroków. Patrz `references/progress-format.md`.
@@ -464,7 +475,7 @@ Pierwsza migracja schematu planu w tym projekcie. `schemaVersion: 1` z pojedyncz
 
 #### Automated
 
-- [ ] 4.1 Lint, typy, testy, build i smoke przechodzą na gałęzi: `npm run lint && npx astro check && npm test && npm run build && npm run smoke`
+- [x] 4.1 Lint, typy, testy, build i smoke przechodzą na gałęzi: `npm run lint && npx astro check && npm test && npm run build && npm run smoke`
 - [ ] 4.2 CI na gałęzi `step-flow-and-fallback` jest zielone (`ci` i `smoke`)
 - [ ] 4.3 Smoke na żywym adresie po wdrożeniu: `BASE_URL=https://w-razie-w.jzogala.workers.dev EXPECT_HEADERS=1 npm run smoke`
 

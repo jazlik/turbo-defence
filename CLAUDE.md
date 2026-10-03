@@ -51,7 +51,11 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
 - **Language**: UI copy is Polish (`<html lang="pl">`).
 - **Islands reading localStorage** (e.g. the household plan via `@/lib/services/plan-storage`) mount as `client:only="react"` — static HTML would not contain the saved data and hydration would mismatch.
+- **Two localStorage keys, deliberately separate.** `wrw.plan` holds the household plan (`@/lib/services/plan-storage`, `schemaVersion: 2`) with three places under `places` (`meeting`, `backup`, `shelter`); every shape change bumps the version and adds a migration branch in `parsePlan` (v1's single `evacuationPoint` maps to `places.shelter`). `wrw.run` holds the evacuation run (`@/lib/services/run-storage`, `schemaVersion: 1`) — current step id plus the fallback flag — so clearing the run never touches the plan, and the run resumes only inside the `RUN_FRESH_MS` freshness window (6 h).
+- **The evacuation step sequence is derived, not stored.** `buildSteps(plan)` in `src/lib/evacuation-steps.ts` recomputes it from the plan on every entry into alarm mode; the run points at a step by **id**, not index, so a plan edited between runs simply fails to resume instead of resuming the wrong step. Step titles and instructions live in that file as the single source for the screen and for future voice guidance.
+- **Multiple islands writing one key** must re-read through `readPlan()` immediately before `writePlan` — three `PlaceCard` islands each hold their own plan copy, so a stale base would clobber a sibling's place. Both `writePlan` and `writeRun` return `boolean`; a `false` must surface to the user, never a silent success.
 - **Execution Mode screens** use `<Layout mode="execution">` and the tokens from `src/styles/global.css` via Tailwind classes (`bg-background`, `text-guidance`, `text-safe`…); no hex values in components.
+- **Hold-to-confirm actions** share one state machine: `useHoldAction` in `src/components/hooks/useHoldAction.ts` (pointer + keyboard events, pointer-capture release, rAF progress ring). `AlarmButton` and `HoldButton` build on it — do not write a second copy, and do not change the 2000 ms duration, which was field-tested.
 
 ### Environment
 
