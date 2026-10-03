@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense, useState, type ReactNode } from "react";
-import { ArrowLeft, MapPinOff } from "lucide-react";
+import { ArrowLeft, MapPinOff, Navigation2, Compass } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,25 @@ import type { MapPackageState } from "@/lib/services/map-storage";
 import type { Coordinates, Destination, SavedRoute } from "@/types";
 
 const ExecutionMap = lazy(() => import("@/components/map/ExecutionMap"));
+
+const NORTH_UP_KEY = "wrw.mapNorthUp";
+
+/** A viewer preference only — losing it (private mode, cleared storage) just restores the default view. */
+function readNorthUp(): boolean {
+  try {
+    return localStorage.getItem(NORTH_UP_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeNorthUp(northUp: boolean): void {
+  try {
+    localStorage.setItem(NORTH_UP_KEY, northUp ? "1" : "0");
+  } catch {
+    // Not persisted; the toggle still works for this visit.
+  }
+}
 
 /** Started after the first /alarm render, so opening the map later is instant and never delays the first step. */
 export function prefetchExecutionMap(): void {
@@ -52,6 +71,7 @@ export default function MapOverlay({
   onClose,
 }: MapOverlayProps) {
   const [failed, setFailed] = useState(false);
+  const [northUp, setNorthUp] = useState(readNorthUp);
   const unavailable = (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
       <MapPinOff className="text-guidance size-12" strokeWidth={2} aria-hidden="true" />
@@ -66,7 +86,7 @@ export default function MapOverlay({
         <div className="size-14 shrink-0">
           {guidance.rotation !== null && <DirectionArrow rotationDegrees={guidance.rotation} dimmed={isStale} />}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-operational text-guidance text-3xl">
             {guidance.distanceMeters === null ? "—" : formatDistance(guidance.distanceMeters)}
           </p>
@@ -74,6 +94,26 @@ export default function MapOverlay({
             {distanceCaption} · {destination.label}
           </p>
         </div>
+        {heading !== null && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="shrink-0"
+            aria-pressed={northUp}
+            aria-label={northUp ? "Kierunek marszu u góry" : "Północ u góry"}
+            onClick={() => {
+              writeNorthUp(!northUp);
+              setNorthUp(!northUp);
+            }}
+          >
+            {northUp ? (
+              <Navigation2 className="size-5" strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
+            )}
+          </Button>
+        )}
       </header>
       {heading === null && (
         <p className="text-muted-foreground px-4 pb-2 text-sm">Kierunek nieznany — mapa z północą u góry.</p>
@@ -91,6 +131,7 @@ export default function MapOverlay({
                 destination={destination}
                 position={position}
                 heading={heading}
+                northUp={northUp}
                 isStale={isStale}
                 onError={() => {
                   setFailed(true);

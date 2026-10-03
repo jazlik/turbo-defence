@@ -14,12 +14,23 @@ setWorkerUrl(maplibreWorkerUrl);
 const protocol = new Protocol();
 addProtocol("pmtiles", protocol.tile);
 
-const FOLLOW_ZOOM = 16.5;
-// useHeading updates at sensor rate (S-01 impl-review F8d): move the camera only on a visible change.
-const MIN_BEARING_DELTA = 3;
+interface CameraMode {
+  zoom: number;
+  pitch: number;
+  /** Share of the height padded at the top: 0.5 puts the user at about three quarters of the screen height. */
+  topPaddingRatio: number;
+}
+
+/** Default walking view, like pedestrian navigation in Google/Apple Maps: heading up, moderate tilt, user low. */
+const NAVIGATION_CAMERA: CameraMode = { zoom: 17, pitch: 45, topPaddingRatio: 0.5 };
+/** Plain fallback — the toggle, or no heading yet: flat, north up, user centred. */
+const NORTH_UP_CAMERA: CameraMode = { zoom: 16.5, pitch: 0, topPaddingRatio: 0 };
+const MAX_PITCH = 50;
+// useHeading updates at sensor rate (S-01 impl-review F8d). A tilted, rotating view amplifies jitter, so the
+// camera favours a stable image over following every degree of heading.
+const MIN_BEARING_DELTA = 5;
 const MIN_MOVE_METERS = 2;
-/** The user sits in the lower third of the screen, so most of the view shows the way ahead. */
-const FOLLOW_TOP_PADDING_RATIO = 0.35;
+const EASE_MS = 250;
 
 export function readMapPalette(): MapPalette {
   const css = getComputedStyle(document.documentElement);
@@ -50,6 +61,8 @@ export interface ExecutionMapProps {
   position: Coordinates | null;
   /** null → north-up: no compass and no movement yet. */
   heading: number | null;
+  /** User toggle: flat north-up instead of the heading-up navigation view. */
+  northUp: boolean;
   isStale: boolean;
   onError: () => void;
 }
@@ -61,12 +74,13 @@ export default function ExecutionMap({
   destination,
   position,
   heading,
+  northUp,
   isStale,
   onError,
 }: ExecutionMapProps) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const camera = useRef<{ bearing: number; center: Coordinates } | null>(null);
+  const camera = useRef<{ bearing: number; center: Coordinates; mode: CameraMode } | null>(null);
   const onErrorRef = useRef(onError);
   const [loaded, setLoaded] = useState(false);
 
@@ -84,12 +98,15 @@ export default function ExecutionMap({
       }
       protocol.add(new PMTiles(new FileSource(file)));
       const start = position ?? destination.coords;
+      const mode = !northUp && heading !== null ? NAVIGATION_CAMERA : NORTH_UP_CAMERA;
       const map = new MapLibreMap({
         container: container.current,
         style: buildMapStyle(file.name, readMapPalette()),
         center: [start.longitude, start.latitude],
-        zoom: FOLLOW_ZOOM,
-        bearing: heading ?? 0,
+        zoom: mode.zoom,
+        pitch: mode.pitch,
+        maxPitch: MAX_PITCH,
+        bearing: mode === NAVIGATION_CAMERA ? (heading ?? 0) : 0,
         dragRotate: false,
         pitchWithRotate: false,
         touchPitch: false,
@@ -134,25 +151,30 @@ export default function ExecutionMap({
       ?.setData(position ? pointFeature(position, { stale: isStale }) : { type: "FeatureCollection", features: [] });
 
     const center = position ?? destination.coords;
-    const bearing = heading ?? 0;
+    const mode = !northUp && heading !== null ? NAVIGATION_CAMERA : NORTH_UP_CAMERA;
+    const bearing = mode === NAVIGATION_CAMERA ? (heading ?? 0) : 0;
     const previous = camera.current;
     if (
-      previous &&
+      previous?.mode === mode &&
       turn(previous.bearing, bearing) < MIN_BEARING_DELTA &&
       distanceMeters(previous.center, center) < MIN_MOVE_METERS
     ) {
       return;
     }
-    camera.current = { bearing, center };
+    const modeChanged = previous?.mode !== mode;
+    camera.current = { bearing, center, mode };
     const height = map.getContainer().clientHeight;
     const options = {
       center: [center.longitude, center.latitude] as [number, number],
       bearing,
-      padding: { top: Math.round(height * FOLLOW_TOP_PADDING_RATIO), bottom: 0, left: 0, right: 0 },
+      pitch: mode.pitch,
+      // Zoom is set only when the mode changes, so a user's pinch zoom survives the follow updates.
+      ...(modeChanged ? { zoom: mode.zoom } : {}),
+      padding: { top: Math.round(height * mode.topPaddingRatio), bottom: 0, left: 0, right: 0 },
     };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) map.jumpTo(options);
-    else map.easeTo({ ...options, duration: 160 });
-  }, [loaded, position, heading, isStale, destination]);
+    else map.easeTo({ ...options, duration: EASE_MS });
+  }, [loaded, position, heading, northUp, isStale, destination]);
 
   return <div ref={container} className="h-full w-full" aria-label="Mapa z trasą do celu" role="img" />;
 }

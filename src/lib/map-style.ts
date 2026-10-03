@@ -140,6 +140,8 @@ export function buildMapStyle(fileKey: string, palette: MapPalette): StyleSpecif
         type: "circle",
         source: "user",
         paint: {
+          // Lies flat on the tilted map like a navigation puck.
+          "circle-pitch-alignment": "map",
           "circle-radius": 9,
           "circle-color": palette.foreground,
           "circle-stroke-color": palette.background,
