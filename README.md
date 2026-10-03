@@ -1,5 +1,9 @@
 # W razie W
 
+[![CI](https://github.com/jazlik/turbo-defence/actions/workflows/ci.yml/badge.svg)](https://github.com/jazlik/turbo-defence/actions/workflows/ci.yml)
+
+**Wersja produkcyjna: <https://w-razie-w.jzogala.workers.dev>**
+
 Statyczna aplikacja PWA, działająca offline, która pomaga gospodarstwu domowemu przygotować własny plan kryzysowy, przećwiczyć go i wykonać w uproszczonym trybie działania. Zbudowana w Astro 7, React 19 i Tailwind 4; wdrażana do Cloudflare Workers jako zestaw statycznych assetów.
 
 ## Źródła prawdy
@@ -24,3 +28,7 @@ npm run dev
 ```
 
 No environment variables or backend are required.
+
+## Wdrożenie
+
+Push do `main` uruchamia CI (lint, `astro check`, build, smoke test) i wdraża `dist/` jako Worker `w-razie-w` w Cloudflare.
