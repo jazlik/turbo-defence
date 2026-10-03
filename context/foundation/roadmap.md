@@ -25,19 +25,19 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 
 ## At a glance
 
-| ID   | Change ID               | Outcome (user can …)                                                                                                            | Prerequisites | PRD refs                                                                              | Status      |
-| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | ----------- |
-| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done        |
-| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                           | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | in-progress |
-| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                           | S-01          | US-01, FR-013                                                                         | proposed    |
-| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | proposed    |
-| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed    |
-| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed    |
-| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | proposed    |
-| S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                     | S-04, S-06    | US-01, FR-001                                                                         | proposed    |
-| S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                       | S-07          | FR-008, FR-009                                                                        | proposed    |
-| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                            | S-08          | FR-010, FR-011                                                                        | proposed    |
-| S-10 | auto-shelter-and-route  | (po MVP) dostać automatycznie wybrany najbliższy schron z trasą odświeżaną, gdy aplikacja jest otwarta                          | S-04          | FR-004 (rozszerzenie), PRD Non-Goals                                                  | proposed    |
+| ID   | Change ID               | Outcome (user can …)                                                                                                            | Prerequisites | PRD refs                                                                              | Status   |
+| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | -------- |
+| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
+| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                           | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
+| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                           | S-01          | US-01, FR-013                                                                         | proposed |
+| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | proposed |
+| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed |
+| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed |
+| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | proposed |
+| S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                     | S-04, S-06    | US-01, FR-001                                                                         | proposed |
+| S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                       | S-07          | FR-008, FR-009                                                                        | proposed |
+| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                            | S-08          | FR-010, FR-011                                                                        | proposed |
+| S-10 | auto-shelter-and-route  | (po MVP) dostać automatycznie wybrany najbliższy schron z trasą odświeżaną, gdy aplikacja jest otwarta                          | S-04          | FR-004 (rozszerzenie), PRD Non-Goals                                                  | proposed |
 
 ## Streams
 
@@ -89,7 +89,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy strzałka i odległość działają wiarygodnie na telefonach używanych na scenie (dokładność położenia i kompasu w budynku)? — Owner: team. Block: no.
 - **Risk:** najwyżej ryzykowny element demo idzie pierwszy; jeśli lokalizacja lub kompas zawiodą, zostaje najwięcej czasu na plan B. Decyzja z planowania: demo na zewnątrz na realnych czujnikach, tryb z symulowaną pozycją odrzucony.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-02: Kroki ewakuacji i przełączenie na miejsce zapasowe
 
@@ -214,7 +214,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | Roadmap ID | Change ID               | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                          |
 | ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------- |
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                              |
-| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | W realizacji — czeka na testy w terenie                        |
+| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie po deployu          |
 | S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | no                    | Po S-01                                                        |
 | S-03       | voice-guidance          | Głos prowadzący po polsku                                    | no                    | Po S-01                                                        |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | no                    | Po S-01; źródło mapy i serwis tras do ustalenia w planie       |
@@ -249,3 +249,4 @@ Rozstrzygnięte 2026-10-03:
 ## Done
 
 - **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.
+- **S-01: użytkownik może wskazać punkt ewakuacji, przytrzymać przycisk alarmu i w trybie samolotowym iść za dużą strzałką z odległością do punktu; plan zostaje zapisany na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-guided-to-point-offline/`. Lesson: —.
