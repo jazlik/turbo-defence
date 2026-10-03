@@ -105,7 +105,7 @@ Execution Mode służy do wykonywania wcześniej przygotowanego planu podczas re
 
 ## 6. Paleta i tokeny
 
-Nazwy poniżej są kanonicznymi nazwami pojęciowymi. Sposób serializacji dla CSS, iOS, Androida lub narzędzia projektowego jest **OPEN**, ale implementacje mają mapować się do tych samych ról i wartości.
+Nazwy poniżej są kanonicznymi nazwami pojęciowymi. **TOKEN:** Implementacja webowa przechowuje wartości jako CSS custom properties w `src/styles/global.css`, mapuje je do Tailwind przez `@theme inline` i wykorzystuje w komponentach shadcn/CVA. Inne platformy mogą używać własnej składni, ale muszą mapować się do tych samych ról i wartości.
 
 ### Core
 
@@ -171,10 +171,25 @@ Priorytety: czytelność, hierarchia, szybkość skanowania.
 
 - **FOUNDATION:** Oba tryby korzystają z tej samej rodziny i tej samej logiki skali.
 - **GUIDELINE:** Używaj neutralnego kroju bezszeryfowego o dobrych polskich znakach; unikaj krojów technicznych, wojskowych, skondensowanych i dekoracyjnych.
-- **GUIDELINE:** Ogranicz liczbę wag. Regularna, medium i semibold powinny wystarczyć większości interfejsu.
+- **TOKEN:** Rodziną produktu jest lokalnie bundlowany variable font [**Commissioner**](https://github.com/kosbarts/Commissioner) z zakresem `latin-ext`.
+- **TOKEN:** Używaj wag 400 dla tekstu, 500 dla etykiet i kontrolek oraz 600 dla nagłówków i instrukcji.
+- **TOKEN:** Większe nagłówki mogą używać osi `FLAR: 18`. Tekst podstawowy, etykiety i informacje operacyjne używają `FLAR: 0`.
 - **GUIDELINE:** Liczby operacyjne, takie jak czas i odległość, powinny używać cyfr tabularnych, jeśli krój je obsługuje.
 - **GUIDELINE:** W Execution Mode żadna istotna informacja nie powinna używać bardzo drobnego tekstu. Instrukcja i dane operacyjne muszą być wyraźnie większe od tekstu pomocniczego.
-- **OPEN:** Rodzina fontu, dokładna skala rozmiarów, line-height i zestaw wag.
+
+### Skala typograficzna
+
+| Token          | Rozmiar / line-height | Domyślne użycie                        |
+| -------------- | --------------------- | -------------------------------------- |
+| `text.xs`      | `12 / 16px`           | metadane i krótkie etykiety pomocnicze |
+| `text.sm`      | `14 / 20px`           | etykiety, statusy i tekst pomocniczy   |
+| `text.base`    | `16 / 24px`           | tekst podstawowy                       |
+| `text.lg`      | `18 / 28px`           | lead i ważniejsze instrukcje           |
+| `text.xl`      | `20 / 28px`           | mocniejszy lead                        |
+| `text.2xl`     | `24 / 32px`           | tytuł sekcji                           |
+| `text.3xl`     | `30 / 36px`           | tytuł widoku                           |
+| `text.4xl`     | `36 / 40px`           | duży nagłówek                          |
+| `text.display` | `48 / 52px`           | hero i informacja operacyjna           |
 
 ## 9. Layout i spacing
 
@@ -183,7 +198,9 @@ Priorytety: czytelność, hierarchia, szybkość skanowania.
 - **GUIDELINE:** Preparation Mode może używać większych przerw między sekcjami i pozwalać na eksplorację.
 - **GUIDELINE:** Execution Mode koncentruje treść wokół jednego kroku; mniej elementów nie oznacza ciaśniejszego interfejsu.
 - **GUIDELINE:** Używaj jednego współdzielonego systemu spacingu. Nie dodawaj lokalnych, przypadkowych odstępów.
-- **OPEN:** Dokładna skala spacingu, breakpointy i maksymalne szerokości treści.
+- **TOKEN:** Skala spacingu to `4, 8, 12, 16, 24, 32, 48, 64px`.
+- **TOKEN:** Breakpointy webowe korzystają z wartości Tailwind: `sm 640px`, `md 768px`, `lg 1024px`, `xl 1280px`.
+- **TOKEN:** Maksymalna szerokość głównej treści to `1024px`, a ciągłego tekstu `672px`.
 
 ## 10. Karty i powierzchnie
 
@@ -207,12 +224,21 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - grupowanie tylko wtedy, gdy karta ma własny sens lub działanie,
 - brak „card everywhere”.
 
+**TOKEN — elevation:**
+
+- `shadow.sm`: `0 1px 2px rgb(32 36 39 / 6%)`,
+- `shadow.md`: `0 6px 18px rgb(32 36 39 / 8%)`.
+
+Nie dodawaj kolejnych poziomów bez rzeczywistej potrzeby hierarchicznej.
+
 ### Execution Mode
 
 - ciemne powierzchnie różnicowane przede wszystkim jasnością,
 - obramowania tylko wtedy, gdy poprawiają rozpoznanie elementu,
 - bez dekoracyjnych cieni, połysków i gradientów,
 - komponent jest funkcjonalny, nie ozdobny.
+
+**TOKEN:** Cienie w Execution Mode są wyłączone.
 
 ## 11. Przyciski i akcje
 
@@ -230,7 +256,19 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - Użytkownik nie powinien porównywać kilku równorzędnych CTA.
 - Etykieta opisuje czynność, nie ogólny stan, np. „Idź do punktu zapasowego”, nie „OK”.
 
-**OPEN:** Dokładne wartości hover, pressed, disabled i loading. Nie generuj ich automatycznie bez kontroli kontrastu i wizualnej weryfikacji.
+### Stany interakcji
+
+| Kontekst                     | Default   | Hover     | Pressed   | Foreground |
+| ---------------------------- | --------- | --------- | --------- | ---------- |
+| Preparation primary          | `#536B75` | `#465B64` | `#394B53` | `#FFFFFF`  |
+| Preparation destructive      | `#B6484E` | `#9D3E44` | `#84343A` | `#FFFFFF`  |
+| Execution primary / guidance | `#F2C15C` | `#F5CB72` | `#D9A744` | `#0B1117`  |
+| Execution destructive        | `#FF747A` | `#FF8E92` | `#E85D64` | `#0B1117`  |
+
+- **TOKEN:** Focus używa pierścienia `3px`, odstępu `2px` od komponentu i koloru focus/guidance właściwego dla trybu.
+- **TOKEN:** Minimalny rozmiar przycisku i akcji ikonowej to `44 × 44px`.
+- **TOKEN:** Disabled używa neutralnej powierzchni oraz tekstu drugorzędnego; nie reaguje na hover i nie ma cienia.
+- **TOKEN:** Loading zachowuje rozmiar i etykietę komponentu, ustawia `aria-busy="true"`, blokuje ponowne uruchomienie akcji i pokazuje jednoznaczny wskaźnik postępu.
 
 ## 12. Ikony i ilustracje
 
@@ -239,7 +277,8 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - Execution Mode używa ikon tylko do działania, kierunku, statusu lub ostrzeżenia.
 - Preparation Mode może używać spokojnych ilustracji wspierających zrozumienie i rodzinny charakter.
 - Nie używaj ozdobnych ilustracji, maskotek ani metafor w sytuacji awaryjnej.
-- **OPEN:** Konkretna biblioteka ikon, grubość obrysu i styl ilustracji Preparation Mode.
+- **TOKEN:** Biblioteką ikon jest **Lucide**, domyślnie z obrysem `2px` i bez dekoracyjnego wypełnienia.
+- **GUIDELINE:** v0 nie wprowadza systemu ilustracji. Ilustracja może powstać dopiero dla konkretnej potrzeby Preparation Mode i wymaga dopisania jej zasad do tego dokumentu przed użyciem.
 
 ## 13. Stany i feedback
 
@@ -247,7 +286,9 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - Komunikat opisuje stan i kolejny krok; nie kończy się na „Coś poszło nie tak”.
 - Stan offline, zapis lokalny i dostępność planu powinny być jawne, gdy wpływają na działanie.
 - Focus musi być widoczny na klawiaturze i nie może polegać wyłącznie na zmianie koloru tła.
-- **OPEN:** Pełny zestaw tokenów dla hover, pressed, selected, disabled, loading, success i error.
+- **TOKEN:** `selected` w Preparation łączy `steel.soft`, tekst `steel.deep` i stalowy wskaźnik; w Execution używa `surface-2`, tekstu primary i wskaźnika guidance.
+- **TOKEN:** `success` używa roli safe, `warning` roli attention/guidance, a `error` i zagrożenie roli danger. Każdy stan ma tekst i ikonę.
+- **TOKEN:** `disabled` i `loading` zachowują czytelną etykietę oraz nie polegają na samej zmianie opacity.
 
 ## 14. Motion
 
@@ -264,7 +305,7 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - ruch tylko wtedy, gdy przekazuje zmianę stanu, kierunek działania lub potwierdzenie,
 - respektuj `prefers-reduced-motion` i odpowiedniki platformowe.
 
-**OPEN:** Czasy trwania i krzywe easing.
+**TOKEN:** Feedback komponentu trwa `160ms`, a przejście widoku `220ms`. Oba używają `cubic-bezier(0.2, 0, 0, 1)`. Nie stosuj `transition-all`; animuj tylko właściwości potrzebne do przekazania zmiany.
 
 ## 15. Accessibility
 
@@ -295,6 +336,7 @@ Oba tryby korzystają z jednego, umiarkowanego systemu radiusów:
 - Biały tekst na `color.execution.danger` ma 2,61:1, a na `color.execution.safe` 2,10:1. Na tych jasnych wypełnieniach używaj `color.execution.on-signal`.
 - `color.preparation.text-secondary` na `color.preparation.surface-secondary` ma 4,44:1, czyli poniżej AA dla zwykłego tekstu. Na `surface-secondary` używaj `text-primary` albo `color.core.steel.deep`, a `text-secondary` zostaw dla `background` i `surface`.
 - Sprawdzone dodatkowo (≥ AA): Execution `text-secondary`, `guidance`, `danger`, `safe` na `surface-1` i `surface-2` (5,81–14,10:1); Preparation `danger`, `safe`, `attention-foreground`, `action` na `surface` (5,00–6,50:1).
+- Stany hover i pressed przycisków zachowują kontrast tekstu od 5,58:1 do 12,35:1 w obu trybach.
 
 ### Wymagania interakcji
 
@@ -378,14 +420,14 @@ Wyjątek: zadanie jawnie prosi o eksplorację zupełnie nowego kierunku. Taki ma
 6. Element `OPEN` można rozstrzygnąć dopiero na podstawie realnej potrzeby produktu. Po decyzji zmień jego status na `TOKEN`, `GUIDELINE` lub `FOUNDATION`.
 7. Nie duplikuj specyfikacji w innych plikach. Pozostałe dokumenty mają linkować do `JEZYK_WIZUALNY.md`.
 
-### Otwarte elementy v0
+### Rozstrzygnięcia implementacyjne v0
 
-- finalny krój i pełna skala typograficzna,
-- skala spacingu i breakpointy,
-- model cieni i elevation,
-- pełny zestaw stanów interakcji,
-- biblioteka ikon i styl ilustracji,
-- docelowy format dystrybucji tokenów do kodu i narzędzi projektowych.
+- font: Commissioner, lokalnie bundlowany `latin-ext`, wagi 400/500/600 i kontrolowane użycie osi `FLAR`,
+- spacing: skala 4–64px oraz breakpointy Tailwind,
+- elevation: dwa subtelne poziomy w Preparation, brak cieni w Execution,
+- interakcje: jawne tokeny hover, pressed, focus, disabled i loading,
+- ikony: Lucide, obrys 2px; brak ilustracji w v0,
+- dystrybucja web: CSS custom properties → Tailwind `@theme inline` → komponenty shadcn/CVA.
 
 ## 20. Hackathon HackYeah „Defence"
 
@@ -407,12 +449,6 @@ Regulamin wymaga oddzielenia pracy sprzed startu od pracy w trakcie hackathonu o
 - Obrazy, ikony i ilustracje wygenerowane AI oznacz w opisie zgłoszenia.
 - Regulamin każe też zweryfikować godzinę startu (3.10, 23:00 wygląda na błąd) i platformę zgłoszeń (Challenge Rocket vs HackTribe).
 
-### Do rozstrzygnięcia przed demem
+### Ustalenia obowiązujące w demie
 
-Elementy OPEN z §19, które demo wymusza. **Nie są ustalone**; wymagają decyzji i wpisu do tego dokumentu ze statusem `TOKEN`:
-
-- rodzina fontu i skala rozmiarów,
-- biblioteka ikon i grubość obrysu,
-- skala spacingu,
-- stany hover, pressed, disabled, loading (z kontrolą kontrastu),
-- styl ilustracji Preparation Mode, jeśli będą użyte.
+Demo korzysta z rozstrzygnięć implementacyjnych v0 z §19: Commissioner, Lucide, wspólnej skali spacingu, jawnych stanów interakcji i tokenów trybów. Nie wprowadzaj ilustracji ani nowego języka prezentacji bez osobnej decyzji.
