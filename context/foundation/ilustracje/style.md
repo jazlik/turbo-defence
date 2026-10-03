@@ -43,4 +43,14 @@ Uwaga człowieka do D: styl się podoba, ale postacie mają być bardziej przyja
 | `plan-c3.png` | przyjazna (wariant człowieka) | `Friendly faces: two small dot eyes, a tiny simple nose line and a gentle small smile — calm, not cartoonish.`                                         |
 | `plan-c4.png` | kontrast: jedna linia         | `Faces drawn with a single continuous line: profile or three-quarter view, nose and mouth in one stroke, no eyes as dots — elegant, adult, editorial.` |
 
+### Ocena rundy D — twarze
+
+**c1 — bez twarzy.** Zachowuje największą oszczędność i spójność z dotychczasowym D, ale relacja rodzinna opiera się niemal wyłącznie na pozach. Przy większym kadrze postacie pozostają celowo anonimowe.
+
+**c2 — same oczy.** Dwie kropki zwiększają kontakt z postaciami bez istotnego zagęszczania rysunku. Twarze są nadal neutralne, choć przy mniejszym rozmiarze oczy mogą być słabo widoczne.
+
+**c3 — przyjazna.** Oczy, mały nos i delikatny uśmiech dają najwięcej ciepła i czytelnie wspierają rodzinny charakter sceny. Dodatkowe rysy są zauważalne, lecz nie zmieniają ilustracji w ekspresyjną kreskówkę.
+
+**c4 — jedna linia.** Profile i ujęcia trzy czwarte nadają scenie bardziej dorosły, editorialowy ton. Twarze są wyrazistsze od pustych, ale mniej bezpośrednie niż warianty z oczami skierowanymi do odbiorcy.
+
 Potem: `npm run illustrations:sheet -- context/foundation/ilustracje/kierunki-v1`, w tym pliku pod tabelą 1–2 zdania o każdym wariancie (bez wybierania), commit jako Daniel Karski <daniel.karski5q@gmail.com> bez `Co-Authored-By`, push `feat/illustration-directions`, stop.
