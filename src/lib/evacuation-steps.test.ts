@@ -6,11 +6,12 @@ import type { EvacuationRun, HouseholdPlan, Place, PlaceKind } from "@/types";
 const place = (label: string): Place => ({ label, coords: { latitude: 52.2297, longitude: 21.0122 } });
 
 const planWith = (places: Partial<Record<PlaceKind, Place>>): HouseholdPlan => ({
-  schemaVersion: 3,
+  schemaVersion: 4,
   places: { meeting: places.meeting ?? null, backup: places.backup ?? null, shelter: places.shelter ?? null },
   lastKnownPosition: null,
   members: [],
   contacts: [],
+  packedItems: [],
   updatedAt: "2026-10-03T12:00:00.000Z",
 });
 

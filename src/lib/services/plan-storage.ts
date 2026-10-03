@@ -1,3 +1,4 @@
+import { MAX_PACKED_ITEMS } from "../backpack";
 import { isMemberCategory, isPresetNeedKind, MAX_NEED_LABEL_LENGTH, MAX_NEEDS, MAX_RECORDS } from "../household";
 import type {
   Coordinates,
@@ -6,12 +7,13 @@ import type {
   HouseholdPlan,
   LastKnownPosition,
   MemberNeed,
+  PackedItem,
   Place,
   PlaceKind,
 } from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
@@ -20,6 +22,7 @@ export function createEmptyPlan(): HouseholdPlan {
     lastKnownPosition: null,
     members: [],
     contacts: [],
+    packedItems: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -82,6 +85,28 @@ function parseContact(value: unknown): EmergencyContact | null {
   return { id, name, phone, relation: typeof relation === "string" ? relation : "" };
 }
 
+function parsePackedItem(value: unknown): PackedItem | null {
+  if (!isRecord(value) || !isNonEmptyString(value.itemId)) return null;
+  const { itemId, quantity } = value;
+  if (quantity === null) return { itemId, quantity };
+  return typeof quantity === "number" && Number.isFinite(quantity) && quantity >= 0 ? { itemId, quantity } : null;
+}
+
+/** Duplicate ids keep the first record — one item has one packed state. */
+function parsePackedItems(value: unknown): PackedItem[] {
+  const seen = new Set<string>();
+  return parseList(
+    value,
+    (raw) => {
+      const item = parsePackedItem(raw);
+      if (!item || seen.has(item.itemId)) return null;
+      seen.add(item.itemId);
+      return item;
+    },
+    MAX_PACKED_ITEMS,
+  );
+}
+
 /** A damaged record is skipped, the rest of the list survives. */
 function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null, limit = MAX_RECORDS): T[] {
   if (!Array.isArray(value)) return [];
@@ -123,13 +148,30 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
         lastKnownPosition,
         members: parseList(value.members, parseMember),
         contacts: parseList(value.contacts, parseContact),
+        packedItems: parsePackedItems(value.packedItems),
         updatedAt,
       },
       source: "stored",
     };
   }
 
-  // v2 miało miejsca, ale nie miało list domowników i kontaktów — dostają puste listy.
+  // v3 miało domowników i kontakty, ale nie miało odhaczeń plecaka — dostaje pustą listę.
+  if (value.schemaVersion === 3) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: parsePlaces(value.places),
+        lastKnownPosition,
+        members: parseList(value.members, parseMember),
+        contacts: parseList(value.contacts, parseContact),
+        packedItems: [],
+        updatedAt,
+      },
+      source: "migrated",
+    };
+  }
+
+  // v2 miało miejsca, ale nie miało list domowników i kontaktów ani odhaczeń — dostają puste listy.
   if (value.schemaVersion === 2) {
     return {
       plan: {
@@ -138,6 +180,7 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
         lastKnownPosition,
         members: [],
         contacts: [],
+        packedItems: [],
         updatedAt,
       },
       source: "migrated",
@@ -153,6 +196,7 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
         lastKnownPosition,
         members: [],
         contacts: [],
+        packedItems: [],
         updatedAt,
       },
       source: "migrated",
