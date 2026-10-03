@@ -283,15 +283,6 @@ export default function EmergencyContactsCard() {
               type="button"
               size="lg"
               variant={pickerSupported ? "outline" : "default"}
-              aria-busy={importing}
-              onClick={() => fileRef.current?.click()}
-            >
-              <FileUp strokeWidth={2} aria-hidden="true" />Z pliku vCard
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
               onClick={() => {
                 setMode("manual");
                 focusSoon(() => nameRef.current);
@@ -310,10 +301,26 @@ export default function EmergencyContactsCard() {
             aria-hidden="true"
             onChange={(event) => void importFile(event)}
           />
-          <p className="text-muted-foreground text-sm">
-            Plik vCard (.vcf) wyeksportujesz z aplikacji Kontakty: udostępnij kontakt i zapisz go w plikach.
-            {pickerSupported ? "" : " Wybór bezpośrednio z kontaktów telefonu nie jest dostępny w tej przeglądarce."}
-          </p>
+          <div>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="-ml-3"
+              aria-busy={importing}
+              onClick={() => fileRef.current?.click()}
+            >
+              <FileUp strokeWidth={2} aria-hidden="true" />
+              Importuj z pliku vCard
+            </Button>
+            <p className="text-muted-foreground text-sm">
+              Kontakty z iPhone&apos;a lub iCloud: na iCloud.com otwórz Kontakty, zaznacz osoby i wybierz eksport vCard,
+              zapisz plik w aplikacji Pliki i wskaż go tutaj.
+              {pickerSupported
+                ? ""
+                : " Wybór bezpośrednio z kontaktów telefonu nie jest dostępny w tej przeglądarce. Możesz też skopiować numer z Kontaktów i wkleić go po wybraniu „Wpisz ręcznie”."}
+            </p>
+          </div>
         </div>
       ) : mode === "select" ? (
         <div className="border-border mt-6 space-y-4 border-t pt-6">
