@@ -50,16 +50,18 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-10-03` (auto-researched + user-confirmed).
-Foundations below assume these are present and do NOT re-scaffold them.
+What's already in place in the codebase as of `2026-10-03`, after `F-01` and `S-01` (refreshed at the S-01 close).
+Slices below build on these and do NOT re-scaffold them.
 
-- **Frontend:** present — framework UI, stylowanie i komponenty ze startera; tylko strona startowa (`src/pages/index.astro`, `astro.config.mjs`).
-- **Backend / API:** partial — renderowanie po stronie serwera i endpointy logowania ze startera (`src/pages/api/auth/*`); PRD nie przewiduje serwera.
-- **Data:** absent — brak lokalnego zapisu; `supabase/config.toml` bez migracji, nieużywany przez PRD.
-- **Auth:** partial — logowanie Supabase ze startera (`src/middleware.ts`); PRD: profil lokalny, bez kont.
-- **Deploy / infra:** partial — konfiguracja hostingu (`wrangler.jsonc`), CI w `.github/workflows/ci.yml` ustawione na branch `master` zamiast `main` i wymagające sekretów Supabase.
+- **Frontend:** present — statyczna PWA Astro 7 z wyspami React 19, Tailwind 4 i shadcn/ui; tokeny wizualne w `src/styles/global.css`, tryby `preparation` / `execution` w `src/layouts/Layout.astro`. Ekrany: `/` (plan i alarm), `/czujniki`, `/alarm`, `/design`.
+- **Backend / API:** absent — świadomie: `output: "static"`, bez serwera, API i middleware (PRD: dane nie opuszczają urządzenia).
+- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 1`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`); każda zmiana kształtu podnosi wersję i dopisuje migrację w `readPlan`.
+- **Auth:** absent — świadomie: profil lokalny, bez kont.
+- **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
+- **Sensors:** present — `useGeolocation`, `useHeading` (kompas iOS/Android z fallbackiem na azymut z ruchu), `useScreenWakeLock` w `src/components/hooks/`; matematyka geo w `src/lib/geo.ts`.
+- **Deploy / infra:** present — assets-only Worker `w-razie-w` na Cloudflare; CI (`.github/workflows/ci.yml`) na `main`: lint, `astro check`, `npm test`, build, smoke, deploy z `main` i smoke na żywym adresie.
 - **Observability:** absent — świadomie poza MVP (PRD: brak guardrails).
-- **Offline / instalowalność:** absent — brak manifestu aplikacji i mechanizmu działania bez sieci.
+- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`; `scripts/smoke.mjs` sprawdza strony i precache; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
 
 ## Foundations
 
@@ -211,19 +213,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID               | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                          |
-| ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------- |
-| F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                              |
-| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie po deployu          |
-| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | no                    | Po S-01                                                        |
-| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | no                    | Po S-01                                                        |
-| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | no                    | Po S-01; źródło mapy i serwis tras do ustalenia w planie       |
-| S-05       | household-members       | Domownicy i kontakty awaryjne                                | no                    | Po S-01                                                        |
-| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                          | no                    | Po S-05                                                        |
-| S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                       | no                    | Po S-04 i S-06                                                 |
-| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                      | no                    | Po S-07                                                        |
-| S-09       | share-plan              | Przekazanie planu domownikowi                                | no                    | Po S-08; format do ustalenia w planie                          |
-| S-10       | auto-shelter-and-route  | Automatyczny wybór schronu i trasa odświeżana w tle (po MVP) | no                    | Po S-04; dane o schronach i NFR prywatności do rozstrzygnięcia |
+| Roadmap ID | Change ID               | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                                                  |
+| ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------- |
+| F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                                                      |
+| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie po deployu                                  |
+| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Run `/10x-plan step-flow-and-fallback`                                                 |
+| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Run `/10x-plan voice-guidance`                                                         |
+| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
+| S-05       | household-members       | Domownicy i kontakty awaryjne                                | yes                   | Run `/10x-plan household-members`                                                      |
+| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                          | no                    | Po S-05                                                                                |
+| S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                       | no                    | Po S-04 i S-06                                                                         |
+| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                      | no                    | Po S-07                                                                                |
+| S-09       | share-plan              | Przekazanie planu domownikowi                                | no                    | Po S-08; format do ustalenia w planie                                                  |
+| S-10       | auto-shelter-and-route  | Automatyczny wybór schronu i trasa odświeżana w tle (po MVP) | no                    | Po S-04; dane o schronach i NFR prywatności do rozstrzygnięcia                         |
 
 ## Open Roadmap Questions
 
