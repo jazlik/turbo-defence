@@ -3,7 +3,7 @@
 .AppleDouble
 .LSOverride
 
-# from 10x-astro-starter
+# Astro / Node / Cloudflare
 # build output
 dist/
 

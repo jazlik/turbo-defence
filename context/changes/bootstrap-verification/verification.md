@@ -1,7 +1,7 @@
 ---
 bootstrapped_at: 2026-10-03T15:53:00Z
 starter_id: 10x-astro-starter
-starter_name: "10x Astro Starter (Astro + Supabase + Cloudflare)"
+starter_name: "Astro + React + Tailwind + Cloudflare starter"
 project_name: w-razie-w
 language_family: js
 package_manager: npm
@@ -43,16 +43,16 @@ Household Resilience App is a small-scale web app delivered as a PWA within a 24
 | Signal      | Value                                                     | Severity | Notes                                             |
 | ----------- | --------------------------------------------------------- | -------- | ------------------------------------------------- |
 | npm package | not run                                                   | —        | cmd_template starts with `git clone`; no npm CLI   |
-| GitHub repo | przeprogramowani/10x-astro-starter last pushed 2026-09-12 | fresh    | from card.docs_url                                |
+| GitHub repo | starter repo last pushed 2026-09-12 | fresh    | from card.docs_url                                |
 
 ## Scaffold log
 
-**Resolved invocation**: `git clone https://github.com/przeprogramowani/10x-astro-starter .bootstrap-scaffold && cd .bootstrap-scaffold && npm install`
+**Resolved invocation**: `git clone <starter-repo> .bootstrap-scaffold && cd .bootstrap-scaffold && npm install`
 **Strategy**: git-clone
 **Exit code**: 0 (npm 11.13.0, node v24.16.0; 658 packages added)
 **Files moved**: 20 top-level entries — AGENTS.md, CLAUDE.md, astro.config.mjs, components.json, eslint.config.js, node_modules/, package-lock.json, package.json, public/, scripts/, src/, supabase/, tsconfig.json, wrangler.jsonc, .env.example, .github/, .husky/, .nvmrc, .prettierrc.json, .vscode/
 **Conflicts (.scaffold siblings)**: README.md.scaffold
-**.gitignore handling**: append-merged (`# from 10x-astro-starter` separator; `.DS_Store` de-duped)
+**.gitignore handling**: append-merged (separator comment; `.DS_Store` de-duped)
 **.bootstrap-scaffold cleanup**: deleted (emptied via move-up, then `rmdir`)
 **Cloned `.git/`**: moved out of the project into the session scratchpad instead of being deleted in place (in-place `rm -rf` was denied by the permission policy); upstream history did not leak into the repo.
 **context/ in scaffold**: absent — nothing dropped.
