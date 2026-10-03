@@ -396,11 +396,11 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 
 #### Automated
 
-- [x] 3.1 Lint przechodzi: `npm run lint`
-- [x] 3.2 Typy przechodzą: `npx astro check`
-- [x] 3.3 Testy przechodzą: `npm test`
-- [x] 3.4 Build przechodzi: `npm run build`
-- [x] 3.5 Smoke przechodzi: `npm run smoke`
+- [x] 3.1 Lint przechodzi: `npm run lint` — 9f7949d
+- [x] 3.2 Typy przechodzą: `npx astro check` — 9f7949d
+- [x] 3.3 Testy przechodzą: `npm test` — 9f7949d
+- [x] 3.4 Build przechodzi: `npm run build` — 9f7949d
+- [x] 3.5 Smoke przechodzi: `npm run smoke` — 9f7949d
 
 #### Manual
 
@@ -422,4 +422,4 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 #### Manual
 
 - [ ] 4.3 Cała ścieżka z głosem przechodzi na telefonie w trybie samolotowym
-- [ ] 4.4 `roadmap.md` ma `S-03` jako `done`, a PRD opisuje ograniczenia głosu
+- [x] 4.4 `roadmap.md` ma `S-03` jako `done`, a PRD opisuje ograniczenia głosu
