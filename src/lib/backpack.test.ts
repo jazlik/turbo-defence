@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildBackpack,
+  formatAmount,
   itemState,
   peopleCount,
   prunePacked,
@@ -137,6 +138,22 @@ describe("togglePacked", () => {
 
   it("prunes only by the list it is given", () => {
     expect(prunePacked([{ itemId: "gone", quantity: null }], items)).toEqual([]);
+  });
+});
+
+describe("formatAmount", () => {
+  function quantityOf(members: HouseholdMember[], id: string) {
+    const quantity = find(buildBackpack(members), id).quantity;
+    if (!quantity) throw new Error(`no quantity for ${id}`);
+    return quantity;
+  }
+
+  it("declines the unit for the amount it shows", () => {
+    const petFood = quantityOf([member("p1", "Burek", "pet"), member("p2", "Mruczek", "pet")], "pet-food");
+    expect(formatAmount(petFood)).toBe("6 porcji");
+    expect(formatAmount(petFood, 3)).toBe("3 porcje");
+    expect(formatAmount(petFood, 1)).toBe("1 porcja");
+    expect(formatAmount(quantityOf([], "water"), 18)).toBe("18 l");
   });
 });
 

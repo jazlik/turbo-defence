@@ -259,32 +259,32 @@ v3 → v4 dokłada `packedItems: []`. Zapis migrowanego planu następuje dopiero
 
 #### Automated
 
-- [x] 1.1 Testy przechodzą: `npm test`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Typy przechodzą: `npx astro check`
-- [x] 1.4 Build przechodzi: `npm run build`
+- [x] 1.1 Testy przechodzą: `npm test` — c9e0012
+- [x] 1.2 Lint przechodzi: `npm run lint` — c9e0012
+- [x] 1.3 Typy przechodzą: `npx astro check` — c9e0012
+- [x] 1.4 Build przechodzi: `npm run build` — c9e0012
 
 #### Manual
 
-- [x] 1.5 Treść pozycji bazowych i norm porównana z Poradnikiem bezpieczeństwa / stroną KW PSP
-- [x] 1.6 Plan v3 otwiera `/` i `/alarm` po buildzie bez utraty miejsc i domowników
+- [x] 1.5 Treść pozycji bazowych i norm porównana z Poradnikiem bezpieczeństwa / stroną KW PSP — c9e0012
+- [x] 1.6 Plan v3 otwiera `/` i `/alarm` po buildzie bez utraty miejsc i domowników — c9e0012
 
 ### Phase 2: Ekran `/plecak` i karta na stronie głównej
 
 #### Automated
 
-- [ ] 2.1 Lint przechodzi: `npm run lint`
-- [ ] 2.2 Typy przechodzą: `npx astro check`
-- [ ] 2.3 Testy przechodzą: `npm test`
-- [ ] 2.4 Build przechodzi: `npm run build`
-- [ ] 2.5 Smoke przechodzi na buildzie: `npm run preview` + `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint`
+- [x] 2.2 Typy przechodzą: `npx astro check`
+- [x] 2.3 Testy przechodzą: `npm test`
+- [x] 2.4 Build przechodzi: `npm run build`
+- [x] 2.5 Smoke przechodzi na buildzie: `npm run preview` + `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 Rodzina z dzieckiem, psem, lekami i potrzebą własną — wszystkie grupy, ilości i imiona widoczne
-- [ ] 2.7 Odhaczenie przeżywa przeładowanie; karta na stronie głównej pokazuje ten sam postęp
-- [ ] 2.8 Nowy domownik → woda w stanie „Ilość wzrosła”, postęp spadł
-- [ ] 2.9 Usunięcie i ponowne dodanie dziecka — grupa znika, potem wraca niespakowana
-- [ ] 2.10 Pusta rodzina — pozycje dla 1 osoby i podpowiedź z linkiem
+- [x] 2.6 Rodzina z dzieckiem, psem, lekami i potrzebą własną — wszystkie grupy, ilości i imiona widoczne
+- [x] 2.7 Odhaczenie przeżywa przeładowanie; karta na stronie głównej pokazuje ten sam postęp
+- [x] 2.8 Nowy domownik → woda w stanie „Ilość wzrosła”, postęp spadł
+- [x] 2.9 Usunięcie i ponowne dodanie dziecka — grupa znika, potem wraca niespakowana
+- [x] 2.10 Pusta rodzina — pozycje dla 1 osoby i podpowiedź z linkiem
 - [ ] 2.11 Tryb samolotowy — `/plecak` otwiera się i zapisuje odhaczenia
 - [ ] 2.12 Klawiatura i czytnik ekranu — checkboxy osiągalne, stan i postęp odczytywane

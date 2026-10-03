@@ -48,6 +48,25 @@ function plural(n: number, one: string, few: string, many: string): string {
   return lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
 }
 
+type UnitForms = readonly [one: string, few: string, many: string];
+
+const PIECES: UnitForms = ["sztuka", "sztuki", "sztuk"];
+const SETS: UnitForms = ["komplet", "komplety", "kompletów"];
+const RATIONS: UnitForms = ["racja dzienna", "racje dzienne", "racji dziennych"];
+const PORTIONS: UnitForms = ["porcja", "porcje", "porcji"];
+const DECLINED_UNITS = [PIECES, SETS, RATIONS, PORTIONS];
+
+const unitFor = (amount: number, forms: UnitForms) => plural(amount, ...forms);
+
+/**
+ * "27 l", "3 porcje" — `amount` defaults to the current one; an older amount (e.g. before the
+ * household grew) gets its own declension of the same unit.
+ */
+export function formatAmount(quantity: BackpackQuantity, amount = quantity.amount): string {
+  const forms = DECLINED_UNITS.find((candidate) => candidate.includes(quantity.unit));
+  return `${String(amount)} ${forms ? unitFor(amount, forms) : quantity.unit}`;
+}
+
 const days = `${String(DAYS)} doby`;
 
 /** The organizer is not a household member — members are the people who evacuate with them. */
@@ -63,13 +82,13 @@ interface ItemTemplate<TContext> {
 
 const pieces = (amount: number, basis: string): BackpackQuantity => ({
   amount,
-  unit: plural(amount, "sztuka", "sztuki", "sztuk"),
+  unit: unitFor(amount, PIECES),
   basis,
 });
 
 const sets = (amount: number, basis: string): BackpackQuantity => ({
   amount,
-  unit: plural(amount, "komplet", "komplety", "kompletów"),
+  unit: unitFor(amount, SETS),
   basis,
 });
 
@@ -92,7 +111,7 @@ const EVERYONE: readonly ItemTemplate<number>[] = [
       const amount = people * DAYS;
       return {
         amount,
-        unit: plural(amount, "racja dzienna", "racje dzienne", "racji dziennych"),
+        unit: unitFor(amount, RATIONS),
         basis: `${String(people)} os. × ${days}`,
       };
     },
@@ -161,7 +180,7 @@ const PETS: readonly ItemTemplate<number>[] = [
       const amount = pets * DAYS;
       return {
         amount,
-        unit: plural(amount, "porcja", "porcje", "porcji"),
+        unit: unitFor(amount, PORTIONS),
         basis: `${String(pets)} ${plural(pets, "zwierzę", "zwierzęta", "zwierząt")} × ${days}`,
       };
     },
