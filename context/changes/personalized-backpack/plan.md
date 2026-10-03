@@ -273,18 +273,18 @@ v3 → v4 dokłada `packedItems: []`. Zapis migrowanego planu następuje dopiero
 
 #### Automated
 
-- [x] 2.1 Lint przechodzi: `npm run lint`
-- [x] 2.2 Typy przechodzą: `npx astro check`
-- [x] 2.3 Testy przechodzą: `npm test`
-- [x] 2.4 Build przechodzi: `npm run build`
-- [x] 2.5 Smoke przechodzi na buildzie: `npm run preview` + `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint` — ca0ba4b
+- [x] 2.2 Typy przechodzą: `npx astro check` — ca0ba4b
+- [x] 2.3 Testy przechodzą: `npm test` — ca0ba4b
+- [x] 2.4 Build przechodzi: `npm run build` — ca0ba4b
+- [x] 2.5 Smoke przechodzi na buildzie: `npm run preview` + `npm run smoke` — ca0ba4b
 
 #### Manual
 
-- [x] 2.6 Rodzina z dzieckiem, psem, lekami i potrzebą własną — wszystkie grupy, ilości i imiona widoczne
-- [x] 2.7 Odhaczenie przeżywa przeładowanie; karta na stronie głównej pokazuje ten sam postęp
-- [x] 2.8 Nowy domownik → woda w stanie „Ilość wzrosła”, postęp spadł
-- [x] 2.9 Usunięcie i ponowne dodanie dziecka — grupa znika, potem wraca niespakowana
-- [x] 2.10 Pusta rodzina — pozycje dla 1 osoby i podpowiedź z linkiem
+- [x] 2.6 Rodzina z dzieckiem, psem, lekami i potrzebą własną — wszystkie grupy, ilości i imiona widoczne — ca0ba4b
+- [x] 2.7 Odhaczenie przeżywa przeładowanie; karta na stronie głównej pokazuje ten sam postęp — ca0ba4b
+- [x] 2.8 Nowy domownik → woda w stanie „Ilość wzrosła”, postęp spadł — ca0ba4b
+- [x] 2.9 Usunięcie i ponowne dodanie dziecka — grupa znika, potem wraca niespakowana — ca0ba4b
+- [x] 2.10 Pusta rodzina — pozycje dla 1 osoby i podpowiedź z linkiem — ca0ba4b
 - [ ] 2.11 Tryb samolotowy — `/plecak` otwiera się i zapisuje odhaczenia
 - [ ] 2.12 Klawiatura i czytnik ekranu — checkboxy osiągalne, stan i postęp odczytywane
