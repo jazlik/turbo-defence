@@ -278,7 +278,7 @@ Nie dodawaj kolejnych poziomów bez rzeczywistej potrzeby hierarchicznej.
 - Preparation Mode może używać spokojnych ilustracji wspierających zrozumienie i rodzinny charakter.
 - Nie używaj ozdobnych ilustracji, maskotek ani metafor w sytuacji awaryjnej.
 - **TOKEN:** Biblioteką ikon jest **Lucide**, domyślnie z obrysem `2px` i bez dekoracyjnego wypełnienia.
-- **GUIDELINE:** Ilustracje są dopuszczone wyłącznie w Preparation Mode, dla konkretnej potrzeby — pierwszą jest poradnik onboardingu (5 kart: domownicy, plecak, miejsca, udostępnienie, prowadzenie). W Execution Mode ilustracji nie ma.
+- **GUIDELINE:** Ilustracje są dopuszczone wyłącznie w Preparation Mode, dla konkretnej potrzeby — pierwszą jest poradnik onboardingu (5 kart: domownicy, plecak, miejsca, udostępnienie, prowadzenie). W Execution Mode ilustracji nie ma. Poza aplikacją ilustracje w tym stylu mogą wystąpić w materiałach prezentujących produkt (§20).
 - **GUIDELINE — styl ilustracji „kontur”:**
   - jedna równa kreska `#2F3E45` o grubości jak obrys ikony Lucide; wszystko inne białe w zamkniętym konturze — skóra, włosy, ubrania, meble, drzewa;
   - jedyny kolor wypełnienia to stal `#536B75` na **jednym** kluczowym obiekcie sceny (drzwi, plecak, ławka, telefon); żadnych innych kolorów, szarości, cieni ani gradientów;
@@ -446,6 +446,8 @@ Wyjątek: zadanie jawnie prosi o eksplorację zupełnie nowego kierunku. Taki ma
 - **GUIDELINE:** Pokaż oba tryby obok siebie na jednym slajdzie, żeby kontrast Preparation → Execution był widoczny od razu. To najmocniejszy wizualnie element produktu.
 - **GUIDELINE:** Zrzuty ekranu i demo pokazują stan offline lub brak danych (§13), bo regulamin oczekuje działania przy ograniczonych zasobach i niedostępnych usługach.
 - **GUIDELINE:** Mockupy w prezentacji muszą odpowiadać temu, co działa w demie. Nie pokazuj ekranów, których nie ma w prototypie, bez oznaczenia „koncepcja".
+- **GUIDELINE:** Ilustracje na slajdach wyłącznie w stylu „kontur” z §12: funkcje produktu pokazują karty poradnika, nowa scena powstaje tylko tam, gdzie slajd pokazuje problem (np. nadmiar informacji zamiast planu). Małe znaki funkcji to ikony Lucide, nie osobne ilustracje.
+- **GUIDELINE:** Wyróżnienie liczby lub hasła na slajdzie robi stal albo pogrubienie tekstu. Bursztyn i czerwień zachowują znaczenie z §7 (uwaga, prowadzenie, zagrożenie) także w prezentacji.
 
 ### Pochodzenie materiałów
 
