@@ -422,28 +422,28 @@ Pierwsza migracja schematu planu w tym projekcie. `schemaVersion: 1` z pojedyncz
 
 #### Automated
 
-- [x] 2.1 Lint przechodzi: `npm run lint`
-- [x] 2.2 Typy przechodzą: `npx astro check`
-- [x] 2.3 Testy przechodzą: `npm test`
-- [x] 2.4 Build przechodzi: `npm run build`
-- [x] 2.5 Smoke z nową asercją przechodzi: `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint` — 266ffce
+- [x] 2.2 Typy przechodzą: `npx astro check` — 266ffce
+- [x] 2.3 Testy przechodzą: `npm test` — 266ffce
+- [x] 2.4 Build przechodzi: `npm run build` — 266ffce
+- [x] 2.5 Smoke z nową asercją przechodzi: `npm run smoke` — 266ffce
 
 #### Manual
 
-- [x] 2.6 Ustawienie trzech miejsc po kolei („Ustaw tutaj” i wpisane współrzędne) zapisuje wszystkie trzy — żadne nie nadpisuje poprzedniego po odświeżeniu strony
-- [x] 2.7 Każde miejsce przeżywa zamknięcie i ponowne otwarcie aplikacji
-- [x] 2.8 Strona domowa ma nadal jeden czytelny dominujący następny krok, a nie trzy równorzędne stalowe przyciski
-- [x] 2.9 Blok statusu offline nadal dochodzi do stanu „Gotowe do pracy offline”
+- [x] 2.6 Ustawienie trzech miejsc po kolei („Ustaw tutaj” i wpisane współrzędne) zapisuje wszystkie trzy — żadne nie nadpisuje poprzedniego po odświeżeniu strony — 266ffce
+- [x] 2.7 Każde miejsce przeżywa zamknięcie i ponowne otwarcie aplikacji — 266ffce
+- [x] 2.8 Strona domowa ma nadal jeden czytelny dominujący następny krok, a nie trzy równorzędne stalowe przyciski — 266ffce
+- [x] 2.9 Blok statusu offline nadal dochodzi do stanu „Gotowe do pracy offline” — 266ffce
 
 ### Phase 3: Prowadzenie — kroki, „niedostępne” i potwierdzenie dojścia
 
 #### Automated
 
-- [ ] 3.1 Lint przechodzi: `npm run lint`
-- [ ] 3.2 Typy przechodzą: `npx astro check`
-- [ ] 3.3 Testy przechodzą: `npm test`
-- [ ] 3.4 Build przechodzi: `npm run build`
-- [ ] 3.5 Smoke przechodzi: `npm run smoke`
+- [x] 3.1 Lint przechodzi: `npm run lint`
+- [x] 3.2 Typy przechodzą: `npx astro check`
+- [x] 3.3 Testy przechodzą: `npm test`
+- [x] 3.4 Build przechodzi: `npm run build`
+- [x] 3.5 Smoke przechodzi: `npm run smoke`
 
 #### Manual
 
