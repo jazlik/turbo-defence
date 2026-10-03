@@ -340,11 +340,11 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 
 - [x] 3.1 Workflow references no Supabase secrets — 2f29abf
 - [x] 3.2 PR run: `ci` and `smoke` green, `deploy` skipped
-- [ ] 3.3 After merge: `deploy` green including live smoke
+- [x] 3.3 After merge: `deploy` green including live smoke
 
 #### Manual
 
 - [x] 3.4 Cloudflare secrets set
-- [ ] 3.5 Android: installed app opens in airplane mode
-- [ ] 3.6 iPhone: installed app opens in airplane mode (if available)
+- [x] 3.5 Android: installed app opens in airplane mode
+- [x] 3.6 iPhone: installed app opens in airplane mode (if available)
 - [ ] 3.7 Pushed change visible in installed app after next online open
