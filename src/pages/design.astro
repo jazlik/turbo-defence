@@ -1,0 +1,145 @@
+---
+import { ArrowUp, CheckCircle2, ShieldAlert, TriangleAlert } from "lucide-react";
+
+import Layout from "@/layouts/Layout.astro";
+
+const core = [
+  { name: "color.core.steel", value: "#536B75", cls: "bg-core-steel" },
+  { name: "color.core.steel.soft", value: "#E3E7E9", cls: "bg-core-steel-soft" },
+  { name: "color.core.steel.deep", value: "#2F3E45", cls: "bg-core-steel-deep" },
+];
+
+const support = [
+  {
+    name: "Zagrożenie",
+    token: "color.support.danger",
+    value: "#B6484E",
+    cls: "bg-support-danger text-white",
+    Icon: ShieldAlert,
+  },
+  {
+    name: "Uwaga",
+    token: "color.support.attention",
+    value: "#C89A43",
+    cls: "bg-support-attention",
+    Icon: TriangleAlert,
+  },
+  {
+    name: "Bezpieczeństwo",
+    token: "color.support.safe",
+    value: "#347157",
+    cls: "bg-support-safe text-white",
+    Icon: CheckCircle2,
+  },
+];
+---
+
+<Layout title="Tokeny kolorystyczne — W razie W">
+  <main class="min-h-screen bg-background px-4 py-12 text-foreground sm:px-8">
+    <div class="mx-auto max-w-5xl space-y-16">
+      <header>
+        <p class="text-sm font-medium text-core-steel-deep">Język wizualny v0</p>
+        <h1 class="font-heading mt-2 text-3xl sm:text-4xl">Tokeny kolorystyczne</h1>
+        <p class="mt-4 max-w-2xl text-lg text-muted-foreground">
+          Dwa tryby jednego systemu: spokojne przygotowanie i wyraźny, ciemny tryb wykonania.
+        </p>
+      </header>
+
+      <section aria-labelledby="core-title">
+        <h2 id="core-title" class="font-heading text-2xl">
+          Core &amp; Support
+        </h2>
+        <ul class="mt-6 grid gap-4 sm:grid-cols-3">
+          {core.map((c) => (
+            <li class="overflow-hidden rounded-lg border border-border bg-surface">
+              <div class:list={["h-20", c.cls]} aria-hidden="true" />
+              <div class="p-4 text-sm">
+                <p class="font-medium">{c.name}</p>
+                <p class="font-operational text-muted-foreground">{c.value}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <ul class="mt-4 grid gap-4 sm:grid-cols-3">
+          {support.map(({ name, token, value, cls, Icon }) => (
+            <li class="overflow-hidden rounded-lg border border-border bg-surface">
+              <div class:list={["flex h-20 items-center gap-3 px-4", cls]}>
+                <Icon className="size-6" strokeWidth={2} aria-hidden="true" />
+                <span class="font-medium">{name}</span>
+              </div>
+              <div class="p-4 text-sm">
+                <p class="font-medium">{token}</p>
+                <p class="font-operational text-muted-foreground">{value}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <section aria-labelledby="prep-title" class="rounded-lg border border-border bg-background p-6">
+          <h2 id="prep-title" class="font-heading text-2xl">
+            Preparation Mode
+          </h2>
+          <p class="mt-2 text-sm text-muted-foreground">Neutralne szarości; stal tylko w CTA, focusie i nawigacji.</p>
+
+          <article class="mt-6 rounded-lg border border-border bg-surface p-6 shadow-md">
+            <p class="text-sm font-medium text-core-steel-deep">Plecak ewakuacyjny</p>
+            <h3 class="font-heading mt-2 text-xl">Uzupełnij zapasy wody</h3>
+            <p class="mt-2 text-muted-foreground">Brakuje 6 litrów na trzy dni dla czterech osób.</p>
+            <div class="mt-4 flex items-center gap-2 text-sm text-attention-foreground">
+              <TriangleAlert className="size-5" strokeWidth={2} aria-hidden="true" />
+              <span>Uwaga: plan niepełny</span>
+            </div>
+            <button
+              type="button"
+              class="mt-6 min-h-11 rounded-md bg-primary px-6 font-medium text-primary-foreground outline-none hover:bg-primary-hover active:bg-primary-pressed focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              Dodaj do listy zakupów
+            </button>
+          </article>
+        </section>
+
+        <section
+          data-mode="execution"
+          aria-labelledby="exec-title"
+          class="rounded-lg border border-border bg-background p-6 text-foreground"
+        >
+          <h2 id="exec-title" class="font-heading text-2xl">
+            Execution Mode
+          </h2>
+          <p class="mt-2 text-sm text-muted-foreground">
+            Granat, bursztynowe prowadzenie, czerwony tylko dla zagrożenia.
+          </p>
+
+          <article class="mt-6 rounded-lg bg-surface p-6">
+            <p class="text-lg font-semibold text-guidance">Następny krok</p>
+            <div class="mt-4 flex items-center gap-6">
+              <ArrowUp className="size-24 text-guidance" strokeWidth={2.5} aria-hidden="true" />
+              <div>
+                <p class="font-operational text-display">350 m</p>
+                <p class="text-lg text-muted-foreground">Idź do punktu zapasowego</p>
+              </div>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3 text-base font-medium">
+              <span class="flex items-center gap-2 rounded-md bg-surface-secondary px-3 py-2 text-destructive">
+                <ShieldAlert className="size-5" strokeWidth={2} aria-hidden="true" />
+                Zagrożenie: ruchliwa ulica
+              </span>
+              <span class="flex items-center gap-2 rounded-md bg-surface-secondary px-3 py-2 text-safe">
+                <CheckCircle2 className="size-5" strokeWidth={2} aria-hidden="true" />
+                Schronienie dostępne
+              </span>
+            </div>
+            <button
+              type="button"
+              class="mt-6 min-h-14 w-full rounded-md bg-primary px-6 text-lg font-semibold text-primary-foreground outline-none hover:bg-primary-hover active:bg-primary-pressed focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              Idź do punktu zapasowego
+            </button>
+          </article>
+        </section>
+      </div>
+    </div>
+  </main>
+</Layout>
