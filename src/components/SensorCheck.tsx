@@ -1,10 +1,20 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { CheckCircle2, CircleX, Compass, LoaderCircle, LocateFixed, Route, TriangleAlert } from "lucide-react";
+import {
+  CheckCircle2,
+  CircleX,
+  Compass,
+  LoaderCircle,
+  LocateFixed,
+  Map as MapIcon,
+  Route,
+  TriangleAlert,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { formatClockTime } from "@/lib/format";
+import { openMapFile, readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
 import { cn } from "@/lib/utils";
@@ -90,6 +100,61 @@ function RouteDiagnostics() {
               : "—"
           }
         />
+      </dl>
+    </section>
+  );
+}
+
+const megabytes = (bytes: number | null | undefined) =>
+  bytes === null || bytes === undefined ? "—" : `${(bytes / 1e6).toFixed(1)} MB`;
+
+interface StorageReadings {
+  fileBytes: number | null;
+  usage: number | null;
+  quota: number | null;
+  persisted: boolean | null;
+}
+
+function MapDiagnostics() {
+  const [map] = useState(readMapPackage);
+  const [readings, setReadings] = useState<StorageReadings | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator.storage === "undefined") return;
+    void (async () => {
+      const file = map ? await openMapFile(map) : null;
+      const estimate = await navigator.storage.estimate().catch(() => null);
+      const persisted = await navigator.storage.persisted().catch(() => null);
+      setReadings({
+        fileBytes: file?.size ?? null,
+        usage: estimate?.usage ?? null,
+        quota: estimate?.quota ?? null,
+        persisted,
+      });
+    })();
+  }, [map]);
+
+  return (
+    <section
+      aria-labelledby="map-diagnostics-title"
+      className="border-border bg-surface rounded-lg border p-6 shadow-sm"
+    >
+      <h2 id="map-diagnostics-title" className="font-heading flex items-center gap-3 text-2xl">
+        <MapIcon className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
+        Mapa offline
+      </h2>
+      <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Reading label="Paczka" value={map ? `${map.regionId} ${map.version}` : "brak"} />
+        <Reading
+          label="Stan"
+          value={map ? `${map.status} · ${megabytes(map.receivedBytes)} z ${megabytes(map.bytes)}` : "—"}
+        />
+        <Reading label="Plik na telefonie" value={megabytes(readings?.fileBytes)} />
+        <Reading
+          label="Trwały magazyn"
+          value={readings?.persisted === null || !readings ? "?" : readings.persisted ? "Tak" : "Nie"}
+        />
+        <Reading label="Zajęte / dostępne" value={`${megabytes(readings?.usage)} / ${megabytes(readings?.quota)}`} />
       </dl>
     </section>
   );
@@ -236,6 +301,7 @@ export default function SensorCheck() {
         )}
       </section>
 
+      <MapDiagnostics />
       <RouteDiagnostics />
     </div>
   );

@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from
 
 import AlarmButton from "@/components/AlarmButton";
 import EvacuationPointCard from "@/components/EvacuationPointCard";
+import MapPackageCard from "@/components/MapPackageCard";
 import RouteCard from "@/components/RouteCard";
 ---
 
@@ -46,6 +47,10 @@ import RouteCard from "@/components/RouteCard";
           <AlarmButton client:only="react" />
         </div>
       </section>
+
+      <div>
+        <MapPackageCard client:only="react" />
+      </div>
 
       <div>
         <RouteCard client:only="react" />
