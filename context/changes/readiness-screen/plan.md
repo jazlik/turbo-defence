@@ -350,10 +350,10 @@ Brak migracji danych: `wrw.plan` (v4), `wrw.navigation` i `wrw.map` bez zmian. N
 
 #### Automated
 
-- [x] 1.1 Testy przechodzą: `npm test`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Typy przechodzą: `npx astro check`
-- [x] 1.4 Build się buduje: `npm run build`
+- [x] 1.1 Testy przechodzą: `npm test` — 94775be
+- [x] 1.2 Lint przechodzi: `npm run lint` — 94775be
+- [x] 1.3 Typy przechodzą: `npx astro check` — 94775be
+- [x] 1.4 Build się buduje: `npm run build` — 94775be
 
 #### Manual
 
@@ -364,8 +364,8 @@ Brak migracji danych: `wrw.plan` (v4), `wrw.navigation` i `wrw.map` bez zmian. N
 
 #### Automated
 
-- [ ] 2.1 Lint, typy i build przechodzą: `npm run lint && npx astro check && npm run build`
-- [ ] 2.2 Smoke przechodzi na buildzie: `npm run smoke`
+- [x] 2.1 Lint, typy i build przechodzą: `npm run lint && npx astro check && npm run build`
+- [x] 2.2 Smoke przechodzi na buildzie: `npm run smoke`
 
 #### Manual
 
