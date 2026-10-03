@@ -2,6 +2,14 @@
 
 Aplikacja do ewakuacji osobistej i planowania kryzysowego dla gospodarstwa domowego. Projekt na hackathon (HackYeah). Ten plik jest głównym źródłem prawdy o tym, co budujemy i dlaczego. Zmiany zakresu wprowadzamy tutaj.
 
+## Źródła prawdy
+
+- `PROJECT.md` — wizja, zasady i zakres produktu.
+- `context/foundation/prd.md` — aktualnie ukształtowane wymagania, decyzje i otwarte pytania.
+- `JEZYK_WIZUALNY.md` — obowiązujący język wizualny aplikacji oraz wszystkich mockupów, prototypów, wizualizacji, prezentacji i grafik pokazujących produkt.
+
+Nie kopiujemy specyfikacji wizualnej do innych dokumentów. Zadania projektowe i implementacyjne dotyczące warstwy wizualnej mają odwoływać się do `JEZYK_WIZUALNY.md`.
+
 ## 1. Problem
 
 Większość ludzi ma dostęp do poradników i informacji kryzysowych, ale nie przekłada ich na konkretny plan działania dla własnego gospodarstwa domowego. Kłopot zaczyna się w momencie kryzysu, szczególnie gdy domownicy są w różnych miejscach, nie mogą się skontaktować, a każdy musi wiedzieć, co robić, bez improwizowania pod presją.
@@ -95,5 +103,6 @@ Gamifikację i drille dokładamy tylko, jeśli zostanie czas.
 ## 9. Notatki dla AI i współpracowników
 
 - Ten plik ma pierwszeństwo przed innymi notatkami. Przy sprzecznościach pytaj, nie zgaduj.
+- Przed każdym zadaniem dotyczącym UI, komponentów, mockupów, prototypów, wizualizacji, prezentacji lub grafik produktu przeczytaj `JEZYK_WIZUALNY.md` i traktuj go jako źródło prawdy dla warstwy wizualnej.
 - Nowe pomysły wpisuj do sekcji 4.2 lub 4.3, nie do 4.1, dopóki zespół tego nie zatwierdzi.
 - Domyślny język dokumentacji i interfejsu: polski.

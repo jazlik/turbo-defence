@@ -2,6 +2,16 @@
 
 This file provides guidance to AI Agent when working with code in this repository.
 
+## Project sources of truth
+
+- `PROJECT.md` — product vision, principles, and scope.
+- `context/foundation/prd.md` — current requirements, decisions, and open questions.
+- `JEZYK_WIZUALNY.md` — mandatory source of truth for the product's visual layer.
+
+Before designing or implementing any screen, component, prototype, mockup, UI visualization, product presentation, or graphic, read `JEZYK_WIZUALNY.md` and apply it by default. The only exception is a task that explicitly requests exploration of a new visual direction; such exploration does not replace the canonical language without a separate decision and an update to `JEZYK_WIZUALNY.md`.
+
+Materials in `context/foundation/analogi/` are research references, not UI specifications to copy. The default language for product documentation and UI is Polish.
+
 ## Commands
 
 - `npm run dev` — start dev server (Cloudflare workerd runtime)
@@ -52,4 +62,4 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 
 ## CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to `main`. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
