@@ -323,22 +323,22 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 
 #### Automated
 
-- [x] 2.1 Build passes and generates the SW
-- [x] 2.2 Lint passes
-- [x] 2.3 Type check passes
-- [x] 2.4 Smoke passes against preview
+- [x] 2.1 Build passes and generates the SW — 5c7fb04
+- [x] 2.2 Lint passes — 5c7fb04
+- [x] 2.3 Type check passes — 5c7fb04
+- [x] 2.4 Smoke passes against preview — 5c7fb04
 
 #### Manual
 
-- [x] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline"
-- [x] 2.6 Offline reload renders fully
-- [x] 2.7 New build is picked up without clearing site data
+- [x] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline" — 5c7fb04
+- [x] 2.6 Offline reload renders fully — 5c7fb04
+- [x] 2.7 New build is picked up without clearing site data — 5c7fb04
 
 ### Phase 3: CI and Deploy from main
 
 #### Automated
 
-- [ ] 3.1 Workflow references no Supabase secrets
+- [x] 3.1 Workflow references no Supabase secrets
 - [ ] 3.2 PR run: `ci` and `smoke` green, `deploy` skipped
 - [ ] 3.3 After merge: `deploy` green including live smoke
 

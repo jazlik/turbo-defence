@@ -48,4 +48,12 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 
 ## CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) is being reworked in the `offline-app-shell` change (Phase 3) to run lint, type check, build and smoke, and to deploy from `main`.
+GitHub Actions workflow (`.github/workflows/ci.yml`) triggers on push and pull request to `main`:
+
+- `ci` — `npm ci`, `astro sync`, lint, `astro check`, build.
+- `smoke` — build, `astro preview`, `npm run smoke`.
+- `deploy` — only on push to `main`, after `ci` and `smoke`: build, `wrangler deploy` (pinned to the version in `package-lock.json`), then `npm run smoke` against the live URL with `EXPECT_HEADERS=1`.
+
+Required repository secrets: `CLOUDFLARE_API_TOKEN` ("Edit Cloudflare Workers" template), `CLOUDFLARE_ACCOUNT_ID` (`npx wrangler whoami`).
+
+Production URL: `https://w-razie-w.<subdomain>.workers.dev` (fill in after the first deploy).
