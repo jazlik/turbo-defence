@@ -25,7 +25,7 @@ so a z18 view shows z12 forests, z14 roads and z15 buildings together. Verified 
 | Standard Protomaps extract, z0–15                        | 245.2 MB                                    |
 | Standard without POIs                                    | 234.9 MB                                    |
 | Lean v1 (landuse/boundaries filtered, z15 = buildings)   | 111.1 MB                                    |
-| **Lean v2 = shipped (v1 + no buildings below z15)**      | **99.1 MB**                                 |
+| **Lean v2 = shipped (v1 + no buildings below z15)**      | **99.1 MB** (99 077 167 B)                  |
 | Lean v2 + attribute whitelist (`--strip-attrs`)          | 97.2 MB — not adopted (−1.9 MB < 5 MB rule) |
 | Lean v1 + streams only from z13 (`--streams-minzoom 13`) | 111.1 MB — no effect, not adopted           |
 
@@ -43,6 +43,8 @@ Tools (not part of the app build or CI):
 PMTILES=/path/to/pmtiles PYTHON=.venv/bin/python scripts/map/build-region.sh malopolska 20261003
 # → dist-map/malopolska-20261003-lean2.pmtiles (gitignored)
 ```
+
+The build is deterministic (tiles are gzipped with `mtime=0`): the same Protomaps build date gives the same bytes on any machine. Shipped `malopolska-20261003-lean2.pmtiles`: 99 077 167 B, sha256 `7cb2ed407299ad9ca298086f6e169f22766e9ca5e29d70cc7611dd74b6ba5c64` (`shasum -a 256 dist-map/*.pmtiles`).
 
 Pick a recent build date from https://build-metadata.protomaps.dev/builds.json — Protomaps deletes old daily builds.
 `regions/malopolska.geojson` is the voivodeship boundary from OSM via Nominatim (`polygon_threshold=0.005`), © OpenStreetMap contributors, ODbL.

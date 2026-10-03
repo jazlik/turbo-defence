@@ -22,7 +22,7 @@ export const MAP_REGIONS: MapRegion[] = [
     name: "Małopolska",
     version: "20261003-lean2",
     url: `${R2_BASE_URL}/malopolska-20261003-lean2.pmtiles`,
-    bytes: 99_077_239,
+    bytes: 99_077_167,
     osmDate: "2026-10-03",
     bounds: [19.0831, 49.1784, 21.4218, 50.5205],
   },

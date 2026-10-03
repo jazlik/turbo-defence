@@ -114,7 +114,7 @@ def filter_tile(item):
         new_layer.features.extend(features)
         if OPTIONS["strip_attrs"]:
             strip_attributes(new_layer)
-    return zxy_to_tileid(z, x, y), gzip.compress(out.SerializeToString(), 9)
+    return zxy_to_tileid(z, x, y), gzip.compress(out.SerializeToString(), 9, mtime=0)
 
 
 def main():

@@ -80,7 +80,8 @@ export function useMapPackage(): MapPackage {
         setError(`Pobieranie przerwane: ${message.message} Dokończę od miejsca przerwania.`);
         return;
       }
-      current = { ...current, receivedBytes: message.receivedBytes, etag: message.etag };
+      // The server's size is authoritative; the manifest size only drives the proposal and the quota check.
+      current = { ...current, bytes: message.totalBytes, receivedBytes: message.receivedBytes, etag: message.etag };
       if (message.type === "progress") {
         update(current);
         return;
@@ -88,7 +89,7 @@ export function useMapPackage(): MapPackage {
       stop();
       // Ready only after the whole file is on disk and starts with the PMTiles header — /alarm trusts this flag.
       void openMapFile(current).then(async (file) => {
-        if (file && (await verifyMapFile(file, region.bytes))) {
+        if (file && (await verifyMapFile(file, current.bytes))) {
           update({ ...current, status: "ready", completedAt: new Date().toISOString() });
           await removeOtherMapFiles(current.fileName).catch(() => undefined);
         } else {
