@@ -12,8 +12,12 @@ import {
   type BackpackItem,
   type ItemState,
 } from "@/lib/backpack";
-import { readPlan, writePlan } from "@/lib/services/plan-storage";
+import { readPlan, readPlanResult, writePlan } from "@/lib/services/plan-storage";
 import { cn } from "@/lib/utils";
+
+/** The stored plan may be from a newer app version: a tick must not replace it with an empty one. */
+const UNREADABLE_PLAN =
+  "Nie udało się odczytać planu zapisanego na tym urządzeniu, więc odhaczenie nie zostało zapisane. Zaktualizuj aplikację i spróbuj ponownie.";
 
 const GROUPS: { group: BackpackGroup; title: string }[] = [
   { group: "everyone", title: "Dla wszystkich" },
@@ -99,7 +103,11 @@ export default function BackpackChecklist() {
 
   /** Works on a fresh read: /domownicy and the place cards write the same key. */
   const toggle = (itemId: string, checked: boolean) => {
-    const fresh = readPlan();
+    const { plan: fresh, source } = readPlanResult();
+    if (source === "unreadable") {
+      setFeedback({ text: UNREADABLE_PLAN, tone: "warning" });
+      return;
+    }
     const freshItems = buildBackpack(fresh.members);
     const item = freshItems.find((candidate) => candidate.id === itemId);
     if (!item) {

@@ -36,6 +36,7 @@ Weryfikacja: `npm run lint`, `npx astro check`, `npm test`, `npm run build`, `np
 - **Jeden mechanizm na „lista nie kłamie”.** Odhaczenie pamięta ilość, dla której zostało zrobione. Pozycja jest spakowana tylko, gdy zapamiętana ilość ≥ wymaganej. Dla pozycji z potrzeb ilością jest liczba osób z tą potrzebą — dodanie drugiej osoby przyjmującej leki też cofa odhaczenie, bez osobnej logiki.
 - **Lista jest wyliczana, nie zapisywana** — jak `buildSteps`. Zapisujemy tylko odhaczenia po stabilnym `id` pozycji; treść i reguły żyją w jednym pliku `src/lib/backpack.ts`.
 - **Źródło treści:** Poradnik bezpieczeństwa / KW PSP ([gov.pl](https://www.gov.pl/web/kwpsp-poznan/plecak-ewakuacyjny--bezpieczenstwa)) — 72 h, woda 3 l na osobę na dobę (RCB). Te same źródła zalecają osobny plecak dla każdego domownika; MVP świadomie trzyma jedną listę gospodarstwa z ilościami (patrz „What We're NOT Doing”).
+- **Woda: zapas w domu, nie w plecaku.** Norma RCB (3 l/os./dobę × 3 doby = 9 l/os.) zostaje jako ilość pozycji, a jej opis mówi, że zapas trzymamy w domu, a do plecaka bierzemy tyle butelek, ile się uniesie. Strona KW PSP podaje ok. 4 l na plecak; listy z gov.pl nie uzupełniamy o pozycje spoza niej (decyzja z weryfikacji 1.5).
 - **Wiele wysp, jeden klucz.** `/plecak` ma jedną wyspę, ale `/domownicy` i karty miejsc piszą do tego samego `wrw.plan` — zapis odhaczeń idzie przez `readPlan()` tuż przed `writePlan`.
 
 ## What We're NOT Doing
@@ -54,7 +55,7 @@ Treść, reguły i ilości to czyste funkcje w nowym `src/lib/backpack.ts` z tes
 
 ## Critical Implementation Details
 
-- **State sequencing:** czyszczenie odhaczeń (`prunePacked`) działa tylko przy zapisie inicjowanym przez użytkownika (odhaczenie), nigdy przy odczycie. Wyświetlenie strony z chwilowo pustą listą domowników (np. nieczytelny plan) nie może skasować odhaczeń.
+- **State sequencing:** czyszczenie odhaczeń (`prunePacked`) działa tylko przy zapisie inicjowanym przez użytkownika (odhaczenie na `/plecak` albo zapis domowników na `/domownicy`), nigdy przy odczycie. Id pozycji dziecięcych, zwierzęcych i `need-*` są grupowe, więc bez czyszczenia przy zapisie domowników usunięcie dziecka i dodanie innego przywróciłoby stare odhaczenia. Wyświetlenie strony z chwilowo pustą listą domowników (np. nieczytelny plan) nie może skasować odhaczeń.
 - **Odhaczenie pozycji w stanie „ilość wzrosła”** zapisuje nową, bieżącą ilość (pozycja staje się spakowana); odznaczenie usuwa rekord całkiem.
 
 ## Phase 1: Model danych, migracja i reguły plecaka
@@ -79,7 +80,7 @@ Typy i schemat v4, treść checklisty z regułami i ilościami, logika stanu odh
 
 **Intent**: Bieżąca wersja 4; v3, v2 i v1 migrują z pustą listą odhaczeń, bez utraty miejsc, pozycji i ludzi.
 
-**Contract**: `CURRENT_SCHEMA_VERSION = 4`; `createEmptyPlan` z `packedItems: []`; gałąź `schemaVersion === 3` (pola jak dziś + `packedItems: []`, `source: "migrated"`); istniejące gałęzie v2/v1 dostają `packedItems: []`. Parser `parsePackedItem` (niepusty `itemId`, `quantity` skończona liczba ≥ 0 albo `null`) przez `parseList` z limitem `MAX_PACKED_ITEMS` (eksportowany z `backpack.ts`, np. 100). Duplikaty `itemId` — zostaje pierwszy.
+**Contract**: `CURRENT_SCHEMA_VERSION = 4`; `createEmptyPlan` z `packedItems: []`; gałąź `schemaVersion === 3` (pola jak dziś + `packedItems: []`, `source: "migrated"`); istniejące gałęzie v2/v1 dostają `packedItems: []`. Parser `parsePackedItem` (niepusty `itemId`, `quantity` skończona liczba ≥ 0 albo `null`) przez `parseList` z limitem `MAX_PACKED_ITEMS` (eksportowany z `backpack.ts`, wyliczony z największej możliwej listy: 18 + 6 + 5 + 5 + `MAX_RECORDS` × `MAX_NEEDS` = 234 — mniejszy limit gubiłby odhaczenia). Duplikaty `itemId` — zostaje pierwszy.
 
 #### 3. Treść i reguły checklisty
 
@@ -99,6 +100,7 @@ Typy i schemat v4, treść checklisty z regułami i ilościami, logika stanu odh
 - **Potrzeby zdrowotne** (preset; `forNames` = osoby z tą potrzebą, `quantity.amount` = ich liczba, jednostka „os.”): `need-medication` „Leki stałe na 7 dni i lista dawek”, `need-diabetes` „Glukometr, paski, insulina w torbie chłodzącej i glukoza”, `need-allergy` „Leki przeciwalergiczne (i adrenalina, jeśli przepisana)”, `need-mobility` „Sprzęt pomocniczy i zapasowe okulary lub baterie do aparatu”, `need-diet` „Jedzenie zgodne z dietą na 3 doby”.
 - **Potrzeby własne**: jedna pozycja na parę (domownik, etykieta): `id = custom:<memberId>:<etykieta małymi literami, locale pl>`, `label = "Zabierz: <etykieta>"`, `forNames = [imię]`, `quantity = null`.
 - Kopia: `basis` po polsku bez odmiany liczebników tam, gdzie się da (np. „3 os. × 3 l × 3 doby”).
+- `formatAmount(quantity, amount = quantity.amount)` — ilość z jednostką odmienioną dla podanej liczby („3 porcje”, „6 porcji”); używane także dla `previousAmount` w stanie „Ilość wzrosła”.
 
 #### 4. Stan odhaczeń
 
@@ -158,8 +160,8 @@ Wyspa z checklistą, podstrona, karta-link z postępem i rozszerzenie smoke.
 - Stan z `readPlan()`; odświeżenie na `pageshow` z `event.persisted` (wzór `HouseholdLinkCard`), żeby powrót z `/domownicy` pokazał nową listę.
 - Linia postępu „Spakowane: X z Y” w `role="status"` / `aria-live="polite"`.
 - Grupy jako `<section>` z nagłówkiem `h2`: „Dla wszystkich”, „Dzieci”, „Zwierzęta”, „Potrzeby zdrowotne”; pusta grupa nie renderuje się.
-- Wiersz: natywny `<input type="checkbox">` w `<label>` na całą szerokość wiersza, cel ≥ 44 × 44 px, focus 3 px (`focus-visible:ring-[3px]`). Etykieta, pod nią `detail`, ilość z `basis`, `forNames` po przecinku. Spakowane: stan `selected` z §13 (`bg-core-steel-soft`, `text-core-steel-deep`) + ikona `Check`. `outdated`: ikona `TriangleAlert` + tekst „Ilość wzrosła — wcześniej 18 l” (albo „Ilość wzrosła” przy braku `previousAmount`) w `text-attention-foreground`. Bez hexów, klasy przez `cn()`.
-- Zmiana: `togglePacked` na świeżym `readPlan().packedItems` i świeżej liście, potem `writePlan({ ...readPlan(), packedItems })`; przy `false` przywrócenie stanu sprzed kliknięcia i `STORAGE_ERROR` z `HouseholdFormParts`.
+- Wiersz: natywny `<input type="checkbox">` w `<label>` na całą szerokość wiersza, cel ≥ 44 × 44 px, focus 3 px (`focus-visible:ring-[3px]`). Etykieta, pod nią `detail`, ilość (`formatAmount`) z `basis`, `forNames` po przecinku. W grupie „Potrzeby zdrowotne” linii ilości nie ma — ilością jest liczba osób, którą mówią już imiona. Spakowane: stan `selected` z §13 (`bg-core-steel-soft`, `text-core-steel-deep`) + ikona `Check`. `outdated`: ikona `TriangleAlert` + tekst „Ilość wzrosła — wcześniej 18 l” (albo „Ilość wzrosła” przy braku `previousAmount`) w `text-attention-foreground`. Bez hexów, klasy przez `cn()`.
+- Zmiana: `togglePacked` na świeżym `readPlan().packedItems` i świeżej liście, potem `writePlan({ ...readPlan(), packedItems })`; przy `false` przywrócenie stanu sprzed kliknięcia i `STORAGE_ERROR` z `HouseholdFormParts`. Odczyt przez `readPlanResult()`: przy `source: "unreadable"` brak zapisu i komunikat, że planu nie da się teraz odczytać — odhaczenie nie może nadpisać nieczytelnego wpisu pustym planem (wzór `saveLastKnownPosition`).
 - Pusta rodzina (`members.length === 0`): nad listą podpowiedź z linkiem do `/domownicy`.
 - Pod listą stopka źródła: „Na podstawie Poradnika bezpieczeństwa (gov.pl). Plecak na 72 godziny.”
 
@@ -186,6 +188,14 @@ Wyspa z checklistą, podstrona, karta-link z postępem i rozszerzenie smoke.
 **Intent**: Nowa strona serwowana i w precache.
 
 **Contract**: `/plecak` w pętli tras (`:33`), `plecak.html` w pętli precache (`:42`).
+
+#### 5. Czyszczenie odhaczeń przy zapisie domowników
+
+**File**: `src/components/HouseholdMembersCard.tsx`
+
+**Intent**: Odhaczenia pozycji, które zniknęły z listy (usunięte dziecko, zwierzę, ostatnia osoba z potrzebą), nie wracają, gdy pojawi się inna osoba tej kategorii.
+
+**Contract**: `persist` zapisuje `{ ...plan, members: next, packedItems: prunePacked(plan.packedItems, buildBackpack(next)) }` na świeżym `readPlan()`.
 
 ### Success Criteria:
 
@@ -241,7 +251,7 @@ Lista ma kilkadziesiąt pozycji, wyliczanie przy każdym renderze jest pomijalne
 
 ## Migration Notes
 
-v3 → v4 dokłada `packedItems: []`. Zapis migrowanego planu następuje dopiero przy pierwszym zapisie inicjowanym przez użytkownika albo przy fixie GPS (`saveLastKnownPosition`), jak dotąd. Wycofanie zmiany po wdrożeniu: starsza wersja aplikacji odczyta plan v4 jako `unreadable` i nie nadpisze go automatycznie — dane przetrwają powrót do v4.
+v3 → v4 dokłada `packedItems: []`. Zapis migrowanego planu następuje dopiero przy pierwszym zapisie inicjowanym przez użytkownika albo przy fixie GPS (`saveLastKnownPosition`), jak dotąd. Wycofanie zmiany po wdrożeniu: starsza wersja aplikacji odczyta plan v4 jako `unreadable` i nie nadpisze go automatycznie. Zapis inicjowany przez użytkownika w starszej wersji (edycja miejsca lub domownika) nadal nadpisze plan pustym — S-06 zamyka tę lukę tylko w `/plecak`; pozostałe wyspy to osobna zmiana.
 
 ## References
 

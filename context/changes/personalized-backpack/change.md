@@ -3,7 +3,7 @@ change_id: personalized-backpack
 title: Personalized backpack
 status: implemented
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 archived_at: null
 ---
 

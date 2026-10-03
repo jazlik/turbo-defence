@@ -136,6 +136,13 @@ describe("togglePacked", () => {
     expect(packed).toEqual([{ itemId: "radio", quantity: null }]);
   });
 
+  it("drops a removed child's ticks, so another child starts unpacked", () => {
+    const withoutChild = family.filter((item) => item.category !== "child");
+    const packed = prunePacked([{ itemId: "child-documents", quantity: null }], buildBackpack(withoutChild));
+    const withOtherChild = buildBackpack([...withoutChild, member("c2", "Kuba", "child")]);
+    expect(itemState(find(withOtherChild, "child-documents"), packed).status).toBe("unpacked");
+  });
+
   it("prunes only by the list it is given", () => {
     expect(prunePacked([{ itemId: "gone", quantity: null }], items)).toEqual([]);
   });

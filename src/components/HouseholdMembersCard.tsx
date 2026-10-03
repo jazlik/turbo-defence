@@ -3,6 +3,7 @@ import { Baby, Check, PawPrint, Pencil, Plus, Save, Trash2, UserRound, Users, X 
 
 import { focusSoon, STORAGE_ERROR, StatusLine, TextField, type RecordFeedback } from "@/components/HouseholdFormParts";
 import { Button } from "@/components/ui/button";
+import { buildBackpack, prunePacked } from "@/lib/backpack";
 import {
   addCustomNeed,
   addMember,
@@ -42,7 +43,11 @@ export default function HouseholdMembersCard() {
 
   /** `false` when the device refused the write: the caller must not confirm a save that did not happen. */
   const persist = (next: HouseholdMember[]): boolean => {
-    const saved = writePlan({ ...readPlan(), members: next });
+    const plan = readPlan();
+    // Item ids for children, pets and needs are per group: without pruning here, removing one
+    // child and adding another would bring back the first child's ticks.
+    const packedItems = prunePacked(plan.packedItems, buildBackpack(next));
+    const saved = writePlan({ ...plan, members: next, packedItems });
     if (saved) setMembers(next);
     else setFeedback({ text: STORAGE_ERROR, tone: "warning" });
     return saved;
