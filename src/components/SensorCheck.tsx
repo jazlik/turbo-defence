@@ -192,7 +192,7 @@ export default function SensorCheck() {
 
         {heading !== null && (
           <dl className="mt-6 grid grid-cols-2 gap-4">
-            <Reading label="Kurs" value={`${heading}°`} />
+            <Reading label="Kurs" value={`${Math.round(heading) % 360}°`} />
             <Reading label="Źródło kursu" value={source === "compass" ? "Kompas" : "Kierunek marszu"} />
           </dl>
         )}

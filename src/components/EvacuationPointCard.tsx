@@ -137,7 +137,6 @@ export default function EvacuationPointCard() {
           <input
             id={ids.coordinates}
             type="text"
-            inputMode="decimal"
             autoComplete="off"
             placeholder="52.2297, 21.0122"
             value={coordinatesInput}

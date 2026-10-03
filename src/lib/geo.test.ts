@@ -82,6 +82,12 @@ describe("parseCoordinates", () => {
     });
   });
 
+  it("accepts Polish decimal commas separated by a semicolon, whitespace or a comma", () => {
+    for (const input of ["52,2297; 21,0122", "52,2297 21,0122", "52,2297, 21,0122"]) {
+      expect(parseCoordinates(input)).toEqual({ ok: true, coords: warsawCentre });
+    }
+  });
+
   it("rejects text", () => {
     expect(parseCoordinates("abc")).toEqual({ ok: false, reason: "format" });
     expect(parseCoordinates("52.2297")).toEqual({ ok: false, reason: "format" });

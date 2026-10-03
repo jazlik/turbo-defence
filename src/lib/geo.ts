@@ -41,12 +41,15 @@ export function formatDistance(meters: number): string {
 
 export type ParsedCoordinates = { ok: true; coords: Coordinates } | { ok: false; reason: "format" | "range" };
 
-/** Accepts "52.2297, 21.0122" (also separated by a semicolon or whitespace). */
+/**
+ * Accepts "52.2297, 21.0122" (also separated by a semicolon or whitespace) and Polish decimal commas
+ * such as "52,2297; 21,0122" or "52,2297 21,0122".
+ */
 export function parseCoordinates(input: string): ParsedCoordinates {
-  const match = /^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/.exec(input);
+  const match = /^\s*(-?\d+(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d+(?:[.,]\d+)?)\s*$/.exec(input);
   if (!match) return { ok: false, reason: "format" };
-  const latitude = Number(match[1]);
-  const longitude = Number(match[2]);
+  const latitude = Number(match[1].replace(",", "."));
+  const longitude = Number(match[2].replace(",", "."));
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return { ok: false, reason: "range" };
   return { ok: true, coords: { latitude, longitude } };
 }

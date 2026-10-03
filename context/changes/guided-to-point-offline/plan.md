@@ -272,6 +272,8 @@ Serce slice'u: przycisk alarmu chroniony przytrzymaniem i ekran Execution Mode z
 | Prowadzenie | jest fix albo `lastKnownPosition` | Strzałka obrócona o `relativeBearing`, odległość, podpis „w linii prostej"; przy danych z `lastKnownPosition` dodatkowo „dane z HH:MM" i przygaszona strzałka |
 | Na miejscu | odległość < 25 m | „Jesteś na miejscu", bez strzałki |
 
+Addendum (impl-review F2, F3, F7): „Na miejscu" potwierdza wyłącznie żywy fix (młodszy niż 20 s). Dane nieaktualne — `lastKnownPosition` albo fix, po którym `watchPosition` zamilkł — w promieniu 25 m dają „Szukam sygnału GPS", bo „Ustaw tutaj" zapisuje sam punkt jako ostatnią pozycję. Fix starszy niż 20 s jest pokazywany jak `lastKnownPosition` (przygaszona strzałka, „Dane z …", z datą, gdy nie dziś). Przy `status` `denied` lub `unavailable` zamiast „Szukam sygnału GPS" ekran mówi, co zrobić.
+
 Strona renderowana przez `<Layout mode="execution">`, kolory wyłącznie z tokenów §6 przez klasy Tailwind (wzorzec: `src/pages/design.astro`): tło `bg-background`, tekst `text-foreground`, tekst pomocniczy `text-muted-foreground`, strzałka i odległość `text-guidance`, stan „na miejscu" `text-safe`. Bez hexów w komponencie. Odległość cyframi tabularnymi (§8). Jedna akcja drugorzędna „Wyjdź z trybu alarmu", wyraźnie podrzędna wobec prowadzenia — bez czerwieni, bo nie jest to akcja awaryjna (wyjście „niedostępne" przychodzi w S-02). Każdy fix aktualizuje `lastKnownPosition`, żeby następne wejście w tryb alarmu startowało ze świeższych danych. Ekran nie może gasnąć w marszu: w efekcie `navigator.wakeLock?.request("screen")`, zwolnienie w funkcji sprzątającej, ponowne przejęcie przy `visibilitychange` (blokada przepada po zminimalizowaniu); brak wsparcia lub odmowa — cicho pomijamy, bez komunikatu.
 
 #### 3. Strzałka kierunku
@@ -459,11 +461,11 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Manual
 
-- [x] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper) — 766f23e
+- [ ] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
 - [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu — 766f23e
 - [ ] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu
-- [x] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu" — 766f23e
-- [x] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu — 766f23e
+- [ ] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
+- [ ] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
 - [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd — 766f23e
 - [ ] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu
 - [ ] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu
@@ -479,5 +481,5 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 - [ ] 4.3 Cała ścieżka przechodzi na telefonie w trybie samolotowym
 - [ ] 4.4 Plan przeżywa zamknięcie i ponowne otwarcie aplikacji bez sieci
-- [x] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed`
-- [x] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP
+- [x] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed` — 629f098
+- [x] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP — 629f098

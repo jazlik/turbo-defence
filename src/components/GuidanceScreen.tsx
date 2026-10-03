@@ -3,6 +3,9 @@ import { CheckCircle2, Compass, MapPinOff, Satellite } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
+import { useNow } from "@/components/hooks/useNow";
+import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
+import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { bearingDegrees, distanceMeters, formatDistance, relativeBearing } from "@/lib/geo";
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
@@ -11,47 +14,35 @@ const ARRIVAL_RADIUS_METERS = 25;
 // iOS forgets the motion permission between PWA launches; after this much compass silence offer to re-enable it.
 const COMPASS_SILENCE_MS = 1000;
 
-const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+// watchPosition goes silent when the signal is lost; a fix older than this is shown as stale, not live.
+const FIX_STALE_MS = 20_000;
 
-function useScreenWakeLock() {
-  useEffect(() => {
-    let sentinel: WakeLockSentinel | null = null;
-    let active = true;
+// Waiting for the sky does not help when the browser has no permission or location is off — say what to do instead.
+const LOCATION_PROBLEMS = {
+  denied: {
+    title: "Brak zgody na lokalizację",
+    instruction:
+      "Otwórz ustawienia strony w przeglądarce (ikona obok adresu), zezwól na lokalizację i odśwież tę stronę.",
+  },
+  unavailable: {
+    title: "Telefon nie podaje pozycji",
+    instruction: "Sprawdź, czy usługi lokalizacji są włączone w ustawieniach systemu, i wyjdź pod otwarte niebo.",
+  },
+} as const;
 
-    const acquire = async () => {
-      if (!("wakeLock" in navigator) || document.visibilityState !== "visible") return;
-      try {
-        const next = await navigator.wakeLock.request("screen");
-        if (active) sentinel = next;
-        else void next.release();
-      } catch {
-        // Unsupported or refused (e.g. battery saver) — guidance works without it.
-      }
-    };
-
-    // The lock is dropped whenever the page is hidden; take it again on return.
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") void acquire();
-    };
-
-    void acquire();
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      active = false;
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      void sentinel?.release();
-    };
-  }, []);
+/** "14:32" for today, "12.09, 14:32" otherwise — a position from weeks ago must not read as current. */
+function formatFixTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  const time = date.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  if (date.toDateString() === new Date().toDateString()) return time;
+  return `${date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}, ${time}`;
 }
 
 function ExitLink() {
   return (
-    <a
-      href="/"
-      className="text-muted-foreground focus-visible:ring-ring focus-visible:ring-offset-background inline-flex min-h-11 items-center justify-center rounded-md px-4 text-base font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-offset-2"
-    >
-      Wyjdź z trybu alarmu
-    </a>
+    <Button asChild variant="link" className="text-muted-foreground hover:text-muted-foreground text-base">
+      <a href="/">Wyjdź z trybu alarmu</a>
+    </Button>
   );
 }
 
@@ -60,9 +51,10 @@ export default function GuidanceScreen() {
   const [plan] = useState(readPlan);
   const point = plan.evacuationPoint;
 
-  const { coords, accuracyMeters } = useGeolocation({ watch: point !== null });
+  const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: point !== null });
   const { heading, source } = useHeading(coords, accuracyMeters);
   const [compassSilent, setCompassSilent] = useState(false);
+  const now = useNow(5_000);
 
   useScreenWakeLock();
 
@@ -90,22 +82,29 @@ export default function GuidanceScreen() {
             Bez zapisanego punktu nie mogę prowadzić. Wróć do planu i ustaw punkt — zajmie to chwilę.
           </p>
         </div>
-        <a
-          href="/"
-          className="bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-pressed focus-visible:ring-ring focus-visible:ring-offset-background flex min-h-14 w-full items-center justify-center rounded-md px-6 text-lg font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
-        >
-          Ustaw punkt ewakuacji
-        </a>
+        <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
+          <a href="/">Ustaw punkt ewakuacji</a>
+        </Button>
       </main>
     );
   }
 
+  const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
+  // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
   const lastKnown = plan.lastKnownPosition;
-  const origin = coords ?? lastKnown?.coords ?? null;
-  const isStale = coords === null && lastKnown !== null;
+  const staleFix =
+    coords !== null && fixedAt !== null
+      ? { coords, recordedAt: fixedAt }
+      : lastKnown
+        ? { coords: lastKnown.coords, recordedAt: Date.parse(lastKnown.recordedAt) }
+        : null;
+  const origin = liveFix ?? staleFix?.coords ?? null;
+  const isStale = liveFix === null && staleFix !== null;
   const distance = origin ? distanceMeters(origin, point.coords) : null;
+  const locationProblem =
+    liveFix === null && (status === "denied" || status === "unavailable") ? LOCATION_PROBLEMS[status] : null;
   // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
-  const arrived = coords !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
+  const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
   const guiding = distance !== null && !arrived && !(isStale && distance < ARRIVAL_RADIUS_METERS);
   const rotation = origin && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
   const showCompassButton = compassSilent && source !== "compass" && !arrived;
@@ -140,16 +139,26 @@ export default function GuidanceScreen() {
             {isStale && (
               <p className="text-muted-foreground flex items-center gap-2 text-base">
                 <Satellite className="size-5" strokeWidth={2} aria-hidden="true" />
-                Dane z {formatTime(lastKnown.recordedAt)} — czekam na sygnał GPS
+                Dane z {formatFixTime(staleFix.recordedAt)} —{" "}
+                {locationProblem ? locationProblem.title.toLowerCase() : "czekam na sygnał GPS"}
               </p>
             )}
+            {locationProblem && <p className="text-muted-foreground text-base">{locationProblem.instruction}</p>}
             {rotation !== null && source === "movement" && (
               <p className="text-muted-foreground text-base">Kierunek liczony z marszu</p>
             )}
           </>
         )}
 
-        {!arrived && !guiding && (
+        {!arrived && !guiding && locationProblem && (
+          <>
+            <MapPinOff className="text-guidance size-16" strokeWidth={2} aria-hidden="true" />
+            <p className="font-heading text-2xl">{locationProblem.title}</p>
+            <p className="text-muted-foreground text-lg">{locationProblem.instruction}</p>
+          </>
+        )}
+
+        {!arrived && !guiding && !locationProblem && (
           <>
             <Satellite className="text-guidance size-16" strokeWidth={2} aria-hidden="true" />
             <p className="font-heading text-2xl">Szukam sygnału GPS</p>
@@ -162,17 +171,18 @@ export default function GuidanceScreen() {
 
       <footer className="flex flex-col items-center gap-3">
         {showCompassButton && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            className="w-full text-base"
             onClick={() => {
               // Must stay inside the click handler: iOS only grants motion access to a user gesture.
               void requestHeadingPermission();
             }}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary-hover active:bg-secondary-pressed focus-visible:ring-ring focus-visible:ring-offset-background flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-4 text-base font-medium outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
           >
             <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
             Włącz kompas
-          </button>
+          </Button>
         )}
         <ExitLink />
       </footer>

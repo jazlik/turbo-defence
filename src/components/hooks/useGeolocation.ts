@@ -12,6 +12,8 @@ export interface GeolocationFix {
 interface GeolocationState {
   coords: Coordinates | null;
   accuracyMeters: number | null;
+  /** Epoch ms of the last fix — lets callers notice a watcher that went silent after losing the signal. */
+  fixedAt: number | null;
   status: GeolocationStatus;
   error: string | null;
 }
@@ -53,6 +55,7 @@ export function useGeolocation({ watch = true }: { watch?: boolean } = {}): Geol
   const [state, setState] = useState<GeolocationState>({
     coords: null,
     accuracyMeters: null,
+    fixedAt: null,
     status: "locating",
     error: null,
   });
@@ -61,20 +64,29 @@ export function useGeolocation({ watch = true }: { watch?: boolean } = {}): Geol
     if (!watch || !isSupported()) return;
     let active = true;
 
-    void navigator.permissions
-      .query({ name: "geolocation" })
-      .then((permission) => {
-        if (active && permission.state === "prompt") {
-          setState((current) => (current.status === "locating" ? { ...current, status: "prompting" } : current));
-        }
-      })
-      .catch(() => undefined);
+    // The Permissions API is missing on iOS Safari < 16; calling it unguarded would throw before watchPosition starts.
+    if ("permissions" in navigator) {
+      void navigator.permissions
+        .query({ name: "geolocation" })
+        .then((permission) => {
+          if (active && permission.state === "prompt") {
+            setState((current) => (current.status === "locating" ? { ...current, status: "prompting" } : current));
+          }
+        })
+        .catch(() => undefined);
+    }
 
     // Without this cleanup the watcher keeps GPS on and drains the battery.
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const fix = toFix(position);
-        setState({ coords: fix.coords, accuracyMeters: fix.accuracyMeters, status: "ready", error: null });
+        setState({
+          coords: fix.coords,
+          accuracyMeters: fix.accuracyMeters,
+          fixedAt: position.timestamp,
+          status: "ready",
+          error: null,
+        });
       },
       (error) => {
         setState((current) => ({ ...current, status: statusFromError(error), error: error.message }));

@@ -108,6 +108,8 @@ export default function AlarmButton() {
       </button>
       <p id="alarm-hint" className="text-muted-foreground mt-2 text-sm">
         Przytrzymaj przycisk przez 2 sekundy. Puszczenie wcześniej niczego nie uruchamia.
+        {/* A screen-reader double-tap is a click, which the hold ignores; the passthrough gesture is the way in. */}
+        <span className="sr-only"> Z czytnikiem ekranu: stuknij dwa razy i przytrzymaj.</span>
       </p>
     </div>
   );

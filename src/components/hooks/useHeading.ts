@@ -14,6 +14,8 @@ type OrientationEventWithPermission = typeof DeviceOrientationEvent & {
 const PERMISSION_GRANTED_EVENT = "wrw:heading-permission-granted";
 // GPS noise is 5–20 m; a smaller step would spin the arrow of someone standing still.
 const MIN_MOVEMENT_METERS = 10;
+// Orientation events stream continuously while the sensor works; silence this long means it stalled or lost permission.
+const COMPASS_SILENCE_MS = 2000;
 
 export function headingPermissionRequired(): boolean {
   return (
@@ -44,6 +46,7 @@ function useCompassHeading(): number | null {
     // iOS Safari: plain "deviceorientation" carrying webkitCompassHeading (clockwise from north).
     // Plain "deviceorientation" alpha elsewhere is relative to an arbitrary start, so it is ignored.
     const eventName = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation";
+    let silenceTimer: number | undefined;
 
     const onOrientation = (event: Event) => {
       const { webkitCompassHeading, alpha } = event as CompassEvent;
@@ -53,6 +56,11 @@ function useCompassHeading(): number | null {
       else return;
       const rounded = Math.round(next) % 360;
       setHeading((current) => (current === rounded ? current : rounded));
+      // A stalled compass must not freeze the arrow: drop it so the movement fallback takes over.
+      window.clearTimeout(silenceTimer);
+      silenceTimer = window.setTimeout(() => {
+        setHeading(null);
+      }, COMPASS_SILENCE_MS);
     };
 
     const attach = () => {
@@ -64,6 +72,7 @@ function useCompassHeading(): number | null {
     // Re-attach after an iOS permission grant so events start flowing without a reload.
     window.addEventListener(PERMISSION_GRANTED_EVENT, attach);
     return () => {
+      window.clearTimeout(silenceTimer);
       window.removeEventListener(eventName, onOrientation);
       window.removeEventListener(PERMISSION_GRANTED_EVENT, attach);
     };
