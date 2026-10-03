@@ -76,3 +76,19 @@ Karta 4 opisuje funkcję w spokojnym tonie przygotowania — nie pokazuje kryzys
 **Po akceptacji ścieżki (zadanie dla Codexa):** `Styl: D`, po 2 kandydatów na kartę → `kierunki-v1/poradnik/karta-<N>-c1.png`, `-c2.png`; arkusz; człowiek wybiera po jednym; eksport wybranych: `npm run illustrations:export -- <png> public/prototyp/poradnik/karta-<N>.webp`; commit, push, stop.
 
 **Status (2026-10-03):** wygenerowano wbudowanym `image_gen` (model nieujawniony przez narzędzie) po 2 kandydatów na każdą kartę i dodano je do arkusza `kierunki-v1/sheet.png`. Kandydaci czekają na wybór człowieka; zastępcze obrazy w prototypie nie zostały jeszcze podmienione.
+
+### Ocena kart poradnika (przegląd, przed wyborem człowieka)
+
+Rodzina spójna: twarz c3, włosy konturem, ta sama grubość kreski we wszystkich kartach. Rekomendacja:
+
+| Karta | Rekomendacja    | Uwagi                                                                                                                        |
+| ----- | --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1     | **c1**          | c2 łamie styl: postacie wypełnione szarością                                                                                 |
+| 2     | **c1**          | woda, latarka i teczka leżą osobno — czytelniej „co jest w plecaku”; c2 też poprawny                                         |
+| 3     | **c1**          | c2 ma koronę drzewa uciętą górną krawędzią                                                                                   |
+| 4     | **do powtórki** | brak obiektu w stali (telefon jest drobny i ciemny), „schron” wygląda jak przystanek; scena czyta się jak spacer z telefonem |
+| 5     | **c1**          | babcia czytelna (siwy kok); w c2 wygląda na młodą kobietę                                                                    |
+
+**Karta 4 — powtórka (2 kandydatów, `karta-4-c3.png`, `-c4.png`):** łączy się z kartą 3 — prowadzenie do tego samego miejsca spotkania.
+
+> An adult walks calmly along a dashed route line drawn on the ground, holding a phone at chest height, towards a bench under a tree in the distance. The phone is a clearly visible solid steel blue shape (#536B75), larger than in a typical scene; it is the only steel object. No buildings, no signs.
