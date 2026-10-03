@@ -32,41 +32,13 @@ const themeColor = mode === "execution" ? "#0B1117" : "#F1F2F3";
 </html>
 
 <script>
-  type OfflineState = "loading" | "ready" | "warning";
-
-  const statusRoot = document.querySelector<HTMLElement>("[data-offline]");
-  const statusTitle = document.querySelector<HTMLElement>("[data-offline-title]");
-  const statusText = document.querySelector<HTMLElement>("[data-offline-status]");
-  const statusIcons = document.querySelectorAll<HTMLElement>("[data-offline-icon]");
-
-  const setStatus = (state: OfflineState, title: string, text: string) => {
-    if (statusRoot) statusRoot.dataset.state = state;
-    if (statusTitle) statusTitle.textContent = title;
-    if (statusText) statusText.textContent = text;
-    statusIcons.forEach((icon) => icon.classList.toggle("hidden", icon.dataset.offlineIcon !== state));
-  };
-
-  if (!("serviceWorker" in navigator)) {
-    setStatus(
-      "warning",
-      "Tryb offline jest niedostępny",
-      "Użyj aktualnej wersji przeglądarki, aby plan pozostał dostępny bez internetu.",
-    );
-  } else if (import.meta.env.PROD) {
-    setStatus("loading", "Przygotowuję tryb offline", "Zapisuję podstawowe pliki aplikacji na tym urządzeniu…");
-    void navigator.serviceWorker
-      .register("/sw.js")
-      .then(() => navigator.serviceWorker.ready)
-      .then(() => {
-        setStatus("ready", "Gotowe do pracy offline", "Podstawowe pliki aplikacji są zapisane na tym urządzeniu.");
-      })
-      .catch(() => {
-        setStatus(
-          "warning",
-          "Nie udało się przygotować trybu offline",
-          "Odśwież stronę przy aktywnym połączeniu, aby spróbować ponownie.",
-        );
-      });
+  // Registration only: whether the shell is ready is read by `useOfflineShell`, which is what the readiness screen
+  // and the /offline card show. A failure is flagged on <html> and announced, because it can happen before React mounts.
+  if ("serviceWorker" in navigator && import.meta.env.PROD) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      document.documentElement.dataset.swFailed = "true";
+      window.dispatchEvent(new Event("wrw:sw-failed"));
+    });
   }
 </script>
 

@@ -18,6 +18,7 @@ import { formatClockTime } from "@/lib/format";
 import { openMapFile, readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
+import { writeSensors } from "@/lib/services/sensor-storage";
 import { cn } from "@/lib/utils";
 
 type SensorResult = "pending" | "working" | "denied" | "unavailable";
@@ -165,6 +166,7 @@ export default function SensorCheck() {
   const [locationRequested, setLocationRequested] = useState(false);
   const [compassPermission, setCompassPermission] = useState<PermissionState | null>(null);
   const [compassTimedOut, setCompassTimedOut] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const { coords, accuracyMeters, status } = useGeolocation({ watch: locationRequested });
   const { heading, source } = useHeading(coords, accuracyMeters);
@@ -209,6 +211,25 @@ export default function SensorCheck() {
           : compassTimedOut
             ? "unavailable"
             : "pending";
+
+  // The readiness screen asks whether the sensors were checked: record it once both readings have settled.
+  // The write runs in a timer callback, like the compass timeout above, so its result can reach state.
+  useEffect(() => {
+    if (locationResult === null || locationResult === "pending") return;
+    if (compassResult === null || compassResult === "pending") return;
+    const timer = window.setTimeout(() => {
+      const saved = writeSensors({
+        schemaVersion: 1,
+        checkedAt: new Date().toISOString(),
+        location: locationResult,
+        compass: compassResult,
+      });
+      setSaveFailed(!saved);
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [locationResult, compassResult]);
 
   return (
     <div className="space-y-6">
@@ -301,6 +322,13 @@ export default function SensorCheck() {
           </dl>
         )}
       </section>
+
+      {saveFailed && (
+        <p role="status" className="text-attention-foreground flex items-start gap-2 text-sm">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+          Nie udało się zapisać wyniku sprawdzenia na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny.
+        </p>
+      )}
 
       <VoiceCheck />
 

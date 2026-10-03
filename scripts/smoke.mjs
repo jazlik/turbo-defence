@@ -17,9 +17,8 @@ if (!(home.headers.get("content-type") ?? "").includes("text/html")) fail("/ is 
 const html = await home.text();
 if (!html.includes('lang="pl"')) fail('/ is missing lang="pl"');
 if (!html.includes("manifest.webmanifest")) fail("/ does not link manifest.webmanifest");
-if (!html.includes("data-offline-status")) fail("/ is missing the offline status element");
-// The three place cards are client:only islands; the section heading is their only static trace in the HTML.
-if (!html.includes('id="places-title"')) fail("/ is missing the places section heading");
+// The readiness screen is a client:only island; its component URL in the island tag is its only static trace.
+if (!html.includes("ReadinessScreen")) fail("/ is missing the readiness screen island");
 
 // iOS Safari fix: Astro emits an inline, unlayered `display: contents` rule for every
 // island root (astro-island/astro-slot/astro-static-slot), and does not deliver
@@ -51,7 +50,10 @@ for (const icon of manifest.icons) {
   if (!(res.headers.get("content-type") ?? "").includes("image/png")) fail(`${icon.src} is not image/png`);
 }
 
-for (const path of ["/alarm", "/czujniki", "/domownicy", "/plecak"]) {
+const offlinePage = await get("/offline");
+if (!(await offlinePage.text()).includes("OfflineShellCard")) fail("/offline is missing the offline shell card");
+
+for (const path of ["/alarm", "/czujniki", "/domownicy", "/plecak", "/miejsca", "/offline"]) {
   const res = await get(path);
   if (!(res.headers.get("content-type") ?? "").includes("text/html")) fail(`${path} is not HTML`);
 }
@@ -60,7 +62,15 @@ const sw = await get("/sw.js");
 if (!(sw.headers.get("content-type") ?? "").includes("javascript")) fail("/sw.js is not JavaScript");
 const swSource = await sw.text();
 // build.format "file" makes Workbox cleanURLs match /alarm to alarm.html; alarm/index.html would miss offline.
-for (const page of ["index.html", "alarm.html", "czujniki.html", "domownicy.html", "plecak.html"]) {
+for (const page of [
+  "index.html",
+  "alarm.html",
+  "czujniki.html",
+  "domownicy.html",
+  "plecak.html",
+  "miejsca.html",
+  "offline.html",
+]) {
   if (!swSource.includes(page)) fail(`/sw.js precache list does not include ${page}`);
 }
 // Offline guidance data: PSP shelter snapshot and map glyphs must be precached (S-04).

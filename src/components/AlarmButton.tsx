@@ -7,7 +7,12 @@ const HOLD_MS = 2000;
 const RING_RADIUS = 20;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
-export default function AlarmButton() {
+interface AlarmButtonProps {
+  /** Przyklejony do dołu ekranu gotowości: niższy przycisk i drobniejsza podpowiedź, ten sam automat przytrzymania. */
+  compact?: boolean;
+}
+
+export default function AlarmButton({ compact = false }: AlarmButtonProps) {
   const { progress, holding, handlers } = useHoldAction(HOLD_MS, () => {
     window.location.assign("/alarm");
   });
@@ -21,7 +26,8 @@ export default function AlarmButton() {
         aria-describedby="alarm-hint"
         {...handlers}
         className={cn(
-          "flex min-h-16 w-full touch-none items-center justify-center gap-4 rounded-md px-6 text-lg font-semibold outline-none select-none [-webkit-touch-callout:none]",
+          compact ? "min-h-14" : "min-h-16",
+          "flex w-full touch-none items-center justify-center gap-4 rounded-md px-6 text-lg font-semibold outline-none select-none [-webkit-touch-callout:none]",
           "bg-destructive text-destructive-foreground active:bg-destructive-pressed",
           "focus-visible:ring-destructive focus-visible:ring-offset-background focus-visible:ring-[3px] focus-visible:ring-offset-2",
         )}
@@ -53,7 +59,7 @@ export default function AlarmButton() {
         </svg>
         <span>{holding ? `Trzymaj jeszcze ${secondsLeft} s` : "Uruchom alarm"}</span>
       </button>
-      <p id="alarm-hint" className="text-muted-foreground mt-2 text-sm">
+      <p id="alarm-hint" className={cn("text-muted-foreground mt-2", compact ? "text-xs" : "text-sm")}>
         Przytrzymaj przycisk przez 2 sekundy. Puszczenie wcześniej niczego nie uruchamia.
         {/* A screen-reader double-tap is a click, which the hold ignores; the passthrough gesture is the way in. */}
         <span className="sr-only"> Z czytnikiem ekranu: stuknij dwa razy i przytrzymaj.</span>

@@ -34,8 +34,8 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | S-04 | offline-map-and-route   | pobrać mapę regionu, mieć automatycznie wybrany schron PSP z trasą odświeżaną przy dostępie do sieci i iść po niej offline (mapa jako drugi poziom) | S-01          | US-01, FR-004, FR-007, FR-014                                                         | proposed |
 | S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                | S-01          | FR-002                                                                                | done     |
 | S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                            | S-05          | FR-003                                                                                | done     |
-| S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                                         | S-04, S-06    | US-01, FR-001                                                                         | proposed |
-| S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                                           | S-07          | FR-008, FR-009                                                                        | proposed |
+| S-07 | first-run-onboarding    | (usunięte 2026-10-04) zastąpione przez quick winy i mapę gotowości w S-08 | — | — | dropped |
+| S-08 | readiness-screen        | zobaczyć na stronie głównej jakościowy poziom gotowości, następny quick win i milestone'y; alarm jest przyklejony na dole, konfiguratory są podstronami                                                                                           | S-06          | FR-008, FR-009                                                                        | proposed |
 | S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                                                | S-08          | FR-010, FR-011                                                                        | proposed |
 | S-10 | auto-shelter-and-route  | (po MVP) mieć trasę odświeżaną w tle, gdy aplikacja jest zamknięta, i mapę dla kolejnych regionów                                                   | S-04          | FR-007 (rozszerzenie)                                                                 | proposed |
 
@@ -46,7 +46,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | Stream | Theme                  | Chain                                                   | Note                                                                          |
 | ------ | ---------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | A      | Prowadzenie w kryzysie | `F-01` → `S-01` → `S-02` / `S-03` / `S-04` (równolegle) | Ścieżka głównego kryterium sukcesu; przy celu „szybkość” idzie pierwsza.      |
-| B      | Przygotowanie i plan   | `S-05` → `S-06` → `S-07` → `S-08` → `S-09`              | Dołącza do strumienia A w `S-01` (zapis planu), a `S-07` czeka też na `S-04`. |
+| B      | Przygotowanie i plan   | `S-05` → `S-06` → `S-08` → `S-09`                        | Dołącza do strumienia A w `S-01` (zapis planu); S-07 usunięte. |
 
 ## Baseline
 
@@ -157,30 +157,23 @@ Slices below build on these and do NOT re-scaffold them.
 - **Risk:** wartość zależy od treści, nie od techniki; trzymamy prosty zestaw reguł (dzieci, leki, zwierzęta), żeby nie zjadł czasu potrzebnego na prowadzenie.
 - **Status:** done
 
-### S-07: Onboarding przy pierwszym uruchomieniu
+### S-07: Onboarding przy pierwszym uruchomieniu — usunięte
 
-- **Outcome:** organizator przy pierwszym uruchomieniu przechodzi interaktywny onboarding w kolejności przepływu: domownicy i kontakty, plecak, miejsca (spotkanie, zapasowe, schron), zapis planu i pobranie trasy offline.
-- **Change ID:** first-run-onboarding
-- **PRD refs:** US-01, FR-001
-- **Prerequisites:** S-04, S-06
-- **Parallel with:** —
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** spina gotowe kawałki w kroki 1–5 przepływu demo; późno, bo integruje elementy z obu strumieni, a sam z siebie nie dowodzi prowadzenia.
-- **Status:** proposed
+- **Decyzja 2026-10-04:** osobny onboarding odpada. Jego funkcję przejmuje S-08: pierwsze uruchomienie to stan początkowy ekranu gotowości, a wszystkie czynności (w tym „Zainstaluj aplikację” i ilustracje poradnika) są quick winami w katalogu S-08 oraz na mapie gotowości.
+- **Status:** dropped
 
 ### S-08: Ekran gotowości
 
-- **Outcome:** organizator widzi jakościowy poziom gotowości (np. „72H Ready”) i następny quick win albo grupę kroków, które najbardziej podnoszą gotowość, zamiast listy braków.
+- **Outcome:** organizator widzi jakościowy poziom gotowości (np. „72H Ready”) i następny quick win albo grupę kroków, które najbardziej podnoszą gotowość, zamiast listy braków. Strona główna `/` jest ekranem gotowości (Preparation Mode), alarm jest przyklejony na dole, a konfiguratory są podstronami z powrotem „← Gotowość”. Pierwsze uruchomienie to stan początkowy tego ekranu.
 - **Change ID:** readiness-screen
 - **PRD refs:** FR-008, FR-009
-- **Prerequisites:** S-07
+- **Prerequisites:** S-06 (S-04 nie blokuje: milestone „Mapa offline” działa po jego dowiezieniu)
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:**
   - Jakie poziomy gotowości i progi przyjmujemy w MVP i czym poziom różni się od kamienia milowego (Otwarte pytanie 2 z PRD)? — Owner: team. Block: no (wystarczy prosta decyzja na starcie planu).
-- **Risk:** krok 6 przepływu demo; zależy od danych z onboardingu, więc idzie po nim.
-- **Status:** proposed
+- **Risk:** krok 6 przepływu demo; zastępuje onboarding (S-07 usunięte, decyzja 2026-10-04).
+- **Status:** in progress (strona główna z poziomem, quick winami i dokiem alarmu jest wdrożona; do zrobienia: pełna ścieżka `/droga`)
 
 ### S-09: Przekazanie planu domownikowi
 
@@ -220,8 +213,8 @@ Slices below build on these and do NOT re-scaffold them.
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                     | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                              | yes                   | Run `/10x-plan household-members`                                                      |
 | S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                        | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
-| S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                     | no                    | Po S-04 i S-06                                                                         |
-| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-07                                                                                |
+| S-07       | first-run-onboarding    | Usunięte — zastąpione przez S-08                           | —                     | Decyzja 2026-10-04                                                                     |
+| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-06; zastępuje usunięty onboarding S-07 (2026-10-04)                              |
 | S-09       | share-plan              | Przekazanie planu domownikowi                              | no                    | Po S-08; format do ustalenia w planie                                                  |
 | S-10       | auto-shelter-and-route  | Trasa odświeżana w tle i kolejne regiony (po MVP)          | no                    | Po S-04; wybór schronu już w S-04                                                      |
 
