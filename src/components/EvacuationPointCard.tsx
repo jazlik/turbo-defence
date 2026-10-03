@@ -89,7 +89,7 @@ export default function EvacuationPointCard() {
         </div>
         <div className="min-w-0">
           <h2 id="evacuation-point-title" className="font-heading text-2xl tracking-[-0.015em]">
-            Punkt ewakuacji
+            Własny punkt (zapasowy)
           </h2>
           {point ? (
             <p className="text-muted-foreground mt-1">
@@ -98,7 +98,9 @@ export default function EvacuationPointCard() {
               <span className="font-operational text-sm">{formatCoordinates(point.coords)}</span>
             </p>
           ) : (
-            <p className="text-muted-foreground mt-1">Punkt ewakuacji: nie wskazano</p>
+            <p className="text-muted-foreground mt-1">
+              Nie wskazano. Prowadzenie użyje tego punktu, gdy w pobliżu nie ma punktu schronienia PSP.
+            </p>
           )}
         </div>
       </div>

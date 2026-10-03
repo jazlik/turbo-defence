@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { CheckCircle2, CircleX, Compass, LoaderCircle, LocateFixed, TriangleAlert } from "lucide-react";
+import { CheckCircle2, CircleX, Compass, LoaderCircle, LocateFixed, Route, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
+import { formatClockTime } from "@/lib/format";
+import { readNavigation } from "@/lib/services/navigation-storage";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +56,42 @@ function Reading({ label, value }: { label: string; value: string }) {
       <dt className="text-muted-foreground text-sm">{label}</dt>
       <dd className="font-operational text-lg">{value}</dd>
     </div>
+  );
+}
+
+/** Read-only diagnostics: the only practical way to inspect saved routes on an iPhone without a cable. */
+function RouteDiagnostics() {
+  const [navigation] = useState(readNavigation);
+  const { primary, alternate, lastRefresh, routingConsent } = navigation;
+  const describe = (route: typeof primary) =>
+    route ? `${route.destination.label} · ${formatClockTime(Date.parse(route.createdAt))}` : "brak";
+  return (
+    <section
+      aria-labelledby="route-diagnostics-title"
+      className="border-border bg-surface rounded-lg border p-6 shadow-sm"
+    >
+      <h2 id="route-diagnostics-title" className="font-heading flex items-center gap-3 text-2xl">
+        <Route className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
+        Trasa
+      </h2>
+      <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Reading label="Trasa A" value={describe(primary)} />
+        <Reading label="Trasa B" value={describe(alternate)} />
+        <Reading
+          label="Liczona z"
+          value={primary ? `${primary.origin.latitude.toFixed(5)}, ${primary.origin.longitude.toFixed(5)}` : "—"}
+        />
+        <Reading label="Zgoda na serwis tras" value={routingConsent ? "Tak" : "Nie"} />
+        <Reading
+          label="Ostatnia próba"
+          value={
+            lastRefresh
+              ? `${formatClockTime(Date.parse(lastRefresh.at))} · ${lastRefresh.ok ? "OK" : (lastRefresh.reason ?? "błąd")}`
+              : "—"
+          }
+        />
+      </dl>
+    </section>
   );
 }
 
@@ -197,6 +235,8 @@ export default function SensorCheck() {
           </dl>
         )}
       </section>
+
+      <RouteDiagnostics />
     </div>
   );
 }

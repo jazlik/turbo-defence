@@ -58,3 +58,10 @@ Po zakończeniu S-04: lokalny `S04_HANDOVER_LOCAL.md` (nie commitować).
 - OSRM foot (FOSSGIS): Rynek→Kazimierz 1532 m (×1.22 straight line), Nowa Huta 1324 m (×1.37), Mogilskie→Dąbie 1694 m (×1.46); routes use pedestrian streets and footways; 32–189 ms; destination snap up to 53 m (confirms review F1). Usage policy: max 1 request/s, valid UA/Referer, OSM attribution with a "fix the map" link → Phase 3 sends matrix, route A, route B **sequentially ≥ 1 s apart** (plan said parallel) and RouteCard carries the OSM attribution link.
 - Blocked on team: logged-in Wrangler account (`Piwciax@gmail.com's Account`) has neither R2 nor Worker `w-razie-w`. CORS, upload and preview deploy are packaged in `scripts/map/publish-spike.sh`.
 
+## Phase 3 — implementation notes (2026-10-03)
+
+- Router requests are sequential with a 1.1 s gap (FOSSGIS policy), not parallel as the plan said.
+- Shortlist = 5 nearest + up to 3 nearest at least 150 m from the nearest one. Live check: in Kraków's Rynek the 5 nearest PSP points all sit within 150 m of A, so without the spread there was no route B. One matrix request either way.
+- Live end-to-end (real OSRM + PSP snapshot): Rynek → A "Rynek Główny 1" 80 m, B "Rynek Główny 46" 163 m; Nowa Huta → A "Osiedle Centrum A 1" 195 m, B 241 m; Tarnów → A "ul. Rynek 16" 15 m, B "ul. Kupiecka 3" 267 m. 2.5–10 s per refresh (FOSSGIS throttles bursts).
+- Snapshot is 532 KB (6 097 points); `public/data/` is in `.prettierignore` so lint-staged does not pretty-print it.
+

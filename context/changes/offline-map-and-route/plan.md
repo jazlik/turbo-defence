@@ -896,10 +896,10 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [x] 2.1 Testy przechodzą: `npm test`
-- [x] 2.2 Lint przechodzi: `npm run lint`
-- [x] 2.3 Typy przechodzą: `npx astro check`
-- [x] 2.4 Build i smoke przechodzą: `npm run build && npm run smoke`
+- [x] 2.1 Testy przechodzą: `npm test` — fdff381
+- [x] 2.2 Lint przechodzi: `npm run lint` — fdff381
+- [x] 2.3 Typy przechodzą: `npx astro check` — fdff381
+- [x] 2.4 Build i smoke przechodzą: `npm run build && npm run smoke` — fdff381
 
 #### Manual
 
@@ -910,11 +910,11 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [ ] 3.1 Testy `shelters`, `osrm`, `route-progress` przechodzą: `npm test`
-- [ ] 3.2 `npm run data:shelters` tworzy snapshot z ponad 6000 punktów
-- [ ] 3.3 Lint i typy przechodzą: `npm run lint`, `npx astro check`
-- [ ] 3.4 Build przechodzi, `sw.js` zawiera snapshot PSP
-- [ ] 3.5 Smoke przechodzi z asercją snapshotu: `npm run smoke`
+- [x] 3.1 Testy `shelters`, `osrm`, `route-progress` przechodzą: `npm test`
+- [x] 3.2 `npm run data:shelters` tworzy snapshot z ponad 6000 punktów
+- [x] 3.3 Lint i typy przechodzą: `npm run lint`, `npx astro check`
+- [x] 3.4 Build przechodzi, `sw.js` zawiera snapshot PSP
+- [x] 3.5 Smoke przechodzi z asercją snapshotu: `npm run smoke`
 
 #### Manual
 

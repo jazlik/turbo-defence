@@ -2,7 +2,7 @@ import { generateSW } from "workbox-build";
 
 const { count, size, warnings } = await generateSW({
   globDirectory: "dist",
-  globPatterns: ["**/*.{html,js,css,png,svg,ico,webmanifest,woff2}", "map/fonts/**/*.pbf"],
+  globPatterns: ["**/*.{html,js,css,png,svg,ico,webmanifest,woff2}", "map/fonts/**/*.pbf", "data/*.json"],
   globIgnores: ["sw.js", "workbox-*.js"],
   navigateFallback: "/index.html",
   skipWaiting: true,
