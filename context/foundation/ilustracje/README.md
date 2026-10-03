@@ -4,6 +4,8 @@
 
 Proces przeniesiony z systemu okładek Lucka, sprawdzonego na kilkunastu grafikach: **generator robi ilustrację, makieta i tokeny robią produkt**; styl prowadzą obrazy referencyjne, nie opis tekstem; człowiek wybiera na gotowych makietach; najwyżej 2 rundy generacji, potem prostszy concept zamiast nowych reguł.
 
+**Zgoda zespołu na eksplorację ilustracji do onboardingu:** 2026-10-03. Zasady w §12 i użycie w produkcie nadal wymagają osobnej decyzji po wyborze kierunku.
+
 ## Gdzie są ilustracje (propozycja, do potwierdzenia)
 
 Tylko **Preparation Mode**. W Execution Mode nie ma ilustracji (§12: „bez ozdobnych ilustracji w sytuacji awaryjnej”).
