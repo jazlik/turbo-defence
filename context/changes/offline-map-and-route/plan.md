@@ -959,7 +959,7 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [x] 6.1 Pełny zestaw przechodzi lokalnie
+- [x] 6.1 Pełny zestaw przechodzi lokalnie — 0edd9f8
 - [ ] 6.2 CI na PR do `main` zielone
 - [ ] 6.3 Deploy i smoke na żywym adresie po merge
 
@@ -972,7 +972,7 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [x] 7.1 Lint, typy, testy, build i smoke przechodzą
+- [x] 7.1 Lint, typy, testy, build i smoke przechodzą — 0edd9f8
 
 #### Manual
 
