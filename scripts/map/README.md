@@ -44,7 +44,7 @@ PMTILES=/path/to/pmtiles PYTHON=.venv/bin/python scripts/map/build-region.sh mal
 # → dist-map/malopolska-20261003-lean2.pmtiles (gitignored)
 ```
 
-The build is deterministic (tiles are gzipped with `mtime=0`): the same Protomaps build date gives the same bytes on any machine. Shipped `malopolska-20261003-lean2.pmtiles`: 99 077 167 B, sha256 `7cb2ed407299ad9ca298086f6e169f22766e9ca5e29d70cc7611dd74b6ba5c64` (`shasum -a 256 dist-map/*.pmtiles`).
+The build is reproducible per platform (tiles are gzipped with `mtime=0`): the same Protomaps build date gives the same size everywhere (99 077 167 B for `malopolska-20261003-lean2.pmtiles`), while the hash can differ between zlib builds (macOS `7cb2ed40…`, the CI/Linux file on R2 `bcd7f15b…`). The app verifies the download against the size the server reports, not a hash.
 
 Pick a recent build date from https://build-metadata.protomaps.dev/builds.json — Protomaps deletes old daily builds.
 `regions/malopolska.geojson` is the voivodeship boundary from OSM via Nominatim (`polygon_threshold=0.005`), © OpenStreetMap contributors, ODbL.
