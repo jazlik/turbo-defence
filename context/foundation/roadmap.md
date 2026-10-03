@@ -25,19 +25,19 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 
 ## At a glance
 
-| ID   | Change ID               | Outcome (user can …)                                                                                                            | Prerequisites | PRD refs                                                                              | Status   |
-| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | -------- |
-| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
-| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                           | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
-| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                           | S-01          | US-01, FR-013                                                                         | proposed |
-| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | proposed |
-| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed |
-| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed |
-| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | proposed |
-| S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                     | S-04, S-06    | US-01, FR-001                                                                         | proposed |
-| S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                       | S-07          | FR-008, FR-009                                                                        | proposed |
-| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                            | S-08          | FR-010, FR-011                                                                        | proposed |
-| S-10 | auto-shelter-and-route  | (po MVP) dostać automatycznie wybrany najbliższy schron z trasą odświeżaną, gdy aplikacja jest otwarta                          | S-04          | FR-004 (rozszerzenie), PRD Non-Goals                                                  | proposed |
+| ID   | Change ID               | Outcome (user can …)                                                                                                                                | Prerequisites | PRD refs                                                                              | Status   |
+| ---- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | -------- |
+| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                                    | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
+| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                                               | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
+| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                                               | S-01          | US-01, FR-013                                                                         | proposed |
+| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                                     | S-01          | US-01, FR-015                                                                         | proposed |
+| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć automatycznie wybrany schron PSP z trasą odświeżaną przy dostępie do sieci i iść po niej offline (mapa jako drugi poziom) | S-01          | US-01, FR-004, FR-007, FR-014                                                         | proposed |
+| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                | S-01          | FR-002                                                                                | proposed |
+| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                            | S-05          | FR-003                                                                                | proposed |
+| S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                                         | S-04, S-06    | US-01, FR-001                                                                         | proposed |
+| S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                                           | S-07          | FR-008, FR-009                                                                        | proposed |
+| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                                                | S-08          | FR-010, FR-011                                                                        | proposed |
+| S-10 | auto-shelter-and-route  | (po MVP) mieć trasę odświeżaną w tle, gdy aplikacja jest zamknięta, i mapę dla kolejnych regionów                                                   | S-04          | FR-007 (rozszerzenie)                                                                 | proposed |
 
 ## Streams
 
@@ -58,6 +58,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 1`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`); każda zmiana kształtu podnosi wersję i dopisuje migrację w `readPlan`.
 - **Auth:** absent — świadomie: profil lokalny, bez kont.
 - **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
+- **Map & routes:** present (S-04, w realizacji) — lekka paczka mapy w OPFS (`scripts/map/`, `src/workers/map-download.worker.ts`), trasy A/B w `wrw.navigation`, snapshot PSP w `public/data/`, navigation core w `src/lib/navigation.ts` + `useGuidance`.
 - **Sensors:** present — `useGeolocation`, `useHeading` (kompas iOS/Android z fallbackiem na azymut z ruchu), `useScreenWakeLock` w `src/components/hooks/`; matematyka geo w `src/lib/geo.ts`.
 - **Deploy / infra:** present — assets-only Worker `w-razie-w` na Cloudflare; CI (`.github/workflows/ci.yml`) na `main`: lint, `astro check`, `npm test`, build, smoke, deploy z `main` i smoke na żywym adresie.
 - **Observability:** absent — świadomie poza MVP (PRD: brak guardrails).
@@ -120,16 +121,13 @@ Slices below build on these and do NOT re-scaffold them.
 
 ### S-04: Mapa i trasa offline
 
-- **Outcome:** użytkownik może pobrać na urządzenie mapę regionu; gdy jest sieć, aplikacja odświeża trasę z jego bieżącej lokalizacji do punktu, a po utracie sieci w trybie prowadzenia otwiera mapę z ostatnią przygotowaną trasą jako drugi poziom pod strzałką. Bez przeliczania trasy offline (PRD: „Mapa i nawigacja offline w MVP”).
+- **Outcome:** użytkownik może pobrać na urządzenie mapę regionu; gdy jest sieć, aplikacja sama wybiera najbliższy pieszo punkt schronienia PSP (i zapasowy) i odświeża trasę z jego bieżącej lokalizacji, a po utracie sieci strzałka prowadzi po ostatniej przygotowanej trasie, z mapą jako drugim poziomem. Bez przeliczania trasy offline (PRD: „Mapa i nawigacja offline w MVP”).
 - **Change ID:** offline-map-and-route
-- **PRD refs:** US-01, FR-007, FR-014
+- **PRD refs:** US-01, FR-004, FR-007, FR-014
 - **Prerequisites:** S-01
 - **Parallel with:** S-02, S-03, S-05
 - **Blockers:** —
-- **Unknowns:**
-  - Skąd mapa regionu i serwis przygotowujący trasę (otwarte w `PROJECT.md` sekcja 7), czy licencja pozwala pobrać region na urządzenie i ile miejsca zajmie? — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
-  - Czy aplikacja webowa może odświeżać lokalizację i trasę w tle, gdy nie jest otwarta (przeglądarki mocno to ograniczają)? — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
-  - Wysyłanie lokalizacji do serwisu tras a NFR „Dane nie opuszczają urządzenia” (PRD Open Question 3). — Owner: team. Block: no (do rozstrzygnięcia w planie zmiany).
+- **Unknowns:** rozstrzygnięte w planie zmiany (`context/changes/offline-map-and-route/`): lekka paczka Protomaps/PMTiles dla Małopolski (99 MB) na R2, pobierana do OPFS; trasy piesze z publicznego OSRM (FOSSGIS); punkty schronienia z otwartego zbioru PSP (dane.gov.pl); odświeżanie tylko przy otwartej aplikacji; do serwisu tras trafiają wyłącznie współrzędne (wyjątek w NFR).
 - **Risk:** najdroższy element według shape-notes; jako drugi poziom pod strzałką może zostać okrojony (np. mniejszy obszar mapy) bez utraty głównego kryterium sukcesu.
 - **Status:** proposed
 
@@ -198,34 +196,33 @@ Slices below build on these and do NOT re-scaffold them.
 
 ### S-10: Automatyczny wybór schronu i trasa odświeżana w tle
 
-- **Outcome:** (po MVP) aplikacja co jakiś czas pobiera pozycję użytkownika, wybiera najbliższy schron, wyznacza do niego trasę i zapisuje ją na urządzeniu, żeby była dostępna offline. Nie jest częścią MVP — w MVP punkt wskazuje organizator ręcznie (FR-004, PRD Non-Goals).
+- **Outcome:** (po MVP) aplikacja odświeża pozycję i trasę także wtedy, gdy nie jest otwarta (Periodic Background Sync tam, gdzie przeglądarka na to pozwala), i oferuje mapę kolejnych regionów. Automatyczny wybór schronu z trasą wszedł do MVP w S-04.
 - **Change ID:** auto-shelter-and-route
-- **PRD refs:** FR-004 (rozszerzenie po MVP), PRD Non-Goals („Bez własnej bazy i propozycji schronów”), NFR „Dane nie opuszczają urządzenia”
+- **PRD refs:** FR-007 (rozszerzenie po MVP), NFR „Dane nie opuszczają urządzenia”
 - **Prerequisites:** S-04
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:**
-  - Brak potwierdzonego API z danymi o schronach (dostępność danych PSP / GdzieSięUkryć.pl niezweryfikowana, `konkurencja/porownanie-gdziesieukryc-vs-household-resilience.md:85`). — Owner: team. Block: yes.
-  - Konflikt z twardym NFR prywatności: odpytywanie zewnętrznych usług o najbliższy schron i trasę wysyła na zewnątrz pozycję użytkownika. — Owner: team. Block: yes (wymaga wyjątku w NFR albo danych i trasowania na urządzeniu).
+  - Dane o schronach i wyjątek prywatności dla serwisu tras — rozstrzygnięte w S-04 (zbiór PSP z dane.gov.pl, wyjątek w NFR).
   - Periodic Background Sync działa tylko w Chromium, wymaga zainstalowanej PWA i nie daje kontroli nad interwałem (w Chrome praktycznie co kilkanaście godzin, nie co 30 minut) — „co 30 min” realnie oznacza „przy otwarciu aplikacji i cyklicznie, gdy jest otwarta”. — Owner: team. Block: no.
-- **Risk:** pomysł zgłoszony w trakcie planowania S-01 i świadomie odłożony; zapisany jako jawny slice, żeby nie wrócił jako niespodzianka w innym zadaniu.
+- **Risk:** pomysł zgłoszony w trakcie planowania S-01; automatyczny wybór schronu przeniesiony do S-04 (decyzja zespołu 2026-10-03), tu zostaje tylko praca w tle i kolejne regiony.
 - **Status:** proposed
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID               | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                                                  |
-| ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------- |
-| F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                                                      |
-| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
-| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Run `/10x-plan step-flow-and-fallback`                                                 |
-| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Run `/10x-plan voice-guidance`                                                         |
-| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
-| S-05       | household-members       | Domownicy i kontakty awaryjne                                | yes                   | Run `/10x-plan household-members`                                                      |
-| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                          | no                    | Po S-05                                                                                |
-| S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                       | no                    | Po S-04 i S-06                                                                         |
-| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                      | no                    | Po S-07                                                                                |
-| S-09       | share-plan              | Przekazanie planu domownikowi                                | no                    | Po S-08; format do ustalenia w planie                                                  |
-| S-10       | auto-shelter-and-route  | Automatyczny wybór schronu i trasa odświeżana w tle (po MVP) | no                    | Po S-04; dane o schronach i NFR prywatności do rozstrzygnięcia                         |
+| Roadmap ID | Change ID               | Suggested issue title                                      | Ready for `/10x-plan` | Notes                                                                                  |
+| ---------- | ----------------------- | ---------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main               | yes                   | Run `/10x-plan offline-app-shell`                                                      |
+| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość) | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
+| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe         | yes                   | Run `/10x-plan step-flow-and-fallback`                                                 |
+| S-03       | voice-guidance          | Głos prowadzący po polsku                                  | yes                   | Run `/10x-plan voice-guidance`                                                         |
+| S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                     | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
+| S-05       | household-members       | Domownicy i kontakty awaryjne                              | yes                   | Run `/10x-plan household-members`                                                      |
+| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                        | no                    | Po S-05                                                                                |
+| S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                     | no                    | Po S-04 i S-06                                                                         |
+| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-07                                                                                |
+| S-09       | share-plan              | Przekazanie planu domownikowi                              | no                    | Po S-08; format do ustalenia w planie                                                  |
+| S-10       | auto-shelter-and-route  | Trasa odświeżana w tle i kolejne regiony (po MVP)          | no                    | Po S-04; wybór schronu już w S-04                                                      |
 
 ## Open Roadmap Questions
 
@@ -237,10 +234,10 @@ Rozstrzygnięte 2026-10-03:
 
 ## Parked
 
-- **Własna baza i propozycje schronów** — Why parked: PRD §Non-Goals; punkt wskazywany ręcznie (FR-004). Automatyczny wybór schronu zaplanowany po MVP jako `S-10`.
+- **Własna baza schronów** — Why parked: PRD §Non-Goals; korzystamy z otwartego zbioru PSP, automatyczny wybór schronu wszedł w `S-04`.
 - **Automatyczny start z alertów (RSO)** — Why parked: PRD §Non-Goals; Execution Mode tylko ręcznie.
 - **Warstwa społeczności** — Why parked: PRD §Non-Goals; MVP obsługuje jedno gospodarstwo domowe.
-- **Przeliczanie trasy offline** — Why parked: PRD §Non-Goals; w MVP po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci.
+- **Przeliczanie trasy offline** — Why parked: PRD §Non-Goals; w MVP po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci, a po zejściu z trasy prowadzi do niej z powrotem (S-04). Future extension: routing na urządzeniu na lokalnym grafie.
 - **Szyfrowany transfer planu** — Why parked: PRD §Non-Goals; przekazanie w najprostszej formie (FR-010).
 - **Punkty i streaki** — Why parked: PRD §Non-Goals; odrzucone w decyzjach zakresowych.
 - **Role domowników i scenariusze (FR-005)** — Why parked: nice-to-have; w MVP jeden wspólny plan.

@@ -943,10 +943,10 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [x] 5.1 Lint, typy i testy przechodzą
-- [x] 5.2 Build bez ostrzeżeń Workboxa: `npm run build`
-- [x] 5.3 Smoke z asercjami precache fontów i snapshotu: `npm run smoke`
-- [x] 5.4 Wejście `alarm.html` nie importuje statycznie `maplibre-gl`
+- [x] 5.1 Lint, typy i testy przechodzą — 0df2e6b
+- [x] 5.2 Build bez ostrzeżeń Workboxa: `npm run build` — 0df2e6b
+- [x] 5.3 Smoke z asercjami precache fontów i snapshotu: `npm run smoke` — 0df2e6b
+- [x] 5.4 Wejście `alarm.html` nie importuje statycznie `maplibre-gl` — 0df2e6b
 
 #### Manual
 
@@ -959,7 +959,7 @@ Każdy krok na **Androidzie (Chrome, zainstalowana PWA)** i **iPhonie (PWA z ekr
 
 #### Automated
 
-- [ ] 6.1 Pełny zestaw przechodzi lokalnie
+- [x] 6.1 Pełny zestaw przechodzi lokalnie
 - [ ] 6.2 CI na PR do `main` zielone
 - [ ] 6.3 Deploy i smoke na żywym adresie po merge
 

@@ -21,6 +21,7 @@ Materials in `context/foundation/analogi/` are research references, not UI speci
 - `npm test` — Vitest, pure functions in `src/lib/` only (node environment, no jsdom, no React component tests)
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
+- `npm run data:shelters` — refresh the PSP shelter snapshot `public/data/shelters-malopolska.json` (commit the result).
 - `npm run smoke` — dependency-free HTTP smoke test of the served build (`scripts/smoke.mjs`, added in the `offline-app-shell` change, Phase 2), `BASE_URL` env (default `http://localhost:4321`).
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
@@ -37,6 +38,7 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 
 - `npm run build` runs `astro build && node scripts/generate-sw.mjs`; the script generates `dist/sw.js` with Workbox (`workbox-build`).
 - Every file in `dist/` matching the glob in `scripts/generate-sw.mjs` is precached. New runtime assets (e.g. map tiles) must be excluded from the glob and get their own caching strategy.
+- **Offline map (S-04):** the map package is never in `dist/` (Workers caps files at 25 MiB). It is built by `scripts/map/` (see its README), hosted on R2 and downloaded into OPFS by `src/workers/map-download.worker.ts`; MapLibre reads it through `pmtiles.FileSource`, so tiles bypass the network and the SW. Glyphs (`public/map/fonts/`) and `public/data/*.json` are precached. The map module is lazy-loaded on `/alarm` and must never be imported statically by `GuidanceScreen`.
 - The service worker is registered only in production (`import.meta.env.PROD`, script in `src/layouts/Layout.astro`). In `astro dev` there is no `sw.js`; if a stale SW from `astro preview` on the same port masks changes, unregister it in DevTools → Application → Service Workers.
 - `public/_headers` serves `sw.js` and `manifest.webmanifest` with `Cache-Control: no-cache`. Do not list `_headers` in `public/.assetsignore`.
 
@@ -51,6 +53,7 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
 - **Language**: UI copy is Polish (`<html lang="pl">`).
 - **Islands reading localStorage** (e.g. the household plan via `@/lib/services/plan-storage`) mount as `client:only="react"` — static HTML would not contain the saved data and hydration would mismatch.
+- **Navigation core** is `src/lib/navigation.ts` (`deriveGuidance`) + `useGuidance`; screens and the map render its result and never compute guidance themselves. Saved routes live in `wrw.navigation` (device state, not part of the shared household plan); routing APIs stay behind `src/lib/services/routing/`.
 - **Execution Mode screens** use `<Layout mode="execution">` and the tokens from `src/styles/global.css` via Tailwind classes (`bg-background`, `text-guidance`, `text-safe`…); no hex values in components.
 
 ### Environment

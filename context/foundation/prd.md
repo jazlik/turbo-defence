@@ -125,7 +125,7 @@ Decyzje zakresowe:
   > Socrates: Zarzut: „kontakty są bezużyteczne, skoro scenariusz zakłada brak łączności”. Rozstrzygnięcie: zostaje, bo brak łączności to tylko jeden ze scenariuszy.
 - FR-003: Organizator może odhaczać pozycje checklisty plecaka ewakuacyjnego, dopasowanej do składu rodziny (np. dzieci, leki, zwierzęta). Priority: must-have
   > Socrates: Zarzut: „statyczna checklista to papierowa lista w aplikacji i do niczego nie zachęca”. Rozstrzygnięcie: zmodyfikowane, checklista jest personalizowana pod rodzinę.
-- FR-004: Organizator może ręcznie wskazać miejsce spotkania, miejsce zapasowe i punkt ewakuacji (schron). Priority: must-have
+- FR-004: Organizator może ręcznie wskazać miejsce spotkania, miejsce zapasowe i punkt ewakuacji (schron). Punkt ewakuacji (schron) wybiera system automatycznie spośród oficjalnych punktów schronienia PSP, według najkrótszego dojścia pieszo, i przygotowuje trasę do niego oraz do punktu zapasowego; ręcznie wskazany punkt działa jako cel zapasowy, gdy w zasięgu nie ma punktu PSP (decyzja S-04, 2026-10-03). Priority: must-have
   > Socrates: Zarzut: „organizator nie wie, które miejsce jest bezpieczne, więc wybierze źle”. Rozstrzygnięcie: w MVP wybór ręczny, propozycje schronów dopiero po MVP.
 - FR-005: Organizator może przypisać domownikom role i podstawowe scenariusze. Priority: nice-to-have
   > Socrates: Zarzut: „bez ról dziecko dostaje ten sam plan co dorosły”. Rozstrzygnięcie: zostaje nice-to-have, w MVP jest jeden wspólny plan.
@@ -134,7 +134,7 @@ Decyzje zakresowe:
 
 - FR-006: Organizator może zapisać plan lokalnie i korzystać z niego bez sieci. Priority: must-have
   > Socrates: Zarzut: „plan jest na jednym telefonie, więc gdy telefon padnie, plan znika”. Rozstrzygnięcie: przekazanie planu domownikom (FR-010) pełni rolę kopii zapasowej.
-- FR-007: Organizator może pobrać na urządzenie mapę większego obszaru (np. regionu lub województwa). Gdy urządzenie ma sieć, aplikacja okresowo aktualizuje lokalizację użytkownika i przygotowuje albo odświeża z niej trasę do wybranego punktu ewakuacji, bez ponownego pobierania mapy. Priority: must-have
+- FR-007: Organizator może pobrać na urządzenie mapę większego obszaru (np. regionu lub województwa). Gdy urządzenie ma sieć, aplikacja aktualizuje lokalizację użytkownika (przy otwarciu aplikacji, powrocie do niej, odzyskaniu sieci i co około 30 min, gdy aplikacja jest otwarta) i przygotowuje albo odświeża z niej trasę do wybranego punktu ewakuacji, bez ponownego pobierania mapy. Priority: must-have
   > Socrates: Zarzut: „to najdroższy element, a trasa może być nieaktualna w dniu kryzysu”. Rozstrzygnięcie: zostaje bez zmian jako rdzeń demo. Doprecyzowane 2026-10-03: trasa jest odświeżana z bieżącej lokalizacji, dopóki jest sieć (patrz niżej).
 
 #### Mapa i nawigacja offline w MVP
@@ -143,11 +143,12 @@ Decyzja zespołu z 2026-10-03. „Offline” w produkcie dotyczy przede wszystki
 
 1. Użytkownik wcześniej pobiera na urządzenie mapę większego obszaru (np. regionu lub województwa).
 2. Produkt nie zakłada, że kryzys zastanie użytkownika w domu. Ma działać także wtedy, gdy użytkownik jest w innym miejscu.
-3. Gdy urządzenie ma sieć, aplikacja okresowo (docelowo mniej więcej co 30 min) aktualizuje lokalizację użytkownika i na tej podstawie przygotowuje albo odświeża trasę do wybranego punktu ewakuacji lub schronu.
+3. Gdy urządzenie ma sieć, aplikacja aktualizuje lokalizację użytkownika przy otwarciu aplikacji, powrocie do niej, odzyskaniu sieci i co około 30 min, gdy aplikacja jest otwarta (przeglądarki nie pozwalają na to przy zamkniętej aplikacji), i na tej podstawie przygotowuje albo odświeża trasę do wybranego punktu ewakuacji lub schronu.
 4. Mapa zostaje na urządzeniu. Kolejne aktualizacje nie pobierają jej od nowa.
 5. Po utracie sieci aplikacja korzysta z ostatniej trasy przygotowanej przy dostępie do sieci.
 6. GPS telefonu działa bez sieci, więc Execution Mode nadal pokazuje aktualną pozycję, kierunek (strzałkę) i odległość do celu na podstawie danych lokalnych.
 7. MVP nie wymaga lokalnego wyznaczania nowej trasy po utracie sieci.
+8. Po zejściu z trasy bez sieci aplikacja prowadzi z powrotem do zapisanej trasy, a przy dużym oddaleniu kieruje wprost do celu. Z siecią może wyznaczyć nową trasę do tego samego celu.
 
 Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętrznego API, wyznacza nową trasę z aktualnej pozycji do punktu na podstawie lokalnej mapy.
 
@@ -188,7 +189,7 @@ Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętr
 - Cały interfejs i komunikaty głosowe są po polsku.
 - Execution Mode pokazuje pierwszy krok w mniej niż 2 s od zwolnienia przycisku alarmu.
 - **Offline-first (twarde wymaganie).** Po onboardingu i pobraniu mapy cały przepływ MVP, łącznie z prowadzeniem po ostatniej przygotowanej trasie i voice guidance, działa w trybie samolotowym. Sieć jest potrzebna tylko do pobrania mapy oraz do przygotowania i odświeżania trasy (FR-007). Nowej trasy offline nie wyznaczamy (patrz „Mapa i nawigacja offline w MVP”).
-- **Dane nie opuszczają urządzenia (twarde wymaganie).** Brak kont, serwera i centralnej chmury. Jedyny ruch danych na zewnątrz to przekazanie planu domownikowi (FR-010), które musi odbywać się lokalnie, między urządzeniami, bez pośrednika w chmurze — w MVP bez szyfrowania (Non-Goals).
+- **Dane nie opuszczają urządzenia (twarde wymaganie).** Brak kont, serwera i centralnej chmury. Jedyny ruch danych na zewnątrz to przekazanie planu domownikowi (FR-010), które musi odbywać się lokalnie, między urządzeniami, bez pośrednika w chmurze — w MVP bez szyfrowania (Non-Goals). Wyjątek: przy przygotowaniu trasy do serwisu tras trafiają wyłącznie współrzędne (bieżąca pozycja i kandydaci na punkt), za zgodą użytkownika; dane planu i domowników nie opuszczają urządzenia.
 
 Oba twarde NFR wynikają z zasad projektowych `PROJECT.md` (sekcja 3), z głównego kryterium sukcesu (demo w trybie samolotowym), z kryterium akceptacji US-01 i z analizy konkurencji (Competitive Positioning). Wcześniejsza decyzja o potraktowaniu ich jako miękkich została wycofana 2026-10-03.
 
@@ -211,7 +212,7 @@ Uwaga: model ról zakłada przekazanie planu domownikom. `PROJECT.md` ma tu sprz
 
 ## Non-Goals
 
-- **Bez własnej bazy i propozycji schronów.** Organizator wskazuje punkt ręcznie. Propozycje schronów i integracja z danymi państwowymi przychodzą po MVP (FR-004). Automatyczny wybór najbliższego schronu z trasą jest zaplanowany po MVP jako `S-10` w `roadmap.md`.
+- **Bez własnej bazy schronów.** Korzystamy z oficjalnego zbioru PSP „Punkty schronienia w Polsce” (dane.gov.pl, CC BY 4.0); automatyczny wybór najbliższego schronu z trasą wszedł do MVP w `S-04` (FR-004). Odświeżanie w tle przy zamkniętej aplikacji zostaje po MVP (`S-10`).
 - **Bez automatycznego startu z alertów.** Execution Mode uruchamia się tylko ręcznie. Integracja z RSO i innymi alertami przychodzi po MVP (`PROJECT.md` 4.1 pkt 7).
 - **Bez warstwy społeczności.** Brak punktów pomocy, zasobów sąsiedzkich i koordynacji lokalnej, bo MVP obsługuje jedno gospodarstwo domowe.
 - **Bez przeliczania trasy offline.** Po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci. Pełne przeliczanie trasy na urządzeniu przychodzi po MVP (FR-007).
@@ -223,10 +224,10 @@ Uwaga: model ról zakłada przekazanie planu domownikom. `PROJECT.md` ma tu sprz
 
 1. **„72H Ready” jako poziom gotowości (FR-009, must-have) i jako milestone (FR-016, nice-to-have):** ten sam przykład występuje w obu wymaganiach. Do rozstrzygnięcia, czym w MVP różni się poziom gotowości od kamienia milowego. Owner: zespół.
 2. **Moduł „Plan na kryzys” w #wGotowości (od marca 2026):** treści nie udało się zweryfikować z zewnątrz. Jeśli to cyfrowa wersja sekcji „Plan działania w kryzysie” z poradnika, rdzeń produktu ma już darmowego konkurenta z autorytetem państwa i pozycjonowanie trzeba przesunąć mocniej na Execution Mode. Do zrobienia: zainstalować aplikację i obejrzeć moduł (kilkanaście minut). Owner: zespół.
-3. **Trasa a NFR „Dane nie opuszczają urządzenia”:** jeśli trasę przygotowuje zewnętrzny serwis, trafiają do niego lokalizacja użytkownika i punkt docelowy. NFR dopuszcza dziś jako jedyny ruch danych na zewnątrz przekazanie planu domownikowi. Do rozstrzygnięcia w planie S-04: wyjątek w NFR albo sposób przygotowania trasy bez wysyłania lokalizacji. Owner: zespół.
 
 Rozstrzygnięte 2026-10-03:
 
+- **Trasa a NFR „Dane nie opuszczają urządzenia” (S-04).** Trasę przygotowuje publiczny serwis tras; trafiają do niego wyłącznie współrzędne (pozycja i kandydaci na punkt), za zgodą użytkownika. Wyjątek dopisany w NFR; dane planu i domowników nie opuszczają urządzenia.
 - **Prowadzenie w S-01 (`guided-to-point-offline`).** Odległość do punktu w MVP jest liczona w linii prostej i tak podpisana w interfejsie; trasa przychodzi dopiero w S-04. Próg dojścia („Jesteś na miejscu”) to 25 m. Tryb demo z symulowaną pozycją został odrzucony — demo na zewnątrz, na realnych czujnikach.
 - **Mapa i nawigacja offline w MVP.** Mapa regionu na urządzeniu, trasa odświeżana z bieżącej lokalizacji, dopóki jest sieć, a po jej utracie prowadzenie po ostatniej trasie z GPS. Bez przeliczania trasy offline. Patrz FR-007 i „Mapa i nawigacja offline w MVP”.
 - **Offline i prywatność poza NFR.** Zespół wcześniej nie uznał ich za twarde wymagania MVP, co kłóciło się z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu, z kryterium akceptacji US-01 i z profilem lokalnym bez serwera. Decyzja: oba wracają jako twarde NFR. Patrz Non-Functional Requirements i Competitive Positioning.
