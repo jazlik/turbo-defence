@@ -30,10 +30,10 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                                    | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
 | S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                                               | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
 | S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                                               | S-01          | US-01, FR-013                                                                         | proposed |
-| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                                     | S-01          | US-01, FR-015                                                                         | proposed |
+| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                                     | S-01          | US-01, FR-015                                                                         | done     |
 | S-04 | offline-map-and-route   | pobrać mapę regionu, mieć automatycznie wybrany schron PSP z trasą odświeżaną przy dostępie do sieci i iść po niej offline (mapa jako drugi poziom) | S-01          | US-01, FR-004, FR-007, FR-014                                                         | proposed |
-| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                | S-01          | FR-002                                                                                | proposed |
-| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                            | S-05          | FR-003                                                                                | proposed |
+| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                | S-01          | FR-002                                                                                | done     |
+| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                            | S-05          | FR-003                                                                                | done     |
 | S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                                         | S-04, S-06    | US-01, FR-001                                                                         | proposed |
 | S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                                           | S-07          | FR-008, FR-009                                                                        | proposed |
 | S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                                                | S-08          | FR-010, FR-011                                                                        | proposed |
@@ -50,19 +50,20 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-10-03`, after `F-01` and `S-01` (refreshed at the S-01 close).
+What's already in place in the codebase as of `2026-10-03`, after `F-01`, `S-01`, `S-03` and `S-02` (refreshed at the S-02 close; S-03 landed on `main` in parallel and was merged into S-02).
 Slices below build on these and do NOT re-scaffold them.
 
 - **Frontend:** present — statyczna PWA Astro 7 z wyspami React 19, Tailwind 4 i shadcn/ui; tokeny wizualne w `src/styles/global.css`, tryby `preparation` / `execution` w `src/layouts/Layout.astro`. Ekrany: `/` (plan i alarm), `/czujniki`, `/alarm`, `/design`.
 - **Backend / API:** absent — świadomie: `output: "static"`, bez serwera, API i middleware (PRD: dane nie opuszczają urządzenia).
-- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 1`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`); każda zmiana kształtu podnosi wersję i dopisuje migrację w `readPlan`.
+- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 2`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`) z trzema miejscami w `places` (`meeting`, `backup`, `shelter`); migracja v1 → v2 mapuje dawny `evacuationPoint` na `places.shelter`. Każda zmiana kształtu podnosi wersję i dopisuje migrację w `parsePlan`; nieczytelny wpis zwraca `source: "unreadable"` i nie jest nadpisywany automatycznym zapisem. Przebieg ewakuacji żyje osobno pod kluczem `wrw.run` (`src/lib/services/run-storage.ts`, `schemaVersion: 1`) i jest wznawiany tylko w progu świeżości `RUN_FRESH_MS` (6 h); sekwencja kroków nie jest zapisywana — wylicza ją `buildSteps` z planu (`src/lib/evacuation-steps.ts`).
 - **Auth:** absent — świadomie: profil lokalny, bez kont.
 - **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
 - **Map & routes:** present (S-04, w realizacji) — lekka paczka mapy w OPFS (`scripts/map/`, `src/workers/map-download.worker.ts`), trasy A/B w `wrw.navigation`, snapshot PSP w `public/data/`, navigation core w `src/lib/navigation.ts` + `useGuidance`.
 - **Sensors:** present — `useGeolocation`, `useHeading` (kompas iOS/Android z fallbackiem na azymut z ruchu), `useScreenWakeLock` w `src/components/hooks/`; matematyka geo w `src/lib/geo.ts`.
+- **Voice:** present — synteza mowy przez `useVoiceGuidance` (`src/components/hooks/`) i `src/lib/services/speech.ts`; treść komunikatów w `phraseFor` (`src/lib/voice.ts`) jako warianty `GuidanceVoiceState`, ustawienie włącz/wyłącz osobno pod `wrw.voice`. Nowe komunikaty dopisuje się jako wariant stanu, nigdy wołając `speechSynthesis` wprost.
 - **Deploy / infra:** present — assets-only Worker `w-razie-w` na Cloudflare; CI (`.github/workflows/ci.yml`) na `main`: lint, `astro check`, `npm test`, build, smoke, deploy z `main` i smoke na żywym adresie.
 - **Observability:** absent — świadomie poza MVP (PRD: brak guardrails).
-- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`; `scripts/smoke.mjs` sprawdza strony i precache; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
+- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`: geo, plan z migracją v1 → v2, sekwencja kroków (`buildSteps`, `resumeIndex`, `targetPlaceKind`), przebieg ewakuacji (`parseRun` z progiem świeżości) oraz treść i progi głosu (`voice`, `voice-settings`); `scripts/smoke.mjs` sprawdza strony, precache i sekcję „Miejsca” na stronie domowej; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
 
 ## Foundations
 
@@ -115,9 +116,9 @@ Slices below build on these and do NOT re-scaffold them.
 - **Parallel with:** S-02, S-04, S-05
 - **Blockers:** —
 - **Unknowns:**
-  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no.
+  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no. Stan: `/czujniki` ma test „Sprawdź głos” z instrukcją pobrania polskich danych głosowych; testy na telefonie demo (tryb samolotowy) zaliczone 2026-10-03 — polski głos działa offline.
 - **Risk:** zależny od możliwości urządzenia; sprawdzenie wcześnie pozwala w razie braku polskiego głosu offline przygotować nagrane komunikaty.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Mapa i trasa offline
 
@@ -141,7 +142,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** rozszerza zapis planu z S-01 o dane rodziny, od których zależą plecak, onboarding i udostępnianie; prosty formularz, niskie ryzyko.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Spersonalizowana checklista plecaka
 
@@ -154,7 +155,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Unknowns:**
   - Jakie pozycje plecaka i reguły dopasowania przyjmujemy (treść poradnika GOV jako źródło)? — Owner: team. Block: no.
 - **Risk:** wartość zależy od treści, nie od techniki; trzymamy prosty zestaw reguł (dzieci, leki, zwierzęta), żeby nie zjadł czasu potrzebnego na prowadzenie.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Onboarding przy pierwszym uruchomieniu
 
@@ -214,11 +215,11 @@ Slices below build on these and do NOT re-scaffold them.
 | ---------- | ----------------------- | ---------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main               | yes                   | Run `/10x-plan offline-app-shell`                                                      |
 | S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość) | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
-| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe         | yes                   | Run `/10x-plan step-flow-and-fallback`                                                 |
-| S-03       | voice-guidance          | Głos prowadzący po polsku                                  | yes                   | Run `/10x-plan voice-guidance`                                                         |
+| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe         | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
+| S-03       | voice-guidance          | Głos prowadzący po polsku                                  | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                     | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                              | yes                   | Run `/10x-plan household-members`                                                      |
-| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                        | no                    | Po S-05                                                                                |
+| S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                        | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-07       | first-run-onboarding    | Onboarding przy pierwszym uruchomieniu                     | no                    | Po S-04 i S-06                                                                         |
 | S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-07                                                                                |
 | S-09       | share-plan              | Przekazanie planu domownikowi                              | no                    | Po S-08; format do ustalenia w planie                                                  |
@@ -249,3 +250,6 @@ Rozstrzygnięte 2026-10-03:
 
 - **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.
 - **S-01: użytkownik może wskazać punkt ewakuacji, przytrzymać przycisk alarmu i w trybie samolotowym iść za dużą strzałką z odległością do punktu; plan zostaje zapisany na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-guided-to-point-offline/`. Lesson: —.
+- **S-03: użytkownik słyszy kolejne kroki po polsku, domyślnie włączone, i może głos wyłączyć.** — Archived 2026-10-03 → `context/archive/2026-10-03-voice-guidance/`. Lesson: —.
+- **S-06: organizator może odhaczać pozycje checklisty plecaka ewakuacyjnego dobranej do składu rodziny.** — Archived 2026-10-03 → `context/archive/2026-10-03-personalized-backpack/`. Lesson: —.
+- **S-05: organizator może dodać domowników (z potrzebami: dzieci, leki, zwierzęta) i kontakty awaryjne; dane zapisują się na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-household-members/`. Lesson: —.

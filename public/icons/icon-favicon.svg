@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">W razie W</title>
+  <rect width="512" height="512" fill="#536B75"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m112 232 130-100q14-12 28 0l130 100"/>
+    <path d="m136 286 44 106 76-66 76 66 44-106"/>
+  </g>
+</svg>

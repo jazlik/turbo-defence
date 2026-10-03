@@ -5,11 +5,16 @@ import { Button } from "@/components/ui/button";
 import { requestCurrentPosition, type GeolocationStatus } from "@/components/hooks/useGeolocation";
 import { parseCoordinates } from "@/lib/geo";
 import { readPlan, writePlan } from "@/lib/services/plan-storage";
-import type { Coordinates, HouseholdPlan } from "@/types";
+import type { Coordinates, HouseholdPlan, PlaceKind } from "@/types";
 
-const DEFAULT_LABEL = "Punkt ewakuacji";
+const DEFAULT_LABELS: Record<PlaceKind, string> = {
+  meeting: "Miejsce spotkania",
+  backup: "Miejsce zapasowe",
+  shelter: "Punkt ewakuacji",
+};
 
-const formatCoordinates = ({ latitude, longitude }: Coordinates) => `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+const formatCoordinates = ({ latitude, longitude }: Coordinates) =>
+  `${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"}, ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`;
 
 const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
   denied:
@@ -18,26 +23,42 @@ const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
     "Nie udało się ustalić pozycji. Wyjdź pod otwarte niebo i spróbuj ponownie albo wpisz współrzędne ręcznie.",
 };
 
+// Cicha awaria zapisu jest gorsza niż brak zapisu: użytkownik odchodzi przekonany, że plan jest na urządzeniu.
+const STORAGE_ERROR =
+  "Nie udało się zapisać na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny w ustawieniach przeglądarki i spróbuj ponownie.";
+
 type Feedback = { kind: "saved"; text: string } | { kind: "error"; text: string } | null;
 
-export default function EvacuationPointCard() {
+interface PlaceCardProps {
+  kind: PlaceKind;
+  title: string;
+  description: string;
+  /** Steruje wyłącznie wariantem „Ustaw tutaj”: trzy wypełnione przyciski obok siebie łamią §3 JV. */
+  emphasis: "primary" | "secondary";
+}
+
+export default function PlaceCard({ kind, title, description, emphasis }: PlaceCardProps) {
   const [plan, setPlan] = useState<HouseholdPlan>(readPlan);
-  const [label, setLabel] = useState(plan.evacuationPoint?.label ?? DEFAULT_LABEL);
+  const [label, setLabel] = useState(plan.places[kind]?.label ?? DEFAULT_LABELS[kind]);
   const [coordinatesInput, setCoordinatesInput] = useState("");
   const [locating, setLocating] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [inputError, setInputError] = useState<string | null>(null);
-  const ids = { label: useId(), coordinates: useId(), coordinatesError: useId() };
+  const ids = { title: useId(), label: useId(), coordinates: useId(), coordinatesError: useId() };
 
-  const savePoint = (coords: Coordinates, withPosition: boolean) => {
+  /** `false`, gdy urządzenie odmówiło zapisu — wołający nie może wtedy potwierdzić zapisania. */
+  const savePlace = (coords: Coordinates, withPosition: boolean): boolean => {
     const recordedAt = new Date().toISOString();
+    // Trzy wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz miejsce z innej karty.
+    const stored = readPlan();
     const next: HouseholdPlan = {
-      ...readPlan(),
-      evacuationPoint: { label: label.trim() || DEFAULT_LABEL, coords },
+      ...stored,
+      places: { ...stored.places, [kind]: { label: label.trim() || DEFAULT_LABELS[kind], coords } },
     };
     if (withPosition) next.lastKnownPosition = { coords, recordedAt };
-    writePlan(next);
+    const saved = writePlan(next);
     setPlan(next);
+    return saved;
   };
 
   const setHere = async () => {
@@ -49,7 +70,10 @@ export default function EvacuationPointCard() {
       setFeedback({ kind: "error", text: LOCATION_ERRORS[result.status] ?? LOCATION_ERRORS.unavailable ?? "" });
       return;
     }
-    savePoint(result.fix.coords, true);
+    if (!savePlace(result.fix.coords, true)) {
+      setFeedback({ kind: "error", text: STORAGE_ERROR });
+      return;
+    }
     setFeedback({
       kind: "saved",
       text: `Zapisano bieżącą pozycję (dokładność ±${Math.round(result.fix.accuracyMeters)} m).`,
@@ -62,24 +86,24 @@ export default function EvacuationPointCard() {
     if (!parsed.ok) {
       setInputError(
         parsed.reason === "format"
-          ? "Wpisz dwie liczby oddzielone przecinkiem, np. 52.2297, 21.0122."
+          ? "Wpisz szerokość i długość oddzielone przecinkiem, np. 52.2297 N, 21.0122 E."
           : "Szerokość musi mieścić się w zakresie od −90 do 90, a długość od −180 do 180.",
       );
       return;
     }
     setInputError(null);
-    savePoint(parsed.coords, false);
+    if (!savePlace(parsed.coords, false)) {
+      setFeedback({ kind: "error", text: STORAGE_ERROR });
+      return;
+    }
     setCoordinatesInput("");
-    setFeedback({ kind: "saved", text: "Zapisano punkt ze wpisanych współrzędnych." });
+    setFeedback({ kind: "saved", text: "Zapisano miejsce ze wpisanych współrzędnych." });
   };
 
-  const point = plan.evacuationPoint;
+  const place = plan.places[kind];
 
   return (
-    <section
-      aria-labelledby="evacuation-point-title"
-      className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
-    >
+    <section aria-labelledby={ids.title} className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8">
       <div className="flex items-start gap-4">
         <div
           className="bg-core-steel-soft text-core-steel-deep flex size-11 shrink-0 items-center justify-center rounded-full"
@@ -88,26 +112,25 @@ export default function EvacuationPointCard() {
           <MapPin className="size-5" strokeWidth={2} />
         </div>
         <div className="min-w-0">
-          <h2 id="evacuation-point-title" className="font-heading text-2xl tracking-[-0.015em]">
-            Własny punkt (zapasowy)
-          </h2>
-          {point ? (
-            <p className="text-muted-foreground mt-1">
-              <span className="text-foreground font-medium">{point.label}</span>
+          <h3 id={ids.title} className="font-heading text-xl tracking-[-0.015em]">
+            {title}
+          </h3>
+          <p className="text-muted-foreground mt-1 text-sm">{description}</p>
+          {place ? (
+            <p className="text-muted-foreground mt-2">
+              <span className="text-foreground font-medium">{place.label}</span>
               <br />
-              <span className="font-operational text-sm">{formatCoordinates(point.coords)}</span>
+              <span className="font-operational text-sm">{formatCoordinates(place.coords)}</span>
             </p>
           ) : (
-            <p className="text-muted-foreground mt-1">
-              Nie wskazano. Prowadzenie użyje tego punktu, gdy w pobliżu nie ma punktu schronienia PSP.
-            </p>
+            <p className="text-muted-foreground mt-2">Nie wskazano</p>
           )}
         </div>
       </div>
 
       <div className="mt-6 space-y-2">
         <label htmlFor={ids.label} className="block text-sm font-medium">
-          Nazwa punktu
+          Nazwa miejsca
         </label>
         <input
           id={ids.label}
@@ -123,6 +146,7 @@ export default function EvacuationPointCard() {
       <Button
         type="button"
         size="lg"
+        variant={emphasis === "primary" ? "default" : "outline"}
         className="mt-4 w-full sm:w-auto"
         aria-busy={locating}
         onClick={() => void setHere()}
@@ -140,7 +164,7 @@ export default function EvacuationPointCard() {
             id={ids.coordinates}
             type="text"
             autoComplete="off"
-            placeholder="52.2297, 21.0122"
+            placeholder="52.2297 N, 21.0122 E"
             value={coordinatesInput}
             aria-invalid={inputError !== null}
             aria-describedby={inputError ? ids.coordinatesError : undefined}

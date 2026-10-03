@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import VoiceCheck from "@/components/VoiceCheck";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { formatClockTime } from "@/lib/format";
@@ -300,6 +301,8 @@ export default function SensorCheck() {
           </dl>
         )}
       </section>
+
+      <VoiceCheck />
 
       <MapDiagnostics />
       <RouteDiagnostics />

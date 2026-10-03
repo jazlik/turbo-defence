@@ -1,13 +1,28 @@
-import type { Coordinates, EvacuationPoint, HouseholdPlan, LastKnownPosition } from "@/types";
+import { MAX_PACKED_ITEMS } from "../backpack";
+import { isMemberCategory, isPresetNeedKind, MAX_NEED_LABEL_LENGTH, MAX_NEEDS, MAX_RECORDS } from "../household";
+import type {
+  Coordinates,
+  EmergencyContact,
+  HouseholdMember,
+  HouseholdPlan,
+  LastKnownPosition,
+  MemberNeed,
+  PackedItem,
+  Place,
+  PlaceKind,
+} from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 4;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
-    evacuationPoint: null,
+    places: { meeting: null, backup: null, shelter: null },
     lastKnownPosition: null,
+    members: [],
+    contacts: [],
+    packedItems: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -24,10 +39,20 @@ export function parseCoords(value: unknown): Coordinates | null {
   return { latitude, longitude };
 }
 
-function parseEvacuationPoint(value: unknown): EvacuationPoint | null {
+function parsePlace(value: unknown): Place | null {
   if (!isRecord(value) || typeof value.label !== "string") return null;
   const coords = parseCoords(value.coords);
   return coords ? { label: value.label, coords } : null;
+}
+
+/** Każde miejsce jest walidowane osobno: uszkodzone nie unieważnia dwóch pozostałych. */
+function parsePlaces(value: unknown): Record<PlaceKind, Place | null> {
+  const source = isRecord(value) ? value : {};
+  return {
+    meeting: parsePlace(source.meeting),
+    backup: parsePlace(source.backup),
+    shelter: parsePlace(source.shelter),
+  };
 }
 
 function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
@@ -37,50 +62,198 @@ function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
   return coords ? { coords, recordedAt: value.recordedAt } : null;
 }
 
+const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
+
+function parseNeed(value: unknown): MemberNeed | null {
+  if (!isRecord(value)) return null;
+  if (isPresetNeedKind(value.kind)) return { kind: value.kind };
+  if (value.kind !== "custom" || typeof value.label !== "string") return null;
+  const label = value.label.trim();
+  return label !== "" && label.length <= MAX_NEED_LABEL_LENGTH ? { kind: "custom", label } : null;
+}
+
+function parseMember(value: unknown): HouseholdMember | null {
+  if (!isRecord(value)) return null;
+  const { id, name, category, needs } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isMemberCategory(category)) return null;
+  return { id, name, category, needs: parseList(needs, parseNeed, MAX_NEEDS) };
+}
+
+function parseContact(value: unknown): EmergencyContact | null {
+  if (!isRecord(value)) return null;
+  const { id, name, phone, relation } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(phone)) return null;
+  return { id, name, phone, relation: typeof relation === "string" ? relation : "" };
+}
+
+function parsePackedItem(value: unknown): PackedItem | null {
+  if (!isRecord(value) || !isNonEmptyString(value.itemId)) return null;
+  const { itemId, quantity } = value;
+  if (quantity === null) return { itemId, quantity };
+  return typeof quantity === "number" && Number.isFinite(quantity) && quantity >= 0 ? { itemId, quantity } : null;
+}
+
+/** Duplicate ids keep the first record — one item has one packed state. */
+function parsePackedItems(value: unknown): PackedItem[] {
+  const seen = new Set<string>();
+  return parseList(
+    value,
+    (raw) => {
+      const item = parsePackedItem(raw);
+      if (!item || seen.has(item.itemId)) return null;
+      seen.add(item.itemId);
+      return item;
+    },
+    MAX_PACKED_ITEMS,
+  );
+}
+
+/** A damaged record is skipped, the rest of the list survives. */
+function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null, limit = MAX_RECORDS): T[] {
+  if (!Array.isArray(value)) return [];
+  const items: T[] = [];
+  for (const raw of value as unknown[]) {
+    const item = parseItem(raw);
+    if (item) items.push(item);
+  }
+  return items.slice(0, limit);
+}
+
+/**
+ * Skąd pochodzi wczytany plan. `unreadable` oznacza, że pod kluczem coś jest, ale nie umiemy
+ * tego przeczytać — wtedy pusty plan jest tylko wartością zastępczą na ten render, nie prawdą
+ * o danych użytkownika, i nie wolno go zapisać na miejsce oryginału.
+ */
+export type PlanSource = "empty" | "stored" | "migrated" | "unreadable";
+
+export interface PlanReadResult {
+  plan: HouseholdPlan;
+  source: PlanSource;
+}
+
 /**
  * Validates the stored shape field by field: a damaged sub-object becomes null instead of
  * reaching /alarm, where a missing `coords` would crash the guidance screen.
+ * Eksportowane dla testów, wzorem `parseRun`.
  */
+export function parsePlanWithSource(value: unknown): PlanReadResult {
+  if (!isRecord(value)) return { plan: createEmptyPlan(), source: "unreadable" };
+  const lastKnownPosition = parseLastKnownPosition(value.lastKnownPosition);
+  const updatedAt = typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString();
+
+  if (value.schemaVersion === CURRENT_SCHEMA_VERSION) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: parsePlaces(value.places),
+        lastKnownPosition,
+        members: parseList(value.members, parseMember),
+        contacts: parseList(value.contacts, parseContact),
+        packedItems: parsePackedItems(value.packedItems),
+        updatedAt,
+      },
+      source: "stored",
+    };
+  }
+
+  // v3 miało domowników i kontakty, ale nie miało odhaczeń plecaka — dostaje pustą listę.
+  if (value.schemaVersion === 3) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: parsePlaces(value.places),
+        lastKnownPosition,
+        members: parseList(value.members, parseMember),
+        contacts: parseList(value.contacts, parseContact),
+        packedItems: [],
+        updatedAt,
+      },
+      source: "migrated",
+    };
+  }
+
+  // v2 miało miejsca, ale nie miało list domowników i kontaktów ani odhaczeń — dostają puste listy.
+  if (value.schemaVersion === 2) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: parsePlaces(value.places),
+        lastKnownPosition,
+        members: [],
+        contacts: [],
+        packedItems: [],
+        updatedAt,
+      },
+      source: "migrated",
+    };
+  }
+
+  // v1 trzymało jedno miejsce — staje się punktem ewakuacji, a dwa pozostałe czekają na uzupełnienie.
+  if (value.schemaVersion === 1) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: { meeting: null, backup: null, shelter: parsePlace(value.evacuationPoint) },
+        lastKnownPosition,
+        members: [],
+        contacts: [],
+        packedItems: [],
+        updatedAt,
+      },
+      source: "migrated",
+    };
+  }
+
+  // Nieznana wersja — najpewniej zapis z nowszego wydania aplikacji. Nie wiemy, co tam jest,
+  // więc oddajemy pusty plan do wyświetlenia, ale oznaczamy go jako nieczytelny.
+  return { plan: createEmptyPlan(), source: "unreadable" };
+}
+
 export function parsePlan(value: unknown): HouseholdPlan {
-  if (!isRecord(value) || value.schemaVersion !== CURRENT_SCHEMA_VERSION) return createEmptyPlan();
-  return {
-    schemaVersion: CURRENT_SCHEMA_VERSION,
-    evacuationPoint: parseEvacuationPoint(value.evacuationPoint),
-    lastKnownPosition: parseLastKnownPosition(value.lastKnownPosition),
-    updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString(),
-  };
+  return parsePlanWithSource(value).plan;
 }
 
 /**
  * Synchronous on purpose: /alarm renders the target in its first React pass.
  * Never throws — a corrupted entry must not break the screen during a crisis.
- * Future schema versions add their migration branch here; unknown versions read as an empty plan.
+ * Future schema versions add their migration branch to parsePlan; unknown versions read as an empty plan.
  */
-export function readPlan(): HouseholdPlan {
+export function readPlanResult(): PlanReadResult {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return createEmptyPlan();
+    if (raw === null) return { plan: createEmptyPlan(), source: "empty" };
     const parsed: unknown = JSON.parse(raw);
-    return parsePlan(parsed);
+    return parsePlanWithSource(parsed);
   } catch {
-    return createEmptyPlan();
+    return { plan: createEmptyPlan(), source: "unreadable" };
   }
 }
 
-export function writePlan(plan: HouseholdPlan): void {
+export function readPlan(): HouseholdPlan {
+  return readPlanResult().plan;
+}
+
+/** `false`, gdy zapis się nie udał — wołający musi to pokazać, zamiast potwierdzać nieistniejący zapis. */
+export function writePlan(plan: HouseholdPlan): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...plan, updatedAt: new Date().toISOString() }));
+    return true;
   } catch {
     // Storage unavailable (private mode, blocked site data) — the plan lives only for this session.
+    return false;
   }
 }
 
 /** Every GPS fix refreshes the position the next /alarm entry starts from. */
 export function saveLastKnownPosition(coords: Coordinates): HouseholdPlan {
+  const { plan: stored, source } = readPlanResult();
   const plan: HouseholdPlan = {
-    ...readPlan(),
+    ...stored,
     lastKnownPosition: { coords, recordedAt: new Date().toISOString() },
   };
+  // Ten zapis nie jest inicjowany przez użytkownika — leci przy każdym fixie GPS. Nadpisanie
+  // nieczytelnego wpisu pustym planem skasowałoby jedyną kopię miejsc, i to w trakcie ewakuacji.
+  if (source === "unreadable") return plan;
   writePlan(plan);
   return plan;
 }
