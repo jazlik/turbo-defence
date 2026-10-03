@@ -51,6 +51,8 @@ Pick a recent build date from https://build-metadata.protomaps.dev/builds.json â
 
 ## Upload and CORS (Cloudflare account that owns bucket `turbo-defence-maps`)
 
+Automated: `.github/workflows/map-preview.yml` runs on every push to `feature/mapa` with the repo's Cloudflare secrets â€” builds the package if it is not on R2 yet, uploads it, sets CORS, verifies headers and uploads a preview version of the app (`https://spike-w-razie-w.jzogala.workers.dev`, production untouched). The commands below are the manual equivalent (`scripts/map/publish-spike.sh`).
+
 ```sh
 npx wrangler r2 bucket cors set turbo-defence-maps --file scripts/map/r2-cors.json
 npx wrangler r2 object put turbo-defence-maps/malopolska-20261003-lean2.pmtiles \

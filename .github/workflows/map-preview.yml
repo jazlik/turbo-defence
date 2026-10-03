@@ -1,0 +1,89 @@
+# S-04: publishes the offline map package to R2 and a preview version of the app for phone tests.
+# Runs on pushes to feature/mapa only; production deploys stay in ci.yml (main). `versions upload` creates a
+# preview version without deploying it, so https://w-razie-w.jzogala.workers.dev is not affected.
+name: Map package and preview
+
+on:
+  push:
+    branches: [feature/mapa]
+  workflow_dispatch:
+
+concurrency:
+  group: map-preview
+  cancel-in-progress: false
+
+env:
+  BUCKET: turbo-defence-maps
+  REGION: malopolska
+  PROTOMAPS_BUILD: "20261003"
+  PACKAGE: malopolska-20261003-lean2.pmtiles
+  PACKAGE_URL: https://pub-52c8b7e32b42466d9dc408ed80a9241c.r2.dev/malopolska-20261003-lean2.pmtiles
+  PREVIEW_ALIAS: spike
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Is the package already on R2?
+        id: r2
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" -I "$PACKAGE_URL")
+          echo "status=$status"
+          echo "exists=$([ "$status" = 200 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the lean map package
+        if: steps.r2.outputs.exists != 'true'
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -q -r scripts/map/requirements.txt
+          curl -sL -o pmtiles.tar.gz https://github.com/protomaps/go-pmtiles/releases/download/v1.31.2/go-pmtiles_1.31.2_Linux_x86_64.tar.gz
+          tar xzf pmtiles.tar.gz pmtiles
+          PMTILES=./pmtiles PYTHON=.venv/bin/python scripts/map/build-region.sh "$REGION" "$PROTOMAPS_BUILD"
+          ls -l "dist-map/$PACKAGE"
+          sha256sum "dist-map/$PACKAGE"
+
+      - name: Upload the package to R2
+        if: steps.r2.outputs.exists != 'true'
+        run: |
+          npx wrangler r2 object put "$BUCKET/$PACKAGE" --file "dist-map/$PACKAGE" --remote \
+            --content-type application/vnd.pmtiles --cache-control "public, max-age=31536000, immutable"
+
+      - name: Set bucket CORS
+        run: npx wrangler r2 bucket cors set "$BUCKET" --file scripts/map/r2-cors.json --force
+
+      - name: Verify R2 (size, Range, CORS)
+        run: |
+          set -e
+          curl -sfI "$PACKAGE_URL" | grep -iE '^HTTP|content-length|accept-ranges|etag'
+          curl -s -D - -o /dev/null -H "Range: bytes=0-16383" "$PACKAGE_URL" | grep -iE '^HTTP/[0-9.]+ 206'
+          for origin in https://w-razie-w.jzogala.workers.dev http://localhost:4321 https://spike-w-razie-w.jzogala.workers.dev; do
+            echo "preflight $origin"
+            curl -s -D - -o /dev/null -X OPTIONS -H "Origin: $origin" -H "Access-Control-Request-Method: GET" \
+              -H "Access-Control-Request-Headers: range" "$PACKAGE_URL" | grep -iE "access-control-allow-origin: $origin"
+          done
+          curl -s -D - -o /dev/null -H "Origin: http://localhost:4321" -H "Range: bytes=0-1" "$PACKAGE_URL" \
+            | grep -i 'access-control-expose-headers' | grep -i etag
+
+      - name: Build the app
+        run: npm run build
+
+      - name: Upload a preview version (not deployed to production)
+        run: |
+          npx wrangler versions upload --preview-alias "$PREVIEW_ALIAS" | tee upload.log
+          {
+            echo "### Preview"
+            echo "https://${PREVIEW_ALIAS}-w-razie-w.jzogala.workers.dev/"
+            echo
+            echo '```'
+            grep -iE 'preview|version' upload.log || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

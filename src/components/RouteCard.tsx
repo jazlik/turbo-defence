@@ -112,6 +112,13 @@ export default function RouteCard() {
         )}
       </div>
 
+      {online && !refreshing && state.routingConsent && (failure !== undefined || !primary) && (
+        <Button type="button" variant="outline" className="mt-4" onClick={() => void consentAndRefresh()}>
+          <Route strokeWidth={2} aria-hidden="true" />
+          Spróbuj ponownie
+        </Button>
+      )}
+
       {state.routingConsent && (
         <p className="text-muted-foreground mt-4 text-xs">
           Punkty schronienia: KG PSP, dane.gov.pl (CC BY 4.0). Trasy: © OpenStreetMap, FOSSGIS.{" "}
