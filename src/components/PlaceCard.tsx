@@ -13,7 +13,8 @@ const DEFAULT_LABELS: Record<PlaceKind, string> = {
   shelter: "Punkt ewakuacji",
 };
 
-const formatCoordinates = ({ latitude, longitude }: Coordinates) => `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+const formatCoordinates = ({ latitude, longitude }: Coordinates) =>
+  `${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"}, ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`;
 
 const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
   denied:
@@ -85,7 +86,7 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
     if (!parsed.ok) {
       setInputError(
         parsed.reason === "format"
-          ? "Wpisz dwie liczby oddzielone przecinkiem, np. 52.2297, 21.0122."
+          ? "Wpisz szerokość i długość oddzielone przecinkiem, np. 52.2297 N, 21.0122 E."
           : "Szerokość musi mieścić się w zakresie od −90 do 90, a długość od −180 do 180.",
       );
       return;
@@ -163,7 +164,7 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
             id={ids.coordinates}
             type="text"
             autoComplete="off"
-            placeholder="52.2297, 21.0122"
+            placeholder="52.2297 N, 21.0122 E"
             value={coordinatesInput}
             aria-invalid={inputError !== null}
             aria-describedby={inputError ? ids.coordinatesError : undefined}
