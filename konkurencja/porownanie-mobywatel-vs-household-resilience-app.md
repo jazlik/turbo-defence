@@ -2,6 +2,14 @@
 
 _Stan wiedzy na 3 października 2026. Źródła na końcu pliku._
 
+> **Uwaga o zakresie.** Kolumna „Household Resilience App” opisuje wizję produktu
+> (`PROJECT.md`), nie zakres MVP na hackathon. Część wymienionych tu wyróżników jest w PRD
+> nice-to-have albo poza zakresem: **ćwiczenia/drille** (FR-017, nice-to-have),
+> **szyfrowany transfer planu** (Non-Goal, przekazanie w najprostszej formie),
+> **preparedness decay** (brak w MVP), **streaki** (odrzucone; zostaje jakościowy poziom
+> gotowości, FR-009). Aktualny zakres: `context/foundation/prd.md`, sekcje Functional
+> Requirements i Non-Goals.
+
 Najkrócej: poradnik w mObywatelu podaje **wiedzę ogólną** („co robić w kryzysie”). Household
 Resilience App zamienia ją w **plan konkretnego domu**, który rodzina przećwiczy i wykona.
 To w dużej mierze różne warstwy, ale część funkcji się pokrywa.

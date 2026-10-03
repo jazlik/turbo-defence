@@ -3,6 +3,13 @@
 > Stan wiedzy: 3 października 2026.
 > Dane o GdzieSięUkryć.pl pochodzą z komunikatów PSP/MSWiA i artykułów prasowych (źródła na końcu).
 
+> **Uwaga o zakresie.** Kolumna „Household Resilience App” opisuje wizję produktu
+> (`PROJECT.md`), nie zakres MVP na hackathon. Rozjazdy: **wibracje** są jawnie wycięte
+> z Execution Mode (decyzja zespołu), **ćwiczenia** to FR-017 (nice-to-have),
+> **przypomnienia** nie istnieją w MVP, a **gamifikacja** ogranicza się do jakościowego
+> poziomu gotowości (FR-009) — bez punktów i streaków. Aktualny zakres:
+> `context/foundation/prd.md`, sekcje Functional Requirements i Non-Goals.
+
 ## W skrócie
 
 Te dwa rozwiązania raczej się **uzupełniają**, niż konkurują.
