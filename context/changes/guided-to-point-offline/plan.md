@@ -432,39 +432,39 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Automated
 
-- [x] 2.1 Lint przechodzi: `npm run lint`
-- [x] 2.2 Typy przechodzą: `npx astro check`
-- [x] 2.3 Build przechodzi: `npm run build`
-- [x] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke`
-- [x] 2.5 `dist/czujniki.html` istnieje po buildzie
+- [x] 2.1 Lint przechodzi: `npm run lint` — f2a799e
+- [x] 2.2 Typy przechodzą: `npx astro check` — f2a799e
+- [x] 2.3 Build przechodzi: `npm run build` — f2a799e
+- [x] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke` — f2a799e
+- [x] 2.5 `dist/czujniki.html` istnieje po buildzie — f2a799e
 
 #### Manual
 
 - [ ] 2.6 „Ustaw tutaj" zapisuje punkt, który przeżywa ponowne otwarcie aplikacji
-- [x] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu
+- [x] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu — f2a799e
 - [ ] 2.8 Na `/czujniki` oba czujniki raportują wynik, a kurs reaguje na obrót telefonu
-- [x] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat
-- [x] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony
+- [x] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat — f2a799e
+- [x] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony — f2a799e
 
 ### Phase 3: Prowadzenie — alarm i ekran `/alarm`
 
 #### Automated
 
-- [ ] 3.1 Lint przechodzi: `npm run lint`
-- [ ] 3.2 Typy przechodzą: `npx astro check`
-- [ ] 3.3 Testy przechodzą: `npm test`
-- [ ] 3.4 Build przechodzi: `npm run build`
-- [ ] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke`
-- [ ] 3.6 `/sw.js` zawiera `alarm.html` w liście precache
+- [x] 3.1 Lint przechodzi: `npm run lint`
+- [x] 3.2 Typy przechodzą: `npx astro check`
+- [x] 3.3 Testy przechodzą: `npm test`
+- [x] 3.4 Build przechodzi: `npm run build`
+- [x] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke`
+- [x] 3.6 `/sw.js` zawiera `alarm.html` w liście precache
 
 #### Manual
 
-- [ ] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
-- [ ] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu
+- [x] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
+- [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu
 - [ ] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu
-- [ ] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
-- [ ] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
-- [ ] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd
+- [x] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
+- [x] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
+- [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd
 - [ ] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu
 - [ ] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu
 

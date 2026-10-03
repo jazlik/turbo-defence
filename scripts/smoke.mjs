@@ -28,9 +28,18 @@ for (const icon of manifest.icons) {
   if (!(res.headers.get("content-type") ?? "").includes("image/png")) fail(`${icon.src} is not image/png`);
 }
 
+for (const path of ["/alarm", "/czujniki"]) {
+  const res = await get(path);
+  if (!(res.headers.get("content-type") ?? "").includes("text/html")) fail(`${path} is not HTML`);
+}
+
 const sw = await get("/sw.js");
 if (!(sw.headers.get("content-type") ?? "").includes("javascript")) fail("/sw.js is not JavaScript");
-if (!(await sw.text()).includes("index.html")) fail("/sw.js precache list does not include index.html");
+const swSource = await sw.text();
+// build.format "file" makes Workbox cleanURLs match /alarm to alarm.html; alarm/index.html would miss offline.
+for (const page of ["index.html", "alarm.html", "czujniki.html"]) {
+  if (!swSource.includes(page)) fail(`/sw.js precache list does not include ${page}`);
+}
 
 if (expectHeaders) {
   const cc = sw.headers.get("cache-control") ?? "";

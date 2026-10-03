@@ -1,6 +1,7 @@
 ---
 import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from "lucide-react";
 
+import AlarmButton from "@/components/AlarmButton";
 import EvacuationPointCard from "@/components/EvacuationPointCard";
 ---
 
@@ -35,7 +36,19 @@ import EvacuationPointCard from "@/components/EvacuationPointCard";
         </p>
       </div>
 
-      <EvacuationPointCard client:only="react" />
+      <section aria-labelledby="alarm-title" class="rounded-lg border border-border bg-surface p-6 shadow-sm">
+        <h2 id="alarm-title" class="font-heading text-2xl tracking-[-0.015em]">
+          W razie zagrożenia
+        </h2>
+        <p class="mt-1 text-muted-foreground">Aplikacja poprowadzi do punktu ewakuacji, także bez internetu.</p>
+        <div class="mt-4">
+          <AlarmButton client:only="react" />
+        </div>
+      </section>
+
+      <div>
+        <EvacuationPointCard client:only="react" />
+      </div>
 
       <a
         href="/czujniki"
