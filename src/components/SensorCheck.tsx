@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { CheckCircle2, CircleX, Compass, LoaderCircle, LocateFixed, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import VoiceCheck from "@/components/VoiceCheck";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
@@ -197,6 +198,8 @@ export default function SensorCheck() {
           </dl>
         )}
       </section>
+
+      <VoiceCheck />
     </div>
   );
 }

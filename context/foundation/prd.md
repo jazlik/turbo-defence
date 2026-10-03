@@ -175,6 +175,7 @@ Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętr
   > Socrates: Zarzut: „w stresie mapa jest za trudna do odczytania”. Rozstrzygnięcie: zmodyfikowane, główny widok to strzałka, mapa jest pod spodem.
 - FR-015: W Execution Mode użytkownik słyszy kolejne kroki głosem. Głos jest domyślnie włączony, ale użytkownik może go wyłączyć. Priority: must-have
   > Socrates: Zarzut: „w kryzysie użytkownik idzie i nie patrzy w ekran”. Rozstrzygnięcie: wraca do MVP jako must-have.
+  > Ograniczenia (S-03): głos wymaga polskiego głosu syntezy mowy zainstalowanego na urządzeniu — działanie offline sprawdza się na `/czujniki` („Sprawdź głos”), a brak głosu jest pokazany na ekranie alarmu tekstem. Po wejściu w alarm przeglądarka może zablokować mowę do pierwszego dotknięcia — wtedy widać przycisk „Włącz głos”. Głos milknie przy zablokowanym ekranie i w tle. Komunikaty kierunku („cel jest po lewej”) są świadomie pominięte, bo niestabilny kompas dawałby mylące polecenia; kierunek pokazuje strzałka. Głos podaje odległość na progach (co 500 m powyżej 1 km, co 100 m do 200 m, potem co 50 m) i zmiany stanu prowadzenia.
 
 ### Nice-to-have
 

@@ -408,6 +408,14 @@ Dopisane przy domykaniu S-02. Każda pozycja jest już w kodzie i w zielonej wer
 3. **`useGeolocation({ watch: steps.length > 0 })`** zamiast dawnego `watch: point !== null`. Watcher chodzi teraz także na kroku akcji („Zabierz plecak"), który nie ma celu — żeby fix był ciepły w momencie wejścia w prowadzenie (NFR pierwszego kroku). Jest to zmiana zachowania wewnątrz warstwy czujników, którą kontrakt fazy 3 zamroził jako „bez zmian", więc zostaje odnotowana jawnie.
 4. **Ekran wznowienia przerwanego przebiegu** (`resumePrompt` w `GuidanceScreen`, akcje „Kontynuuj: <krok>" i „Zacznij od początku"). Kontrakt fazy 3 zakładał ciche wznowienie na zapisanym kroku. Review wykazało, że „Wyjdź z trybu alarmu" nie czyści przebiegu, więc przypadkowy alarm sprzed godziny mógł w cichym wznowieniu pominąć krok z plecakiem — jedyny krok, którego pominąć nie wolno. Wznowienie jest więc jawne, ale tylko gdy przebieg wskazuje krok dalszy niż pierwszy; świeży alarm nie ma przebiegu i nie widzi tego ekranu, więc pomiar NFR z 3.6 jest nietknięty.
 
+5. **Integracja z S-03 `voice-guidance`, zmergowanym do `main` równolegle.** Plan zakładał, że S-02 wchodzi na S-01; w praktyce S-03 wylądowało na `main` pierwsze i przebudowało ten sam `GuidanceScreen`. Scalenie wymagało rozszerzenia warstwy głosu o pojęcie kroku, bo warianty `GuidanceVoiceState` były zbudowane wokół jednego celu:
+   - nowe warianty `noSteps` (zamiast `noPoint`), `resume` i `action`; `guiding` dostaje `title` i `fallback`, `arrived` dostaje `next`;
+   - `stateKey` w `useVoiceGuidance` zawiera tytuł kroku i nazwę miejsca — bez tego przejście z miejsca spotkania na punkt ewakuacji (oba `guiding:live`) nie zmieniałoby klucza i głos przemilczałby zmianę celu;
+   - `arrivedOnceRef` (pojedyncza flaga) zmieniony na `arrivedPlaceRef` z nazwą miejsca, bo sekwencja ma wiele dojść, a jedna flaga uciszyłaby każde kolejne; tłumienie drgania na progu dotyczy teraz tylko tego samego miejsca;
+   - `LOCATION_PROBLEMS` czytane z `@/lib/guidance-copy` (S-03 wyprowadziło je z komponentu), a `useVoiceGuidance` wołany przed wczesnymi `return`-ami, więc wyliczenia geo przeniosły się nad nie.
+
+   Wyjście awaryjne i przejścia między krokami są teraz zapowiadane głosem, co domyka FR-015 („słyszy kolejne kroki”) dla sekwencji, nie tylko dla jednego punktu. Nowe przypadki w `src/lib/voice.test.ts`.
+
 Pozycje F8.4 (wspólny akapit `<p id="hold-hint">`) i F8.5 (korekty treści) nie wymagają wpisu. Świadomie **nieprzyjęte** zalecenia review: F6 (podpowiedź `sr-only` wewnątrz przycisku wchodzi do nazwy dostępnej) i F9 (nazwy miejsca nie da się zmienić bez ponownego ustawienia współrzędnych — zachowanie odziedziczone z `EvacuationPointCard`). Oba są długiem do S-07 albo do osobnej zmiany dostępności.
 
 ## Progress

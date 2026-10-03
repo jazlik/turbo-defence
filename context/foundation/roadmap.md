@@ -30,7 +30,7 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
 | S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                           | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
 | S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                           | S-01          | US-01, FR-013                                                                         | proposed |
-| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | proposed |
+| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | done     |
 | S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed |
 | S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed |
 | S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | proposed |
@@ -50,7 +50,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-10-03`, after `F-01`, `S-01` and `S-02` (refreshed at the S-02 close).
+What's already in place in the codebase as of `2026-10-03`, after `F-01`, `S-01`, `S-03` and `S-02` (refreshed at the S-02 close; S-03 landed on `main` in parallel and was merged into S-02).
 Slices below build on these and do NOT re-scaffold them.
 
 - **Frontend:** present — statyczna PWA Astro 7 z wyspami React 19, Tailwind 4 i shadcn/ui; tokeny wizualne w `src/styles/global.css`, tryby `preparation` / `execution` w `src/layouts/Layout.astro`. Ekrany: `/` (plan i alarm), `/czujniki`, `/alarm`, `/design`.
@@ -59,9 +59,10 @@ Slices below build on these and do NOT re-scaffold them.
 - **Auth:** absent — świadomie: profil lokalny, bez kont.
 - **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
 - **Sensors:** present — `useGeolocation`, `useHeading` (kompas iOS/Android z fallbackiem na azymut z ruchu), `useScreenWakeLock` w `src/components/hooks/`; matematyka geo w `src/lib/geo.ts`.
+- **Voice:** present — synteza mowy przez `useVoiceGuidance` (`src/components/hooks/`) i `src/lib/services/speech.ts`; treść komunikatów w `phraseFor` (`src/lib/voice.ts`) jako warianty `GuidanceVoiceState`, ustawienie włącz/wyłącz osobno pod `wrw.voice`. Nowe komunikaty dopisuje się jako wariant stanu, nigdy wołając `speechSynthesis` wprost.
 - **Deploy / infra:** present — assets-only Worker `w-razie-w` na Cloudflare; CI (`.github/workflows/ci.yml`) na `main`: lint, `astro check`, `npm test`, build, smoke, deploy z `main` i smoke na żywym adresie.
 - **Observability:** absent — świadomie poza MVP (PRD: brak guardrails).
-- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`: geo, plan ze migracją v1 → v2, sekwencja kroków (`buildSteps`, `resumeIndex`, `targetPlaceKind`) i przebieg ewakuacji (`parseRun` z progiem świeżości); `scripts/smoke.mjs` sprawdza strony, precache i sekcję „Miejsca” na stronie domowej; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
+- **Tests:** partial — Vitest tylko dla czystych funkcji w `src/lib/`: geo, plan z migracją v1 → v2, sekwencja kroków (`buildSteps`, `resumeIndex`, `targetPlaceKind`), przebieg ewakuacji (`parseRun` z progiem świeżości) oraz treść i progi głosu (`voice`, `voice-settings`); `scripts/smoke.mjs` sprawdza strony, precache i sekcję „Miejsca” na stronie domowej; brak testów komponentów i E2E (ścieżki z czujnikami weryfikowane ręcznie na telefonie).
 
 ## Foundations
 
@@ -114,9 +115,9 @@ Slices below build on these and do NOT re-scaffold them.
 - **Parallel with:** S-02, S-04, S-05
 - **Blockers:** —
 - **Unknowns:**
-  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no.
+  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no. Stan: `/czujniki` ma test „Sprawdź głos” z instrukcją pobrania polskich danych głosowych; testy na telefonach demo (Android, iOS, tryb samolotowy) odłożone i do wykonania przed demo.
 - **Risk:** zależny od możliwości urządzenia; sprawdzenie wcześnie pozwala w razie braku polskiego głosu offline przygotować nagrane komunikaty.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Mapa i trasa offline
 
@@ -216,9 +217,9 @@ Slices below build on these and do NOT re-scaffold them.
 | Roadmap ID | Change ID               | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                                                  |
 | ---------- | ----------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------------------------------------------- |
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                                                      |
-| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie po deployu                                  |
+| S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
-| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Run `/10x-plan voice-guidance`                                                         |
+| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Zaimplementowane; testy na telefonie w trybie samolotowym odłożone                     |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                                | yes                   | Run `/10x-plan household-members`                                                      |
 | S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                          | no                    | Po S-05                                                                                |
@@ -252,3 +253,4 @@ Rozstrzygnięte 2026-10-03:
 
 - **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.
 - **S-01: użytkownik może wskazać punkt ewakuacji, przytrzymać przycisk alarmu i w trybie samolotowym iść za dużą strzałką z odległością do punktu; plan zostaje zapisany na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-guided-to-point-offline/`. Lesson: —.
+- **S-03: użytkownik słyszy kolejne kroki po polsku, domyślnie włączone, i może głos wyłączyć.** — Archived 2026-10-03 → `context/archive/2026-10-03-voice-guidance/`. Lesson: —.

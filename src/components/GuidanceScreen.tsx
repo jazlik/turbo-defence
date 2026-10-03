@@ -10,6 +10,8 @@ import {
   RotateCcw,
   Satellite,
   TriangleAlert,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
@@ -17,12 +19,15 @@ import HoldButton from "@/components/HoldButton";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { useNow } from "@/components/hooks/useNow";
 import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
+import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { buildSteps, resumeIndex, stepContent, targetPlaceKind } from "@/lib/evacuation-steps";
 import { bearingDegrees, distanceMeters, formatDistance, relativeBearing } from "@/lib/geo";
+import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
 import { clearRun, readRun, writeRun } from "@/lib/services/run-storage";
+import type { GuidanceVoiceState } from "@/lib/voice";
 import type { EvacuationRun } from "@/types";
 
 const ARRIVAL_RADIUS_METERS = 25;
@@ -35,19 +40,6 @@ const FIX_STALE_MS = 20_000;
 // Ten sam czas co alarm: jeden wyuczony gest dla akcji, których nie da się cofnąć.
 const HOLD_MS = 2000;
 
-// Waiting for the sky does not help when the browser has no permission or location is off — say what to do instead.
-const LOCATION_PROBLEMS = {
-  denied: {
-    title: "Brak zgody na lokalizację",
-    instruction:
-      "Otwórz ustawienia strony w przeglądarce (ikona obok adresu), zezwól na lokalizację i odśwież tę stronę.",
-  },
-  unavailable: {
-    title: "Telefon nie podaje pozycji",
-    instruction: "Sprawdź, czy usługi lokalizacji są włączone w ustawieniach systemu, i wyjdź pod otwarte niebo.",
-  },
-} as const;
-
 /** "14:32" for today, "12.09, 14:32" otherwise — a position from weeks ago must not read as current. */
 function formatFixTime(timestamp: number): string {
   const date = new Date(timestamp);
@@ -56,7 +48,7 @@ function formatFixTime(timestamp: number): string {
   return `${date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" })}, ${time}`;
 }
 
-function MissingPlaceScreen() {
+function MissingPlaceScreen({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
   return (
     <main className="flex min-h-screen flex-col justify-between gap-8 px-4 py-8">
       <div>
@@ -67,9 +59,12 @@ function MissingPlaceScreen() {
           zajmie to chwilę.
         </p>
       </div>
-      <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
-        <a href="/">Ustaw miejsca w planie</a>
-      </Button>
+      <div className="flex flex-col items-center gap-3">
+        <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
+          <a href="/">Ustaw miejsca w planie</a>
+        </Button>
+        <VoiceToggle voice={voice} />
+      </div>
     </main>
   );
 }
@@ -78,6 +73,50 @@ function ExitLink() {
   return (
     <Button asChild variant="link" className="text-muted-foreground hover:text-muted-foreground text-base">
       <a href="/">Wyjdź z trybu alarmu</a>
+    </Button>
+  );
+}
+
+function VoiceToggle({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
+  if (voice.status === "unavailable") {
+    return (
+      <p className="text-muted-foreground flex items-center gap-2 text-base">
+        <VolumeX className="size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+        Głos niedostępny na tym telefonie — prowadzenie tylko na ekranie
+      </p>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      className="w-full text-base"
+      aria-pressed={voice.enabled}
+      onClick={voice.toggle}
+    >
+      {voice.enabled ? (
+        <Volume2 className="size-5" strokeWidth={2} aria-hidden="true" />
+      ) : (
+        <VolumeX className="size-5" strokeWidth={2} aria-hidden="true" />
+      )}
+      {voice.enabled ? "Głos: włączony" : "Głos: wyłączony"}
+    </Button>
+  );
+}
+
+/** Przycisk odblokowania mowy — przeglądarka startuje syntezę tylko z gestu użytkownika. */
+function VoiceUnlockButton({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
+  if (voice.status !== "blocked") return null;
+  return (
+    <Button
+      type="button"
+      size="lg"
+      className="min-h-14 w-full text-lg font-semibold"
+      // Must stay inside the click handler: browsers only start speech from a user gesture.
+      onClick={voice.unlock}
+    >
+      <Volume2 className="size-6" strokeWidth={2} aria-hidden="true" />
+      Włącz głos
     </Button>
   );
 }
@@ -189,9 +228,62 @@ export default function GuidanceScreen() {
     window.location.assign("/");
   };
 
-  if (step === undefined) return <MissingPlaceScreen />;
+  const content = step ? stepContent(step, run) : null;
 
-  const content = stepContent(step, run);
+  const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
+  // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
+  const lastKnown = plan.lastKnownPosition;
+  const staleFix =
+    coords !== null && fixedAt !== null
+      ? { coords, recordedAt: fixedAt }
+      : lastKnown
+        ? { coords: lastKnown.coords, recordedAt: Date.parse(lastKnown.recordedAt) }
+        : null;
+  const origin = liveFix ?? staleFix?.coords ?? null;
+  const isStale = liveFix === null && staleFix !== null;
+  const distance = origin && point ? distanceMeters(origin, point.coords) : null;
+  const locationProblemKind = liveFix === null && (status === "denied" || status === "unavailable") ? status : null;
+  const locationProblem = locationProblemKind ? LOCATION_PROBLEMS[locationProblemKind] : null;
+  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
+  const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
+  const showArrival = arrived || confirmedArrival;
+  // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
+  // wróciło, przycisk wróciłby już uzbrojony, czyli bez bramki przytrzymania.
+  if (showArrival && confirming) setConfirming(false);
+  const guiding = !showArrival && distance !== null && !(isStale && distance < ARRIVAL_RADIUS_METERS);
+  const rotation =
+    origin && point && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
+  const showCompassButton = compassSilent && source !== "compass" && !showArrival;
+  // Po dojściu zostaje jedna akcja guidance: czerwone „punkt niedostępny” pod nogami celu,
+  // na który właśnie doszliśmy, czyta się jak ostrzeżenie o tym miejscu.
+  const fallbackAvailable =
+    step?.kind === "navigate" && !showArrival && step.fallback !== null && !(run?.fallbackActive ?? false);
+
+  // Stan głosu musi powstać przed pierwszym `return`, bo `useVoiceGuidance` jest hookiem.
+  // Kolejność warunków odpowiada kolejności ekranów poniżej, żeby głos mówił to, co widać.
+  let voiceState: GuidanceVoiceState;
+  if (step === undefined || content === null) voiceState = { kind: "noSteps" };
+  else if (resumePrompt) voiceState = { kind: "resume", title: content.title };
+  else if (step.kind === "action")
+    voiceState = { kind: "action", title: content.title, instruction: content.instruction };
+  else if (point === null) voiceState = { kind: "noSteps" };
+  else if (showArrival) voiceState = { kind: "arrived", label: point.label, next: nextStep?.title ?? null };
+  else if (guiding)
+    voiceState = {
+      kind: "guiding",
+      title: content.title,
+      label: point.label,
+      meters: distance,
+      live: !isStale,
+      fallback: run?.fallbackActive ?? false,
+    };
+  else if (locationProblemKind !== null)
+    voiceState = { kind: "locationProblem", label: point.label, problem: locationProblemKind };
+  else voiceState = { kind: "searching", label: point.label };
+
+  const voice = useVoiceGuidance(voiceState);
+
+  if (step === undefined || content === null) return <MissingPlaceScreen voice={voice} />;
 
   if (resumePrompt) {
     return (
@@ -230,6 +322,7 @@ export default function GuidanceScreen() {
             <RotateCcw strokeWidth={2} aria-hidden="true" />
             Zacznij od początku
           </Button>
+          <VoiceToggle voice={voice} />
           <ExitLink />
         </footer>
       </main>
@@ -250,10 +343,12 @@ export default function GuidanceScreen() {
         </section>
 
         <footer className="flex flex-col items-center gap-3">
+          <VoiceUnlockButton voice={voice} />
           <Button type="button" size="lg" className="min-h-14 w-full text-lg font-semibold" onClick={goToNextStep}>
             <Check strokeWidth={2} aria-hidden="true" />
             Zrobione — dalej
           </Button>
+          <VoiceToggle voice={voice} />
           <ExitLink />
         </footer>
       </main>
@@ -262,34 +357,7 @@ export default function GuidanceScreen() {
 
   // `buildSteps` tworzy krok `navigate` tylko dla ustawionego miejsca, więc to stan nieosiągalny
   // przy spójnym planie — ekran prowadzenia nigdy nie pokazuje kroku bez celu.
-  if (point === null) return <MissingPlaceScreen />;
-
-  const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
-  // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
-  const lastKnown = plan.lastKnownPosition;
-  const staleFix =
-    coords !== null && fixedAt !== null
-      ? { coords, recordedAt: fixedAt }
-      : lastKnown
-        ? { coords: lastKnown.coords, recordedAt: Date.parse(lastKnown.recordedAt) }
-        : null;
-  const origin = liveFix ?? staleFix?.coords ?? null;
-  const isStale = liveFix === null && staleFix !== null;
-  const distance = origin ? distanceMeters(origin, point.coords) : null;
-  const locationProblem =
-    liveFix === null && (status === "denied" || status === "unavailable") ? LOCATION_PROBLEMS[status] : null;
-  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
-  const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
-  const showArrival = arrived || confirmedArrival;
-  // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
-  // wróciło, przycisk wróciłby już uzbrojony, czyli bez bramki przytrzymania.
-  if (showArrival && confirming) setConfirming(false);
-  const guiding = !showArrival && distance !== null && !(isStale && distance < ARRIVAL_RADIUS_METERS);
-  const rotation = origin && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
-  const showCompassButton = compassSilent && source !== "compass" && !showArrival;
-  // Po dojściu zostaje jedna akcja guidance: czerwone „punkt niedostępny” pod nogami celu,
-  // na który właśnie doszliśmy, czyta się jak ostrzeżenie o tym miejscu.
-  const fallbackAvailable = !showArrival && step.fallback !== null && !(run?.fallbackActive ?? false);
+  if (point === null) return <MissingPlaceScreen voice={voice} />;
 
   return (
     <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
@@ -369,6 +437,8 @@ export default function GuidanceScreen() {
             </Button>
           ))}
 
+        <VoiceUnlockButton voice={voice} />
+
         {showCompassButton && (
           <Button
             type="button"
@@ -430,6 +500,7 @@ export default function GuidanceScreen() {
           </p>
         )}
 
+        <VoiceToggle voice={voice} />
         <ExitLink />
       </footer>
     </main>
