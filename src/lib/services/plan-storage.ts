@@ -1,13 +1,25 @@
-import type { Coordinates, HouseholdPlan, LastKnownPosition, Place, PlaceKind } from "@/types";
+import { isMemberCategory, isPresetNeedKind, MAX_NEED_LABEL_LENGTH, MAX_NEEDS, MAX_RECORDS } from "../household";
+import type {
+  Coordinates,
+  EmergencyContact,
+  HouseholdMember,
+  HouseholdPlan,
+  LastKnownPosition,
+  MemberNeed,
+  Place,
+  PlaceKind,
+} from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     places: { meeting: null, backup: null, shelter: null },
     lastKnownPosition: null,
+    members: [],
+    contacts: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -46,6 +58,41 @@ function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
   return coords ? { coords, recordedAt: value.recordedAt } : null;
 }
 
+const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
+
+function parseNeed(value: unknown): MemberNeed | null {
+  if (!isRecord(value)) return null;
+  if (isPresetNeedKind(value.kind)) return { kind: value.kind };
+  if (value.kind !== "custom" || typeof value.label !== "string") return null;
+  const label = value.label.trim();
+  return label !== "" && label.length <= MAX_NEED_LABEL_LENGTH ? { kind: "custom", label } : null;
+}
+
+function parseMember(value: unknown): HouseholdMember | null {
+  if (!isRecord(value)) return null;
+  const { id, name, category, needs } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isMemberCategory(category)) return null;
+  return { id, name, category, needs: parseList(needs, parseNeed, MAX_NEEDS) };
+}
+
+function parseContact(value: unknown): EmergencyContact | null {
+  if (!isRecord(value)) return null;
+  const { id, name, phone, relation } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(phone)) return null;
+  return { id, name, phone, relation: typeof relation === "string" ? relation : "" };
+}
+
+/** A damaged record is skipped, the rest of the list survives. */
+function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null, limit = MAX_RECORDS): T[] {
+  if (!Array.isArray(value)) return [];
+  const items: T[] = [];
+  for (const raw of value as unknown[]) {
+    const item = parseItem(raw);
+    if (item) items.push(item);
+  }
+  return items.slice(0, limit);
+}
+
 /**
  * Skąd pochodzi wczytany plan. `unreadable` oznacza, że pod kluczem coś jest, ale nie umiemy
  * tego przeczytać — wtedy pusty plan jest tylko wartością zastępczą na ten render, nie prawdą
@@ -74,9 +121,26 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         places: parsePlaces(value.places),
         lastKnownPosition,
+        members: parseList(value.members, parseMember),
+        contacts: parseList(value.contacts, parseContact),
         updatedAt,
       },
       source: "stored",
+    };
+  }
+
+  // v2 miało miejsca, ale nie miało list domowników i kontaktów — dostają puste listy.
+  if (value.schemaVersion === 2) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        places: parsePlaces(value.places),
+        lastKnownPosition,
+        members: [],
+        contacts: [],
+        updatedAt,
+      },
+      source: "migrated",
     };
   }
 
@@ -87,6 +151,8 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         places: { meeting: null, backup: null, shelter: parsePlace(value.evacuationPoint) },
         lastKnownPosition,
+        members: [],
+        contacts: [],
         updatedAt,
       },
       source: "migrated",

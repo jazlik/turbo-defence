@@ -1,0 +1,33 @@
+---
+import { ArrowLeft } from "lucide-react";
+
+import EmergencyContactsCard from "@/components/EmergencyContactsCard";
+import HouseholdMembersCard from "@/components/HouseholdMembersCard";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Domownicy i kontakty — W razie W">
+  <main class="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8 sm:py-12">
+    <div class="mx-auto max-w-2xl">
+      <a
+        href="/"
+        class="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm font-medium text-core-steel-deep outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <ArrowLeft className="size-5" strokeWidth={2} aria-hidden="true" />
+        Wróć do planu
+      </a>
+      <h1 class="font-heading mt-4 text-3xl tracking-[-0.015em] sm:text-4xl">Domownicy i kontakty</h1>
+      <p class="mt-3 text-lg text-muted-foreground">
+        Dodaj osoby, które ewakuują się razem z Tobą, i kontakty na wypadek kryzysu. Dane zostają na tym urządzeniu.
+      </p>
+      <div class="mt-8 space-y-6">
+        <div>
+          <HouseholdMembersCard client:only="react" />
+        </div>
+        <div>
+          <EmergencyContactsCard client:only="react" />
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>

@@ -2,6 +2,7 @@
 import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import AlarmButton from "@/components/AlarmButton";
+import HouseholdLinkCard from "@/components/HouseholdLinkCard";
 import PlaceCard from "@/components/PlaceCard";
 ---
 
@@ -79,6 +80,8 @@ import PlaceCard from "@/components/PlaceCard";
           emphasis="secondary"
         />
       </section>
+
+      <HouseholdLinkCard client:only="react" />
 
       <a
         href="/czujniki"
