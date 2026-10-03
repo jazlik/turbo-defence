@@ -74,3 +74,5 @@ Poradnik po pierwszym wejściu: **5 kart do przeklikania**, jedna karta = jedna 
 Karta 4 opisuje funkcję w spokojnym tonie przygotowania — nie pokazuje kryzysu (Execution Mode nie ma ilustracji, §12).
 
 **Po akceptacji ścieżki (zadanie dla Codexa):** `Styl: D`, po 2 kandydatów na kartę → `kierunki-v1/poradnik/karta-<N>-c1.png`, `-c2.png`; arkusz; człowiek wybiera po jednym; eksport wybranych: `npm run illustrations:export -- <png> public/prototyp/poradnik/karta-<N>.webp`; commit, push, stop.
+
+**Status (2026-10-03):** wygenerowano wbudowanym `image_gen` (model nieujawniony przez narzędzie) po 2 kandydatów na każdą kartę i dodano je do arkusza `kierunki-v1/sheet.png`. Kandydaci czekają na wybór człowieka; zastępcze obrazy w prototypie nie zostały jeszcze podmienione.
