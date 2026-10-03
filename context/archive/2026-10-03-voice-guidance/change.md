@@ -1,10 +1,10 @@
 ---
 change_id: voice-guidance
 title: Głos prowadzący po polsku (S-03)
-status: impl_reviewed
+status: archived
 created: 2026-10-03
 updated: 2026-10-03
-archived_at: null
+archived_at: 2026-10-03T20:39:51Z
 ---
 
 ## Notes
