@@ -339,7 +339,7 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 #### Automated
 
 - [x] 3.1 Workflow references no Supabase secrets — 2f29abf
-- [ ] 3.2 PR run: `ci` and `smoke` green, `deploy` skipped
+- [x] 3.2 PR run: `ci` and `smoke` green, `deploy` skipped
 - [ ] 3.3 After merge: `deploy` green including live smoke
 
 #### Manual
