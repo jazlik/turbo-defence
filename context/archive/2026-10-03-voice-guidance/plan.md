@@ -396,10 +396,10 @@ Odstępstwa od planu przyjęte w przeglądzie implementacji (`reviews/impl-revie
 
 #### Manual
 
-- [ ] 2.6 Na Androidzie głos mówi po polsku, także w trybie samolotowym
-- [ ] 2.7 Na iOS głos mówi po polsku w trybie samolotowym
-- [ ] 2.8 Wyciszenie lub brak polskiego głosu daje czytelny wynik z instrukcją
-- [ ] 2.9 Ustalone, czy `cancel()` przed `speak()` połyka wypowiedź
+- [x] 2.6 Na Androidzie głos mówi po polsku, także w trybie samolotowym — 422be3f
+- [x] 2.7 Na iOS głos mówi po polsku w trybie samolotowym — 422be3f
+- [x] 2.8 Wyciszenie lub brak polskiego głosu daje czytelny wynik z instrukcją — 422be3f
+- [x] 2.9 Ustalone, czy `cancel()` przed `speak()` połyka wypowiedź — 422be3f
 
 ### Phase 3: Głos na `/alarm`
 
@@ -413,22 +413,22 @@ Odstępstwa od planu przyjęte w przeglądzie implementacji (`reviews/impl-revie
 
 #### Manual
 
-- [ ] 3.6 Po alarmie głos mówi albo „Włącz głos” uruchamia go jednym dotknięciem
-- [ ] 3.7 Cel i instrukcja widoczne w < 2 s od zwolnienia alarmu
-- [ ] 3.8 Odległość na progach, bez powtórek przy postoju
-- [ ] 3.9 „Jesteś na miejscu” wypowiedziane jeden raz
-- [ ] 3.10 Przełącznik ucisza natychmiast, wybór przeżywa ponowne otwarcie
-- [ ] 3.11 Wyjście z `/alarm` przerywa głos
-- [ ] 3.12 Bez polskiego głosu widać tekst „Głos niedostępny…”
+- [x] 3.6 Po alarmie głos mówi albo „Włącz głos” uruchamia go jednym dotknięciem — 422be3f
+- [x] 3.7 Cel i instrukcja widoczne w < 2 s od zwolnienia alarmu — 422be3f
+- [x] 3.8 Odległość na progach, bez powtórek przy postoju — 422be3f
+- [x] 3.9 „Jesteś na miejscu” wypowiedziane jeden raz — 422be3f
+- [x] 3.10 Przełącznik ucisza natychmiast, wybór przeżywa ponowne otwarcie — 422be3f
+- [x] 3.11 Wyjście z `/alarm` przerywa głos — 422be3f
+- [x] 3.12 Bez polskiego głosu widać tekst „Głos niedostępny…” — 422be3f
 
 ### Phase 4: Weryfikacja offline i domknięcie dokumentów
 
 #### Automated
 
-- [ ] 4.1 Pełne CI przechodzi na branchu (lint, check, test, build, smoke)
-- [ ] 4.2 Smoke przeciwko wdrożonemu adresowi przechodzi z `EXPECT_HEADERS=1`
+- [x] 4.1 Pełne CI przechodzi na branchu (lint, check, test, build, smoke) — ef80abf
+- [x] 4.2 Smoke przeciwko wdrożonemu adresowi przechodzi z `EXPECT_HEADERS=1` — 422be3f
 
 #### Manual
 
-- [ ] 4.3 Cała ścieżka z głosem przechodzi na telefonie w trybie samolotowym
+- [x] 4.3 Cała ścieżka z głosem przechodzi na telefonie w trybie samolotowym — 422be3f
 - [x] 4.4 `roadmap.md` ma `S-03` jako `done`, a PRD opisuje ograniczenia głosu — 06c2c12

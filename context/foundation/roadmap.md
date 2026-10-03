@@ -115,7 +115,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Parallel with:** S-02, S-04, S-05
 - **Blockers:** —
 - **Unknowns:**
-  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no. Stan: `/czujniki` ma test „Sprawdź głos” z instrukcją pobrania polskich danych głosowych; testy na telefonach demo (Android, iOS, tryb samolotowy) odłożone i do wykonania przed demo.
+  - Czy synteza mowy po polsku działa offline na telefonach demo (dostępność głosu bez sieci)? — Owner: team. Block: no. Stan: `/czujniki` ma test „Sprawdź głos” z instrukcją pobrania polskich danych głosowych; testy na telefonie demo (tryb samolotowy) zaliczone 2026-10-03 — polski głos działa offline.
 - **Risk:** zależny od możliwości urządzenia; sprawdzenie wcześnie pozwala w razie braku polskiego głosu offline przygotować nagrane komunikaty.
 - **Status:** done
 
@@ -219,7 +219,7 @@ Slices below build on these and do NOT re-scaffold them.
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main                 | yes                   | Run `/10x-plan offline-app-shell`                                                      |
 | S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość)   | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe           | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
-| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Zaimplementowane; testy na telefonie w trybie samolotowym odłożone                     |
+| S-03       | voice-guidance          | Głos prowadzący po polsku                                    | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                       | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                                | yes                   | Run `/10x-plan household-members`                                                      |
 | S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                          | no                    | Po S-05                                                                                |
