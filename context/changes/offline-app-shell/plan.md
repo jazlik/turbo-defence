@@ -307,32 +307,32 @@ The precache downloads the whole `dist/` on first visit; currently tens of KB. L
 
 #### Automated
 
-- [x] 1.1 No starter auth references remain
-- [x] 1.2 Lint passes
-- [x] 1.3 Type check passes
-- [x] 1.4 Build passes with no env vars set
-- [x] 1.5 Output is static
-- [x] 1.6 `dist/index.html` contains `lang="pl"`
+- [x] 1.1 No starter auth references remain — 6b9a5b4
+- [x] 1.2 Lint passes — 6b9a5b4
+- [x] 1.3 Type check passes — 6b9a5b4
+- [x] 1.4 Build passes with no env vars set — 6b9a5b4
+- [x] 1.5 Output is static — 6b9a5b4
+- [x] 1.6 `dist/index.html` contains `lang="pl"` — 6b9a5b4
 
 #### Manual
 
-- [x] 1.7 Dev home page shows Polish welcome, no banner, no sign-in links
-- [x] 1.8 `wrangler deploy --dry-run` accepts the assets-only config
+- [x] 1.7 Dev home page shows Polish welcome, no banner, no sign-in links — 6b9a5b4
+- [x] 1.8 `wrangler deploy --dry-run` accepts the assets-only config — 6b9a5b4
 
 ### Phase 2: Offline and Installability
 
 #### Automated
 
-- [ ] 2.1 Build passes and generates the SW
-- [ ] 2.2 Lint passes
-- [ ] 2.3 Type check passes
-- [ ] 2.4 Smoke passes against preview
+- [x] 2.1 Build passes and generates the SW
+- [x] 2.2 Lint passes
+- [x] 2.3 Type check passes
+- [x] 2.4 Smoke passes against preview
 
 #### Manual
 
-- [ ] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline"
-- [ ] 2.6 Offline reload renders fully
-- [ ] 2.7 New build is picked up without clearing site data
+- [x] 2.5 DevTools shows valid manifest, activated SW, "Gotowe do pracy offline"
+- [x] 2.6 Offline reload renders fully
+- [x] 2.7 New build is picked up without clearing site data
 
 ### Phase 3: CI and Deploy from main
 

@@ -22,6 +22,13 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 
 `output: "static"` in astro.config.mjs, no adapter. Do not add SSR pages, API routes, middleware or server-side env secrets.
 
+### PWA / offline
+
+- `npm run build` runs `astro build && node scripts/generate-sw.mjs`; the script generates `dist/sw.js` with Workbox (`workbox-build`).
+- Every file in `dist/` matching the glob in `scripts/generate-sw.mjs` is precached. New runtime assets (e.g. map tiles) must be excluded from the glob and get their own caching strategy.
+- The service worker is registered only in production (`import.meta.env.PROD`, script in `src/layouts/Layout.astro`). In `astro dev` there is no `sw.js`; if a stale SW from `astro preview` on the same port masks changes, unregister it in DevTools → Application → Service Workers.
+- `public/_headers` serves `sw.js` and `manifest.webmanifest` with `Cache-Control: no-cache`. Do not list `_headers` in `public/.assetsignore`.
+
 ### Key conventions
 
 - **Path alias**: `@/*` maps to `./src/*` (tsconfig paths).
