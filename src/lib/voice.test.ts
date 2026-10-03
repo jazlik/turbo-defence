@@ -68,20 +68,19 @@ describe("nextDistanceAnnouncement", () => {
     expect(r1.announce).toBe(true);
     expect(r1.mark).toBe(300);
 
-    // Wobble back above the 400 mark — lastMark resets upward silently
-    const r2 = nextDistanceAnnouncement(r1.mark, 405); // distance grew → reset upward silently
-    expect(r2.announce).toBe(false);
-    expect(r2.mark).toBe(400);
+    // Wobble back above the 400 mark — one step up keeps lastMark
+    const r2 = nextDistanceAnnouncement(r1.mark, 405);
+    expect(r2).toEqual({ announce: false, mark: 300 });
 
-    const r3 = nextDistanceAnnouncement(r2.mark, 395); // crosses 400 again
-    expect(r3.announce).toBe(true);
-    expect(r3.mark).toBe(300);
+    const r3 = nextDistanceAnnouncement(r2.mark, 395);
+    expect(r3).toEqual({ announce: false, mark: 300 });
   });
 
-  it("resets lastMark upward silently when distance increases past a mark", () => {
-    const result = nextDistanceAnnouncement(400, 550); // distance grew above 400
-    expect(result.announce).toBe(false);
-    expect(result.mark).toBe(500);
+  it("resets lastMark upward silently when distance grows by more than one step", () => {
+    expect(nextDistanceAnnouncement(400, 550)).toEqual({ announce: false, mark: 400 });
+    const result = nextDistanceAnnouncement(400, 650);
+    expect(result).toEqual({ announce: false, mark: 600 });
+    expect(nextDistanceAnnouncement(result.mark, 590)).toEqual({ announce: true, mark: 500 });
   });
 
   it("never announces mark 0", () => {

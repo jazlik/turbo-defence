@@ -379,11 +379,11 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 
 #### Automated
 
-- [x] 2.1 Lint przechodzi: `npm run lint`
-- [x] 2.2 Typy przechodzą: `npx astro check`
-- [x] 2.3 Testy przechodzą: `npm test`
-- [x] 2.4 Build przechodzi: `npm run build`
-- [x] 2.5 Smoke przechodzi: `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint` — 8cf3128
+- [x] 2.2 Typy przechodzą: `npx astro check` — 8cf3128
+- [x] 2.3 Testy przechodzą: `npm test` — 8cf3128
+- [x] 2.4 Build przechodzi: `npm run build` — 8cf3128
+- [x] 2.5 Smoke przechodzi: `npm run smoke` — 8cf3128
 
 #### Manual
 
@@ -396,11 +396,11 @@ Brak — `wrw.voice` to nowy, niezależny klucz z bezpiecznym domyślnym „wł�
 
 #### Automated
 
-- [ ] 3.1 Lint przechodzi: `npm run lint`
-- [ ] 3.2 Typy przechodzą: `npx astro check`
-- [ ] 3.3 Testy przechodzą: `npm test`
-- [ ] 3.4 Build przechodzi: `npm run build`
-- [ ] 3.5 Smoke przechodzi: `npm run smoke`
+- [x] 3.1 Lint przechodzi: `npm run lint`
+- [x] 3.2 Typy przechodzą: `npx astro check`
+- [x] 3.3 Testy przechodzą: `npm test`
+- [x] 3.4 Build przechodzi: `npm run build`
+- [x] 3.5 Smoke przechodzi: `npm run smoke`
 
 #### Manual
 

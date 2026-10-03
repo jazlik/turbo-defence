@@ -36,25 +36,25 @@ export function distanceMark(meters: number): number {
   return Math.floor(meters / 50) * 50;
 }
 
+function markStep(mark: number): number {
+  if (mark >= 1000) return 500;
+  if (mark >= 200) return 100;
+  return 50;
+}
+
 /**
  * Returns whether to announce, and the new lastMark.
  * Never announces mark 0 (arrival handles that).
- * When distance increased enough to cross a mark upward, resets lastMark silently.
+ * Only a rise of more than one step above lastMark moves it up (silently) — GPS jitter around a mark stays quiet.
  */
 export function nextDistanceAnnouncement(lastMark: number | null, meters: number): { announce: boolean; mark: number } {
   const mark = distanceMark(meters);
-  if (lastMark === null) {
+  if (lastMark === null || mark < lastMark) {
     return { announce: mark > 0, mark };
   }
-  if (mark < lastMark) {
-    // Crossed a threshold downward
-    return { announce: mark > 0, mark };
-  }
-  if (mark > lastMark) {
-    // Distance increased past the threshold — reset upward silently
+  if (mark - lastMark > markStep(lastMark)) {
     return { announce: false, mark };
   }
-  // Same mark — no change
   return { announce: false, mark: lastMark };
 }
 

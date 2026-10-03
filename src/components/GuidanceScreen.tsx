@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Compass, MapPinOff, Satellite } from "lucide-react";
+import { CheckCircle2, Compass, MapPinOff, Satellite, Volume2, VolumeX } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { useNow } from "@/components/hooks/useNow";
 import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
+import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { bearingDegrees, distanceMeters, formatDistance, relativeBearing } from "@/lib/geo";
 import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
+import type { GuidanceVoiceState } from "@/lib/voice";
 
 const ARRIVAL_RADIUS_METERS = 25;
 // iOS forgets the motion permission between PWA launches; after this much compass silence offer to re-enable it.
@@ -60,6 +62,37 @@ export default function GuidanceScreen() {
     };
   }, []);
 
+  const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
+  // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
+  const lastKnown = plan.lastKnownPosition;
+  const staleFix =
+    coords !== null && fixedAt !== null
+      ? { coords, recordedAt: fixedAt }
+      : lastKnown
+        ? { coords: lastKnown.coords, recordedAt: Date.parse(lastKnown.recordedAt) }
+        : null;
+  const origin = liveFix ?? staleFix?.coords ?? null;
+  const isStale = liveFix === null && staleFix !== null;
+  const distance = origin && point ? distanceMeters(origin, point.coords) : null;
+  const locationProblemKind = liveFix === null && (status === "denied" || status === "unavailable") ? status : null;
+  const locationProblem = locationProblemKind ? LOCATION_PROBLEMS[locationProblemKind] : null;
+  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
+  const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
+  const guiding = distance !== null && !arrived && !(isStale && distance < ARRIVAL_RADIUS_METERS);
+  const rotation =
+    origin && point && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
+  const showCompassButton = compassSilent && source !== "compass" && !arrived;
+
+  let voiceState: GuidanceVoiceState;
+  if (!point) voiceState = { kind: "noPoint" };
+  else if (arrived) voiceState = { kind: "arrived", label: point.label };
+  else if (guiding) voiceState = { kind: "guiding", label: point.label, meters: distance, live: !isStale };
+  else if (locationProblemKind)
+    voiceState = { kind: "locationProblem", label: point.label, problem: locationProblemKind };
+  else voiceState = { kind: "searching", label: point.label };
+
+  const voice = useVoiceGuidance(voiceState);
+
   if (!point) {
     return (
       <main className="flex min-h-screen flex-col justify-between gap-8 px-4 py-8">
@@ -76,26 +109,6 @@ export default function GuidanceScreen() {
       </main>
     );
   }
-
-  const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
-  // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
-  const lastKnown = plan.lastKnownPosition;
-  const staleFix =
-    coords !== null && fixedAt !== null
-      ? { coords, recordedAt: fixedAt }
-      : lastKnown
-        ? { coords: lastKnown.coords, recordedAt: Date.parse(lastKnown.recordedAt) }
-        : null;
-  const origin = liveFix ?? staleFix?.coords ?? null;
-  const isStale = liveFix === null && staleFix !== null;
-  const distance = origin ? distanceMeters(origin, point.coords) : null;
-  const locationProblem =
-    liveFix === null && (status === "denied" || status === "unavailable") ? LOCATION_PROBLEMS[status] : null;
-  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
-  const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
-  const guiding = distance !== null && !arrived && !(isStale && distance < ARRIVAL_RADIUS_METERS);
-  const rotation = origin && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
-  const showCompassButton = compassSilent && source !== "compass" && !arrived;
 
   return (
     <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
@@ -158,6 +171,18 @@ export default function GuidanceScreen() {
       </section>
 
       <footer className="flex flex-col items-center gap-3">
+        {voice.status === "blocked" && (
+          <Button
+            type="button"
+            size="lg"
+            className="min-h-14 w-full text-lg font-semibold"
+            // Must stay inside the click handler: browsers only start speech from a user gesture.
+            onClick={voice.unlock}
+          >
+            <Volume2 className="size-6" strokeWidth={2} aria-hidden="true" />
+            Włącz głos
+          </Button>
+        )}
         {showCompassButton && (
           <Button
             type="button"
@@ -170,6 +195,27 @@ export default function GuidanceScreen() {
           >
             <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
             Włącz kompas
+          </Button>
+        )}
+        {voice.status === "unavailable" ? (
+          <p className="text-muted-foreground flex items-center gap-2 text-base">
+            <VolumeX className="size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+            Głos niedostępny na tym telefonie — prowadzenie tylko na ekranie
+          </p>
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full text-base"
+            aria-pressed={voice.enabled}
+            onClick={voice.toggle}
+          >
+            {voice.enabled ? (
+              <Volume2 className="size-5" strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <VolumeX className="size-5" strokeWidth={2} aria-hidden="true" />
+            )}
+            {voice.enabled ? "Głos: włączony" : "Głos: wyłączony"}
           </Button>
         )}
         <ExitLink />
