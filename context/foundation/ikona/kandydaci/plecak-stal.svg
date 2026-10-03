@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Plecak — wariant stalowy</title>
+  <rect width="512" height="512" fill="#536B75"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M204 158v-28c0-42 104-42 104 0v28"/>
+    <rect x="148" y="150" width="216" height="252" rx="68"/>
+    <path d="M196 286h120v72H196z"/>
+  </g>
+</svg>

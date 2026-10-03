@@ -35,6 +35,18 @@ Pracuj na branchu `feat/app-icon`. **Nie używaj generatora obrazów** — ikon�
 
 `kandydaci/obecna.svg` to kopia obecnej ikony do porównania — nie zmieniaj jej.
 
+## Ocena
+
+**Dom-punkt.** Najpełniej łączy rodzinny charakter produktu z ideą uzgodnionego miejsca; dom i punkt pozostają rozpoznawalne także w faviconie 16 px. Wariant stalowy ma najbardziej równy kontrast na jasnym i ciemnym ekranie.
+
+**Ścieżka.** Dobrze komunikuje prowadzenie do celu i zachowuje czytelny rytm w małej skali. Jest jednak znaczeniowo bliższa nawigacji niż całemu planowi rodzinnemu, a w 16 px traci część charakteru krzywej.
+
+**Plecak.** Ma najmocniejszą, natychmiast czytelną sylwetkę spośród wszystkich konceptów. Zawęża jednak obietnicę produktu do przygotowania ekwipunku i może sugerować aplikację survivalową.
+
+**W-znak.** Jest prosty, własny i działa w 16 px lepiej niż obecna litera zależna od fontu. Znaczenie punktu w środkowym wierzchołku wymaga jednak znajomości nazwy i nie komunikuje samodzielnie rodzinnego planu.
+
+**Rekomendacja robocza: `dom-punkt-stal`.** Najlepiej równoważy znaczenie, odrębność i czytelność w każdym pokazanym kontekście, bez skojarzeń alarmowych lub survivalowych. Ostateczny wybór należy do człowieka; kandydaci nie zastępują jeszcze ikony w `public/`.
+
 ## Po wyborze
 
 Eksport do `public/icons/` (`icon.svg`, `icon-maskable.svg`, PNG 192/512, maskable 512, `apple-touch-icon.png` 180, `favicon.png`) z jednego źródła SVG i PR do `main` z wpisem do `JEZYK_WIZUALNY.md` (sekcja o ikonie aplikacji). Smoke test (`scripts/smoke.mjs`) sprawdza, że ikony z manifestu są PNG.

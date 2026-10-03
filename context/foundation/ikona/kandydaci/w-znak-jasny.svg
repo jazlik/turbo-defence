@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Znak W z punktem — wariant jasny</title>
+  <rect width="512" height="512" fill="#F1F2F3"/>
+  <g fill="none" stroke="#2F3E45" stroke-width="42" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 150l66 224 60-126"/>
+    <path d="m274 248 60 126 66-224"/>
+  </g>
+  <circle cx="256" cy="232" r="20" fill="#536B75"/>
+</svg>

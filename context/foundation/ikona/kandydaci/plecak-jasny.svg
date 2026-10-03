@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Plecak — wariant jasny</title>
+  <rect width="512" height="512" fill="#F1F2F3"/>
+  <g fill="none" stroke="#2F3E45" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M204 158v-28c0-42 104-42 104 0v28"/>
+    <rect x="148" y="150" width="216" height="252" rx="68"/>
+  </g>
+  <path d="M196 286h120v72H196z" fill="#536B75" stroke="#2F3E45" stroke-width="40" stroke-linejoin="round"/>
+</svg>
