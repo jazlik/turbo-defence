@@ -1,7 +1,7 @@
 ---
 change_id: coordinates-problem
 title: Coordinate entry lacks N/S and E/W hemisphere
-status: proposed
+status: implemented
 created: 2026-10-03
 updated: 2026-10-03
 archived_at: null
@@ -32,3 +32,11 @@ Konsekwencje:
 - `src/components/PlaceCard.tsx` — pole wejściowe + walidacja + komunikat błędu.
 - `src/lib/geo.ts` — `parseCoordinates` (logika parsowania).
 - `src/types.ts` — `Coordinates { latitude; longitude }` (model bez zmian, sama notacja wejściowa/wyjściowa).
+
+## Implemented
+
+- `parseCoordinates` przyjmuje półkulę jako prefiks lub sufiks (`N`/`S` dla szerokości, `E`/`W` dla długości); litera decyduje o znaku, goła liczba zachowuje własny znak.
+- `formatCoordinates` wyświetla kierunek zamiast znaku minus (np. `21.01220° W`).
+- Zaktualizowany placeholder i komunikat błędu (`52.2297 N, 21.0122 E`).
+- Testy: nowe przypadki w `src/lib/geo.test.ts` (sufiks/prefiks, S/W→ujemne, przecinki polskie + półkula, odrzucenie złej osi, out-of-range).
+- Commit `eb0b623` na `origin/change/coordinates-problem`.
