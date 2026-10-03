@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, Users } from "lucide-react";
 
 import { summarizeHousehold } from "@/lib/household";
 import { readPlan } from "@/lib/services/plan-storage";
 
 export default function HouseholdLinkCard() {
-  const [summary] = useState(() => summarizeHousehold(readPlan()));
+  const [summary, setSummary] = useState(() => summarizeHousehold(readPlan()));
+
+  // A page restored from the back-forward cache keeps its old state: re-read the plan.
+  useEffect(() => {
+    const refresh = (event: PageTransitionEvent) => {
+      if (event.persisted) setSummary(summarizeHousehold(readPlan()));
+    };
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      window.removeEventListener("pageshow", refresh);
+    };
+  }, []);
   const empty = summary.members === 0 && summary.contacts === 0;
 
   return (

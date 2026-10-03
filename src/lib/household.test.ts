@@ -4,6 +4,7 @@ import {
   addContact,
   addCustomNeed,
   addMember,
+  filterCandidates,
   MAX_NEEDS,
   MAX_RECORDS,
   needLabel,
@@ -13,13 +14,12 @@ import {
   removeContact,
   removeMember,
   summarizeHousehold,
-  toggleNeed,
   updateContact,
   updateMember,
   validateContactInput,
   validateMemberInput,
 } from "./household";
-import type { EmergencyContact, HouseholdMember } from "@/types";
+import type { EmergencyContact, HouseholdMember, MemberNeed } from "@/types";
 
 const member: MemberInput = { name: "Ola", category: "child", needs: [] };
 const contact = { name: "Babcia", phone: "600 100 200", relation: "" };
@@ -126,12 +126,6 @@ describe("summarizeHousehold", () => {
 });
 
 describe("needs", () => {
-  it("toggles presets on and off", () => {
-    const on = toggleNeed([], "diabetes");
-    expect(on).toEqual([{ kind: "diabetes" }]);
-    expect(toggleNeed(on, "diabetes")).toEqual([]);
-  });
-
   it("adds a trimmed custom need and rejects empty, too long and duplicate ones", () => {
     const result = addCustomNeed([], "  insulina ");
     expect(result).toEqual({ ok: true, value: [{ kind: "custom", label: "insulina" }] });
@@ -146,14 +140,13 @@ describe("needs", () => {
   });
 
   it("stops at the per-person limit", () => {
-    let needs = [] as ReturnType<typeof toggleNeed>;
+    let needs: MemberNeed[] = [];
     for (let i = 0; i < MAX_NEEDS; i += 1) {
       const result = addCustomNeed(needs, `potrzeba ${i}`);
       if (result.ok) needs = result.value;
     }
     expect(needs).toHaveLength(MAX_NEEDS);
     expect(addCustomNeed(needs, "jeszcze jedna").ok).toBe(false);
-    expect(toggleNeed(needs, "diet")).toHaveLength(MAX_NEEDS);
   });
 
   it("labels presets and custom needs", () => {
@@ -177,5 +170,28 @@ describe("prepareCandidates", () => {
     expect(result.candidates).toEqual([{ name: "Jan", phone: "500 500 500", relation: "" }]);
     expect(result.duplicates).toBe(2);
     expect(result.invalid).toBe(1);
+  });
+});
+
+describe("filterCandidates", () => {
+  const list = [
+    { name: "Anna Kowalska", phone: "+48 600 100 200", relation: "" },
+    { name: "Jan Nowak", phone: "500 500 500", relation: "" },
+    { name: "Łukasz", phone: "700-700-700", relation: "" },
+  ];
+
+  it("returns every index for an empty query", () => {
+    expect(filterCandidates(list, "  ")).toEqual([0, 1, 2]);
+  });
+
+  it("matches the name in any case, including Polish letters", () => {
+    expect(filterCandidates(list, "kowal")).toEqual([0]);
+    expect(filterCandidates(list, "ŁUKA")).toEqual([2]);
+  });
+
+  it("matches the digits of the number regardless of formatting", () => {
+    expect(filterCandidates(list, "500500")).toEqual([1]);
+    expect(filterCandidates(list, "+48 600")).toEqual([0]);
+    expect(filterCandidates(list, "zzz")).toEqual([]);
   });
 });

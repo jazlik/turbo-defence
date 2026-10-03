@@ -5,6 +5,7 @@ import { focusSoon, StatusLine, TextField, type RecordFeedback } from "@/compone
 import { Button } from "@/components/ui/button";
 import {
   addContact,
+  filterCandidates,
   MAX_RECORDS,
   phoneHref,
   prepareCandidates,
@@ -20,6 +21,9 @@ import { parseVCard } from "@/lib/vcard";
 import { cn } from "@/lib/utils";
 import type { EmergencyContact } from "@/types";
 
+const FILTER_THRESHOLD = 8;
+const MAX_VISIBLE_CANDIDATES = 50;
+
 type Mode = "choose" | "manual" | "select";
 
 const EMPTY_FORM: ContactInput = { name: "", phone: "", relation: "" };
@@ -34,11 +38,12 @@ export default function EmergencyContactsCard() {
   const [candidates, setCandidates] = useState<ContactInput[]>([]);
   const [chosen, setChosen] = useState<Set<number>>(new Set());
   const [skipped, setSkipped] = useState(0);
+  const [query, setQuery] = useState("");
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const ids = { name: useId(), phone: useId(), relation: useId() };
+  const ids = { name: useId(), phone: useId(), relation: useId(), search: useId() };
 
   const persist = (next: EmergencyContact[]) => {
     writePlan({ ...readPlan(), contacts: next });
@@ -70,6 +75,7 @@ export default function EmergencyContactsCard() {
     setCandidates(valid);
     setChosen(new Set(valid.length === 1 ? [0] : []));
     setSkipped(invalid + duplicates);
+    setQuery("");
     setFeedback(null);
     setMode("select");
   };
@@ -168,6 +174,8 @@ export default function EmergencyContactsCard() {
   };
 
   const atLimit = slotsLeft <= 0;
+  const matches = filterCandidates(candidates, query);
+  const visible = matches.slice(0, MAX_VISIBLE_CANDIDATES);
   const pickerSupported = isContactPickerSupported();
 
   return (
@@ -310,8 +318,20 @@ export default function EmergencyContactsCard() {
           <p className="text-muted-foreground text-sm">
             Zaznaczono: {chosen.size} z {slotsLeft} wolnych miejsc.
           </p>
+          {candidates.length > FILTER_THRESHOLD && (
+            <TextField
+              id={ids.search}
+              label="Szukaj w kontaktach"
+              type="search"
+              autoComplete="off"
+              placeholder="imię lub numer"
+              value={query}
+              onValueChange={setQuery}
+            />
+          )}
           <ul className="space-y-2">
-            {candidates.map((candidate, index) => {
+            {visible.map((index) => {
+              const candidate = candidates[index];
               const selected = chosen.has(index);
               const disabled = !selected && chosen.size >= slotsLeft;
               return (
@@ -341,6 +361,12 @@ export default function EmergencyContactsCard() {
               );
             })}
           </ul>
+          {matches.length > visible.length && (
+            <p className="text-muted-foreground text-sm">
+              Pokazano {visible.length} z {matches.length} pasujących. Zawęź wyszukiwanie.
+            </p>
+          )}
+          {matches.length === 0 && <p className="text-muted-foreground text-sm">Brak pasujących kontaktów.</p>}
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button type="button" size="lg" disabled={chosen.size === 0} onClick={addChosen}>
               <Save strokeWidth={2} aria-hidden="true" />

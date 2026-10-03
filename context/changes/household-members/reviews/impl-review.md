@@ -34,7 +34,7 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
   - Tradeoff: One more input and a little state in the card.
   - Confidence: MED — behavior with real exports is unverified (no large vCard tested).
   - Blind spot: Real Android/iOS exports were not tried.
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F2 — Plan blocks for Phases 1 and 2 describe the superseded model
 
@@ -44,7 +44,7 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
 - **Location**: context/changes/household-members/plan.md (Phase 1 §1/§3, Phase 2 §1)
 - **Detail**: Phases 1 and 2 still specify `takesMedication`, the checkbox and the category/medication form. Phase 3 documents the replacement, but nothing in Phases 1–2 says so, so a later reader (or S-06) can take the old contract as current. Code is correct and matches Phase 3.
 - **Fix**: Add one line under Phase 1 and Phase 2 "Overview": "Superseded in part by Phase 3 (needs list replaces `takesMedication`)."
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F3 — `toggleNeed` is dead code after the UI simplification
 
@@ -54,7 +54,7 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
 - **Location**: src/lib/household.ts:42
 - **Detail**: The preset buttons were removed, so `toggleNeed` is only used by its own tests. `hasNeed` is still used by `addCustomNeed`.
 - **Fix**: Remove `toggleNeed` and its two test cases; keep `hasNeed`.
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F4 — vCard 2.1 quoted-printable names come out garbled
 
@@ -64,7 +64,7 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
 - **Location**: src/lib/vcard.ts (`parseVCard`)
 - **Detail**: Old exports with `ENCODING=QUOTED-PRINTABLE` (e.g. `FN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=C5=81ukasz`) show raw `=C5=81ukasz`. Modern Android and iOS export 3.0/4.0 UTF-8, so impact is small.
 - **Fix**: Decode quoted-printable UTF-8 when the property parameters contain `ENCODING=QUOTED-PRINTABLE`, with a test.
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F5 — Home card count can be stale after browser back navigation
 
@@ -74,7 +74,7 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
 - **Location**: src/components/HouseholdLinkCard.tsx
 - **Detail**: The summary is read once on mount. If the browser restores `/` from the back-forward cache after edits on `/domownicy`, the old counts show until reload. Manual check 2.10 passed via normal navigation.
 - **Fix**: Re-read the plan on the `pageshow` event when `event.persisted` is true.
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F6 — Three manual checks need a phone and a deployed build
 
@@ -84,4 +84,4 @@ Automated checks re-run during the review: `npm test` (93 passed), `npm run lint
 - **Location**: plan.md Progress 2.8, 2.9, 3.7
 - **Detail**: Airplane-mode load of `/domownicy`, the `tel:` link and Contact Picker on Chrome/Android cannot be checked locally. Archiving (`/10x-archive`) will warn about them.
 - **Fix**: Merge, let CI deploy, then run the three checks on the phone against https://w-razie-w.jzogala.workers.dev and tick the rows.
-- **Decision**: PENDING
+- **Decision**: ACCEPTED — checked on the phone after deploy

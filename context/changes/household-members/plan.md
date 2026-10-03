@@ -62,6 +62,8 @@ Logika walidacji i operacji na listach żyje w `src/lib/household.ts` jako czyst
 
 ### Overview
 
+> Zastąpione w części przez Fazę 3: lista potrzeb (`needs`) zamiast `takesMedication`.
+
 Plan w wersji 2 niesie listy `members` i `contacts`. Odczyt wersji 1 migruje się bez utraty danych. Walidacja wejścia i operacje dodaj/edytuj/usuń są czystymi funkcjami z testami. Brak zmian w UI.
 
 ### Changes Required:
@@ -124,6 +126,8 @@ Plan w wersji 2 niesie listy `members` i `contacts`. Odczyt wersji 1 migruje si�
 ## Phase 2: Ekran `/domownicy` i karta na stronie głównej
 
 ### Overview
+
+> Zastąpione w części przez Fazę 3: potrzeby domownika jako lista, nowy sposób dodawania kontaktów.
 
 Organizator widzi, dodaje, edytuje i usuwa domowników i kontakty na osobnej stronie; strona główna pokazuje podsumowanie i prowadzi do niej. Strona jest w precache i działa w trybie samolotowym.
 

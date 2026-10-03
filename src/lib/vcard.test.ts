@@ -45,4 +45,10 @@ describe("parseVCard", () => {
     expect(parseVCard("")).toEqual([]);
     expect(parseVCard("hello")).toEqual([]);
   });
+
+  it("decodes quoted-printable UTF-8 names, including soft line breaks", () => {
+    const text =
+      "BEGIN:VCARD\nVERSION:2.1\nFN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=C5=81ukasz =\nZi=C4=99ba\nTEL;CELL:600600600\nEND:VCARD";
+    expect(parseVCard(text)).toEqual([{ name: "Łukasz Zięba", phone: "600600600", relation: "" }]);
+  });
 });

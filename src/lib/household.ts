@@ -38,12 +38,6 @@ export function needLabel(need: MemberNeed): string {
 
 export const hasNeed = (needs: readonly MemberNeed[], kind: PresetNeedKind) => needs.some((need) => need.kind === kind);
 
-/** Switches a preset on or off. */
-export function toggleNeed(needs: readonly MemberNeed[], kind: PresetNeedKind): MemberNeed[] {
-  if (hasNeed(needs, kind)) return needs.filter((need) => need.kind !== kind);
-  return needs.length >= MAX_NEEDS ? [...needs] : [...needs, { kind }];
-}
-
 /** A typed label equal to a preset's label switches that preset on instead of creating a duplicate. */
 export function addCustomNeed(needs: readonly MemberNeed[], rawLabel: string): Validation<MemberNeed[], string> {
   const label = rawLabel.trim();
@@ -185,4 +179,19 @@ export function prepareCandidates(raw: readonly ContactInput[], existing: readon
     candidates.push(result.value);
   }
   return { candidates, invalid, duplicates };
+}
+
+/** Indices of candidates whose name contains the query (any case) or whose number contains its digits. */
+export function filterCandidates(candidates: readonly ContactInput[], query: string): number[] {
+  const text = query.trim().toLocaleLowerCase("pl");
+  const digits = digitsOf(query);
+  const indices: number[] = [];
+  candidates.forEach((candidate, index) => {
+    const matches =
+      text === "" ||
+      candidate.name.toLocaleLowerCase("pl").includes(text) ||
+      (digits !== "" && digitsOf(candidate.phone).includes(digits));
+    if (matches) indices.push(index);
+  });
+  return indices;
 }
