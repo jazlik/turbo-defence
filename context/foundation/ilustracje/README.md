@@ -22,37 +22,39 @@ Tylko **Preparation Mode**. W Execution Mode nie ma ilustracji (§12: „bez ozd
 
 Puste stany i ekran gotowości używają tych samych ilustracji albo ikon — bez osobnych grafik.
 
-## Runda 1: trzy kierunki na tych samych scenach
+## Runda 1: trzy wygenerowane kierunki na tych samych scenach
 
 Kierunki różnią się **techniką rysunku**, nie paletą — wtedy porównujemy jedną zmienną.
 
-| Kierunek                     | Technika                                                                                                            | Za                                                                                       | Ryzyko                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------- |
-| **a — płaska rodzinna**      | płaskie plamy koloru, bez konturów, uproszczone postacie bez twarzy, najwyżej jeden płaski cień                     | najcieplejszy, „rodzinny” (§2)                                                           | generyczny styl „flat people” |
-| **b — kreska i plama**       | równa, cienka kreska w `steel.deep` + przesunięte płaskie wypełnienia szarości i stali; staranny, ale ręczny        | spójny z ikonami Lucide z obrysem 2px (§12, §19) — ilustracje i ikony jako jedna rodzina | może wyjść „szkicowo”         |
-| **c — przedmioty i miejsca** | bez ludzi: martwe natury i miejsca (plecak rozłożony na elementy, buty domowników przy drzwiach, ławka pod drzewem) | najspokojniejszy, zero problemów z postaciami                                            | mniej „rodzinny”, chłodny     |
+| Kierunek                 | Technika                                                                                        | Za                                                  | Ryzyko                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------- | --------------------------------------------------- | ----------------------------- |
+| **a — płaska rodzinna**  | płaskie plamy koloru, bez konturów, uproszczone postacie bez twarzy, najwyżej jeden płaski cień | najcieplejszy, „rodzinny” (§2)                      | generyczny styl „flat people” |
+| **b — kreska oszczędna** | równa kreska `steel.deep`, głównie białe wnętrza i pojedynczy stalowy akcent; proste twarze     | blisko ikon Lucide i poradnikowej czytelności       | może wyjść zbyt kreskówkowo   |
+| **d — kontur**           | maksymalnie dwa kolory, smukłe postacie, zamknięte kontury, bez szarości i cieniowania          | najmniej konkuruje z UI, najbliżej systemowej ikony | może być zbyt chłodny         |
 
-Sceny testowe (te same dla a, b, c; w c bez ludzi):
+Kierunek roboczy **c — przedmioty i miejsca** został pominięty przed generacją po zawężeniu zakresu. Katalog zachowuje nazwę jako ślad procesu, ale nie wchodzi do arkusza.
+
+Sceny testowe (te same dla a, b i d):
 
 1. **plecak** — spakowany plecak ewakuacyjny i kilka rzeczy obok: butelka wody, latarka, teczka z dokumentami, apteczka.
-2. **spotkanie** — domownicy spotykają się w umówionym miejscu (ławka pod charakterystycznym drzewem); w c: sama ławka i drzewo, na ławce szalik.
-3. **plan** — dwoje dorosłych i dziecko przy kuchennym stole nad papierowym planem; w c: stół z planem, kluczami i odwróconym telefonem.
+2. **spotkanie** — dwoje dorosłych i dziecko spotykają się w umówionym miejscu: ławka pod charakterystycznym drzewem.
+3. **plan** — dwoje dorosłych i dziecko przy kuchennym stole nad papierowym planem.
 
 ## Zadanie dla agenta z generatorem obrazów (Codex z image_gen)
 
 Branch: `feat/illustration-directions`. Na koniec commit i push tego brancha (nie `main`), potem **stop** — wybór kierunku należy do człowieka.
 
-**Krok 1 — referencje (najwyżej 15 minut).** Znajdź 10–15 przykładów ilustracji w duchu §2 (spokojnie, rodzinnie, chłodno, wiarygodnie): np. materiały FEMA / Ready.gov (domena publiczna USA), Open Peeps, Humaaans, unDraw, Open Doodles. Zapisz w `referencje/` i dopisz `referencje/zrodla.md`: plik, URL, licencja, co z niego bierzemy (technika, nie temat). Licencja nieznana → nie zapisuj pliku, tylko link. Referencje służą kalibracji oka; **w rundzie 1 nie dołączaj ich do generacji** (style ma wynikać z opisu kierunku, żeby kierunki się różniły). Nie używaj screenów z `context/foundation/analogi/` ani grafik innych produktów.
+**Krok 1 — referencje (najwyżej 15 minut).** Znajdź 10–15 przykładów ilustracji w duchu §2 (spokojnie, rodzinnie, chłodno, wiarygodnie): np. materiały FEMA / Ready.gov (domena publiczna USA), Open Peeps, Humaaans, Open Doodles i public-domain ilustracje przedmiotów. Zapisz w `referencje/` i dopisz `referencje/zrodla.md`: plik, URL, licencja, co z niego bierzemy (technika, nie temat) oraz czy był wejściem generatora. Licencja nieznana → nie zapisuj pliku, tylko link. Każdy wygenerowany kierunek dostaje stałe 2–3 obrazy referencyjne wyłącznie jako referencję stylu. Nie używaj screenów z `context/foundation/analogi/` ani grafik innych produktów.
 
-**Krok 2 — generacja.** Dla każdego kierunku i każdej sceny **2 kandydatów** (3 × 3 × 2 = 18), w formacie poziomym ~4:3 (np. 1536×1024), **z przezroczystym tłem**. Zapis: `kierunki-v1/<kierunek>/<scena>-c1.png`, `-c2.png` (sceny: `plecak`, `spotkanie`, `plan`). Prompt = opis sceny + fragment kierunku + wspólna końcówka (niżej), bez zmian. Nie edytuj wyników i nie wybieraj za człowieka.
+**Krok 2 — generacja.** Dla każdego z trzech kierunków i każdej sceny powstaje **1 kandydat** (3 × 3 = 9), w formacie poziomym ~4:3, **z przezroczystym tłem**; czyste białe tło jest dopuszczalne. Zapis: `kierunki-v1/<kierunek>/<scena>-c1.png` (sceny: `plecak`, `spotkanie`, `plan`). Prompt zaczyna się od `Use the attached images as style reference only — do not copy their subjects, poses or layout.`, a następnie łączy angielski opis sceny, fragment kierunku i wspólną końcówkę. Maksymalnie jedna powtórka na obraz; bez ręcznej edycji wyników.
 
 **Krok 3 — arkusz.** `npm run illustrations:sheet -- context/foundation/ilustracje/kierunki-v1` → `kierunki-v1/sheet.png` (każdy kandydat w makiecie ekranu onboardingu). Obejrzyj arkusz i dopisz niżej sekcję „Runda 1 — ocena” (2–3 zdania na kierunek + rekomendacja). Commit, push brancha, stop.
 
 ### Fragmenty kierunków
 
 - **a:** `Flat vector illustration with large clean colour shapes and no outlines. Simplified faceless people with small heads, calm natural poses. At most one flat shadow tone, no gradients, no texture, no 3D.`
-- **b:** `Tidy hand-drawn line illustration: one consistent dark line of even weight, like a 2px icon stroke (#2F3E45), with flat colour fills slightly offset from the lines. Simplified faceless people. Minimal detail, generous empty space, no gradients, no texture, no 3D.`
-- **c:** `Calm flat still-life illustration of objects and places only — no people, no hands, no body parts. Simple geometric shapes, at most one flat shadow tone, no gradients, no texture, no 3D.`
+- **b:** `Simple line illustration: one consistent line of even weight like a 2px icon stroke, colour #2F3E45 (not pure black), closed outlines. Fills mostly white, with a few small solid accents in #2F3E45 (hair, shoes, one garment) and the single key object filled in steel blue #536B75. Simple faces with dot eyes. No uniforms, no flags, no military or rescue gear, no red.`
+- **d:** `Minimal contour illustration, at most two colours: one even-weight line in #2F3E45 (like a 2px icon stroke) and optionally flat steel blue #536B75 on the single key object. Everything else white inside closed outlines — no grey tones, no shading. Slim, elongated figures with small heads, dot eyes or blank faces, no cartoon proportions. Very few details, lots of empty space.`
 
 ### Wspólna końcówka promptu
 
@@ -69,3 +71,17 @@ Kolory semantyczne (`danger`, `attention`, `safe`, `guidance`, §6–7) są wył
 ## Pochodzenie (regulamin HackYeah, §20)
 
 Każda wygenerowana grafika jest oznaczana w opisie zgłoszenia jako wygenerowana przez AI. Ten katalog jest rejestrem: brief i prompty (tu), kandydaci (`kierunki-v1/`), źródła referencji (`referencje/zrodla.md`).
+
+Kandydaci rundy 1 pozostają wyłącznie na branchu `feat/illustration-directions` i nie trafiają do `main` bez osobnej decyzji człowieka.
+
+## Runda 1 — ocena
+
+**a — płaska rodzinna.** Kierunek jest spokojny, ciepły i najbardziej rodzinny; duże plamy dobrze budują sceny bez alarmowego tonu. Ilustracje są jednak wizualnie najcięższe i miejscami konkurują z hierarchią makiety bardziej niż pozostałe warianty.
+
+**b — kreska oszczędna.** Sceny są bardzo czytelne i zachowują rodzinny charakter, a ciemna kreska dobrze łączy się z logiką ikon. Generator dodał jednak sporo detalu, modelunku i kreskówkowej ekspresji, więc rezultat jest mniej oszczędny niż zakładał fragment kierunku.
+
+**d — kontur.** Najlepiej utrzymuje pustą przestrzeń, ogranicza paletę i zostawia pierwszeństwo treści interfejsu. Kontur jest najbliższy systemowej rodzinie Lucide, a pojedynczy stalowy akcent wystarcza do wskazania kluczowego obiektu bez dekoracyjnego koloru.
+
+**Rekomendacja robocza: d — kontur.** Najlepiej wspiera spokojny, uporządkowany Preparation Mode i najłatwiej może stać się spójnym rozszerzeniem obecnego języka wizualnego. To rekomendacja agenta na podstawie arkusza; finalna decyzja o kierunku należy do człowieka.
+
+**Metadane generacji:** wbudowane narzędzie Codex `image_gen`; model nieujawniony przez narzędzie; data generacji: 2026-10-03. Obrazy wygenerowano z referencjami stylu wymienionymi w [`referencje/zrodla.md`](referencje/zrodla.md); każdy prompt zabraniał kopiowania ich tematów, póz i układu.
