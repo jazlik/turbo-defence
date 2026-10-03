@@ -1,7 +1,7 @@
 ---
 change_id: guided-to-point-offline
 title: Prowadzenie do punktu offline (S-01)
-status: plan_reviewed
+status: implementing
 created: 2026-10-03
 updated: 2026-10-03
 archived_at: null

@@ -9,6 +9,7 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "vitest run",
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs"
   },
@@ -49,6 +50,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
+    "vitest": "5.0.3",
     "workbox-build": "^7.4.1",
     "wrangler": "^4.131.1"
   },

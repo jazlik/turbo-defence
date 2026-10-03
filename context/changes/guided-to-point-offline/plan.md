@@ -418,15 +418,15 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Automated
 
-- [ ] 1.1 Testy przechodzą: `npm test`
-- [ ] 1.2 Lint przechodzi: `npm run lint`
-- [ ] 1.3 Typy przechodzą: `npx astro check`
-- [ ] 1.4 Build przechodzi: `npm run build`
-- [ ] 1.5 CI uruchamia `npm test` w jobie `ci`
+- [x] 1.1 Testy przechodzą: `npm test`
+- [x] 1.2 Lint przechodzi: `npm run lint`
+- [x] 1.3 Typy przechodzą: `npx astro check`
+- [x] 1.4 Build przechodzi: `npm run build`
+- [x] 1.5 CI uruchamia `npm test` w jobie `ci`
 
 #### Manual
 
-- [ ] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test
+- [x] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test
 
 ### Phase 2: Przygotowanie — punkt ewakuacji i sprawdzenie czujników
 
