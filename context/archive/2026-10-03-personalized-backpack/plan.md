@@ -296,5 +296,5 @@ v3 → v4 dokłada `packedItems: []`. Zapis migrowanego planu następuje dopiero
 - [x] 2.8 Nowy domownik → woda w stanie „Ilość wzrosła”, postęp spadł — ca0ba4b
 - [x] 2.9 Usunięcie i ponowne dodanie dziecka — grupa znika, potem wraca niespakowana — ca0ba4b
 - [x] 2.10 Pusta rodzina — pozycje dla 1 osoby i podpowiedź z linkiem — ca0ba4b
-- [ ] 2.11 Tryb samolotowy — `/plecak` otwiera się i zapisuje odhaczenia
-- [ ] 2.12 Klawiatura i czytnik ekranu — checkboxy osiągalne, stan i postęp odczytywane
+- [x] 2.11 Tryb samolotowy — `/plecak` otwiera się i zapisuje odhaczenia — 9869c89
+- [x] 2.12 Klawiatura i czytnik ekranu — checkboxy osiągalne, stan i postęp odczytywane — 9869c89
