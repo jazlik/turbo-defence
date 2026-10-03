@@ -1,10 +1,10 @@
 ---
 change_id: personalized-backpack
 title: Personalized backpack
-status: implemented
+status: archived
 created: 2026-10-03
-updated: 2026-10-04
-archived_at: null
+updated: 2026-10-03
+archived_at: 2026-10-03T22:05:12Z
 ---
 
 ## Notes
