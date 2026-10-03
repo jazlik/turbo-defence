@@ -173,7 +173,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Unknowns:**
   - Jakie poziomy gotowości i progi przyjmujemy w MVP i czym poziom różni się od kamienia milowego (Otwarte pytanie 2 z PRD)? — Owner: team. Block: no (wystarczy prosta decyzja na starcie planu).
 - **Risk:** krok 6 przepływu demo; zastępuje onboarding (S-07 usunięte, decyzja 2026-10-04).
-- **Status:** proposed
+- **Status:** in progress (strona główna z poziomem, quick winami i dokiem alarmu jest wdrożona; do zrobienia: pełna ścieżka `/droga`)
 
 ### S-09: Przekazanie planu domownikowi
 
