@@ -16,6 +16,10 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 | 8 Dalsze kroki          | 4 ikony                                             | Lucide: `Users`, `Share2`, `BellRing`, `CloudRain`                                                                 | gotowe                   |
 | 9 Aneks                 | —                                                   | bez zmian; źródło liczby „77%” do uzupełnienia                                                                     | do uzupełnienia          |
 
+## Zrzuty ekranu (slajd 6)
+
+`zrzuty/przygotowanie-1-plan.png`, `przygotowanie-2-plecak.png`, `kryzys-1-krok.png`, `kryzys-2-prowadzenie.png` — build z `main` (2026-10-03), `astro preview`, Playwright 390×844 @2x, przykładowy plan rodziny 4 osób w Krakowie zapisany w `wrw.plan`, symulowana pozycja GPS i marsz (kierunek liczony z ruchu). Ekrany trybu awaryjnego robione **w trybie offline** (§20). Komunikat „Głos niedostępny” wynika z przeglądarki bez syntezy mowy — na telefonie głos działa; jeśli przeszkadza, zrzut trzeba zrobić na telefonie.
+
 ## Zadanie dla Codexa — ilustracja slajdu 4
 
 `Styl: D` z [`../ilustracje/README.md`](../ilustracje/README.md) / §12. Referencje stylu: 4 karty z `public/ilustracje/poradnik/` (ta sama postać, twarz, kreska). **2 kandydatów**, zapis `context/foundation/prezentacja/kandydaci/slajd-4-c1.png`, `-c2.png`. Nie edytuj wyników, nie wybieraj.
