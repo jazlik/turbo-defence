@@ -39,11 +39,14 @@ export function readRun(): EvacuationRun | null {
   }
 }
 
-export function writeRun(run: EvacuationRun): void {
+/** `false`, gdy zapis się nie udał — przebieg działa wtedy tylko do zamknięcia karty. */
+export function writeRun(run: EvacuationRun): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...run, updatedAt: new Date().toISOString() }));
+    return true;
   } catch {
     // Storage unavailable (private mode, blocked site data) — the run lives only for this session.
+    return false;
   }
 }
 

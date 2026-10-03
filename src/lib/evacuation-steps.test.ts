@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildSteps, resumeIndex, stepContent, targetPlaceKind, type EvacuationStep } from "./evacuation-steps";
-import type { EvacuationRun, HouseholdPlan, Place, PlaceKind } from "../types";
+import type { EvacuationRun, HouseholdPlan, Place, PlaceKind } from "@/types";
 
 const place = (label: string): Place => ({ label, coords: { latitude: 52.2297, longitude: 21.0122 } });
 

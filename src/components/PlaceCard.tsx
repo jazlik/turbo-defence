@@ -22,6 +22,10 @@ const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
     "Nie udało się ustalić pozycji. Wyjdź pod otwarte niebo i spróbuj ponownie albo wpisz współrzędne ręcznie.",
 };
 
+// Cicha awaria zapisu jest gorsza niż brak zapisu: użytkownik odchodzi przekonany, że plan jest na urządzeniu.
+const STORAGE_ERROR =
+  "Nie udało się zapisać na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny w ustawieniach przeglądarki i spróbuj ponownie.";
+
 type Feedback = { kind: "saved"; text: string } | { kind: "error"; text: string } | null;
 
 interface PlaceCardProps {
@@ -41,7 +45,8 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
   const [inputError, setInputError] = useState<string | null>(null);
   const ids = { title: useId(), label: useId(), coordinates: useId(), coordinatesError: useId() };
 
-  const savePlace = (coords: Coordinates, withPosition: boolean) => {
+  /** `false`, gdy urządzenie odmówiło zapisu — wołający nie może wtedy potwierdzić zapisania. */
+  const savePlace = (coords: Coordinates, withPosition: boolean): boolean => {
     const recordedAt = new Date().toISOString();
     // Trzy wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz miejsce z innej karty.
     const stored = readPlan();
@@ -50,8 +55,9 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
       places: { ...stored.places, [kind]: { label: label.trim() || DEFAULT_LABELS[kind], coords } },
     };
     if (withPosition) next.lastKnownPosition = { coords, recordedAt };
-    writePlan(next);
+    const saved = writePlan(next);
     setPlan(next);
+    return saved;
   };
 
   const setHere = async () => {
@@ -63,7 +69,10 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
       setFeedback({ kind: "error", text: LOCATION_ERRORS[result.status] ?? LOCATION_ERRORS.unavailable ?? "" });
       return;
     }
-    savePlace(result.fix.coords, true);
+    if (!savePlace(result.fix.coords, true)) {
+      setFeedback({ kind: "error", text: STORAGE_ERROR });
+      return;
+    }
     setFeedback({
       kind: "saved",
       text: `Zapisano bieżącą pozycję (dokładność ±${Math.round(result.fix.accuracyMeters)} m).`,
@@ -82,7 +91,10 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
       return;
     }
     setInputError(null);
-    savePlace(parsed.coords, false);
+    if (!savePlace(parsed.coords, false)) {
+      setFeedback({ kind: "error", text: STORAGE_ERROR });
+      return;
+    }
     setCoordinatesInput("");
     setFeedback({ kind: "saved", text: "Zapisano miejsce ze wpisanych współrzędnych." });
   };

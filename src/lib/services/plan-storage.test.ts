@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePlan } from "./plan-storage";
+import { parsePlan, parsePlanWithSource } from "./plan-storage";
 
 const lastKnownPosition = {
   coords: { latitude: 52.2317, longitude: 21.0059 },
@@ -89,5 +89,18 @@ describe("parsePlan", () => {
     const plan = parsePlan({ schemaVersion: 1, evacuationPoint: { label: "Szkoła" }, lastKnownPosition });
     expect(plan.places).toEqual({ meeting: null, backup: null, shelter: null });
     expect(plan.lastKnownPosition).toEqual(lastKnownPosition);
+  });
+});
+
+describe("parsePlanWithSource", () => {
+  it("marks an unknown schema version as unreadable so no automatic write overwrites it", () => {
+    for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 3 }, { ...validPlan, schemaVersion: "2" }]) {
+      expect(parsePlanWithSource(value).source).toBe("unreadable");
+    }
+  });
+
+  it("reports a readable plan as stored and a v1 plan as migrated", () => {
+    expect(parsePlanWithSource(validPlan).source).toBe("stored");
+    expect(parsePlanWithSource({ schemaVersion: 1, evacuationPoint: null }).source).toBe("migrated");
   });
 });

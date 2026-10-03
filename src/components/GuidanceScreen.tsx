@@ -1,5 +1,16 @@
-import { useEffect, useState } from "react";
-import { ArrowRight, Backpack, Check, CheckCircle2, Compass, MapPinOff, Satellite, TriangleAlert } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  Backpack,
+  Check,
+  CheckCircle2,
+  Compass,
+  History,
+  MapPinOff,
+  RotateCcw,
+  Satellite,
+  TriangleAlert,
+} from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
 import HoldButton from "@/components/HoldButton";
@@ -90,6 +101,9 @@ export default function GuidanceScreen() {
   // Dwustopniowe wyjście bez potwierdzenia GPS: przytrzymanie, a potem dotknięcie potwierdzenia.
   const [confirming, setConfirming] = useState(false);
   const [confirmedArrival, setConfirmedArrival] = useState(false);
+  // Wznowienie w środku sekwencji pomija wcześniejsze kroki — w tym plecak. Nie wolno zrobić tego
+  // po cichu: świeży alarm (brak przebiegu) startuje od zera i tego ekranu nie zobaczy.
+  const [resumePrompt, setResumePrompt] = useState(session.stepIndex > 0);
 
   // `at` zwraca `undefined` poza zakresem — indeksowanie nawiasem kłamałoby o typie przy pustej sekwencji.
   const step = steps.at(stepIndex);
@@ -107,6 +121,14 @@ export default function GuidanceScreen() {
   useEffect(() => {
     if (coords) saveLastKnownPosition(coords);
   }, [coords]);
+
+  // Podmiana HoldButton na przycisk potwierdzenia odmontowuje element, więc focus spadłby na <body>.
+  // Bez tego drugi etap jest nieosiągalny z klawiatury i switcha inaczej niż tabulatorem od góry strony.
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirming) confirmButtonRef.current?.focus();
+  }, [confirming]);
 
   useEffect(() => {
     if (!headingPermissionRequired()) return;
@@ -155,6 +177,13 @@ export default function GuidanceScreen() {
     else setConfirmedArrival(true);
   };
 
+  const restartRun = () => {
+    clearRun();
+    setRun(null);
+    setStepIndex(0);
+    setResumePrompt(false);
+  };
+
   const finishRun = () => {
     clearRun();
     window.location.assign("/");
@@ -163,6 +192,49 @@ export default function GuidanceScreen() {
   if (step === undefined) return <MissingPlaceScreen />;
 
   const content = stepContent(step, run);
+
+  if (resumePrompt) {
+    return (
+      <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
+        <header>
+          <p className="text-guidance text-lg font-semibold">Przerwana ewakuacja</p>
+          <h1 className="font-heading mt-1 text-3xl break-words">Wracasz do trwającego przebiegu</h1>
+        </header>
+
+        <section className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+          <History className="text-guidance size-24" strokeWidth={2} aria-hidden="true" />
+          <p className="text-xl">
+            Ostatnio zatrzymaliście się na kroku „{content.title}”. Wcześniejsze kroki — w tym zabranie plecaka — są już
+            za wami.
+          </p>
+        </section>
+
+        <footer className="flex flex-col items-center gap-3">
+          <Button
+            type="button"
+            size="lg"
+            className="min-h-14 w-full text-lg font-semibold"
+            onClick={() => {
+              setResumePrompt(false);
+            }}
+          >
+            <ArrowRight strokeWidth={2} aria-hidden="true" />
+            Kontynuuj: {content.title}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-14 w-full text-base font-semibold"
+            onClick={restartRun}
+          >
+            <RotateCcw strokeWidth={2} aria-hidden="true" />
+            Zacznij od początku
+          </Button>
+          <ExitLink />
+        </footer>
+      </main>
+    );
+  }
 
   if (step.kind === "action") {
     return (
@@ -209,10 +281,15 @@ export default function GuidanceScreen() {
   // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
   const arrived = liveFix !== null && distance !== null && distance < ARRIVAL_RADIUS_METERS;
   const showArrival = arrived || confirmedArrival;
+  // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
+  // wróciło, przycisk wróciłby już uzbrojony, czyli bez bramki przytrzymania.
+  if (showArrival && confirming) setConfirming(false);
   const guiding = !showArrival && distance !== null && !(isStale && distance < ARRIVAL_RADIUS_METERS);
   const rotation = origin && heading !== null ? relativeBearing(bearingDegrees(origin, point.coords), heading) : null;
   const showCompassButton = compassSilent && source !== "compass" && !showArrival;
-  const fallbackAvailable = step.fallback !== null && !(run?.fallbackActive ?? false);
+  // Po dojściu zostaje jedna akcja guidance: czerwone „punkt niedostępny” pod nogami celu,
+  // na który właśnie doszliśmy, czyta się jak ostrzeżenie o tym miejscu.
+  const fallbackAvailable = !showArrival && step.fallback !== null && !(run?.fallbackActive ?? false);
 
   return (
     <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
@@ -318,29 +395,34 @@ export default function GuidanceScreen() {
           />
         )}
 
-        {!showArrival &&
-          (confirming ? (
-            <Button
-              type="button"
-              variant="secondary"
-              className="min-h-14 w-full text-base font-semibold"
-              onClick={confirmArrival}
-            >
-              <Check strokeWidth={2} aria-hidden="true" />
-              Potwierdź: jestem na miejscu
-            </Button>
-          ) : (
-            <HoldButton
-              holdMs={HOLD_MS}
-              onComplete={() => {
-                setConfirming(true);
-              }}
-              label="Potwierdź dojście"
-              icon={Check}
-              hintId="hold-hint"
-              className="border-input text-foreground focus-visible:ring-ring active:bg-surface-secondary"
-            />
-          ))}
+        {!showArrival && (
+          // Stopka nie jest objęta regionem aria-live sekcji: bez tego drugi etap pojawia się bez zapowiedzi.
+          <div role="status" className="w-full">
+            {confirming ? (
+              <Button
+                ref={confirmButtonRef}
+                type="button"
+                variant="secondary"
+                className="min-h-14 w-full text-base font-semibold"
+                onClick={confirmArrival}
+              >
+                <Check strokeWidth={2} aria-hidden="true" />
+                Potwierdź: jestem na miejscu
+              </Button>
+            ) : (
+              <HoldButton
+                holdMs={HOLD_MS}
+                onComplete={() => {
+                  setConfirming(true);
+                }}
+                label="Potwierdź dojście"
+                icon={Check}
+                hintId="hold-hint"
+                className="border-input text-foreground focus-visible:ring-ring active:bg-surface-secondary"
+              />
+            )}
+          </div>
+        )}
 
         {(fallbackAvailable || (!showArrival && !confirming)) && (
           <p id="hold-hint" className="text-muted-foreground text-sm">

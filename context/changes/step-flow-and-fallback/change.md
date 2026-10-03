@@ -1,7 +1,7 @@
 ---
 change_id: step-flow-and-fallback
 title: Kroki ewakuacji i przełączenie na miejsce zapasowe (S-02)
-status: implementing
+status: impl_reviewed
 created: 2026-10-03
 updated: 2026-10-03
 archived_at: null

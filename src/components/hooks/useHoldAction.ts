@@ -60,7 +60,9 @@ export function useHoldAction(holdMs: number, onComplete: () => void): HoldActio
     holdStart.current = performance.now();
     frame.current = requestAnimationFrame(tick);
     timer.current = window.setTimeout(() => {
-      stopTimers();
+      // `cancel`, nie `stopTimers`: bez wyzerowania `holdStart` i `progress` automat zostaje
+      // zablokowany, a przycisk, który przeżyje zakończenie, jest kontrolką jednorazową.
+      cancel();
       complete.current();
     }, holdMs);
   };
