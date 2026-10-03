@@ -1,13 +1,23 @@
-import type { Coordinates, EvacuationPoint, HouseholdPlan, LastKnownPosition } from "@/types";
+import { isMemberCategory, MAX_RECORDS } from "../household";
+import type {
+  Coordinates,
+  EmergencyContact,
+  EvacuationPoint,
+  HouseholdMember,
+  HouseholdPlan,
+  LastKnownPosition,
+} from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     evacuationPoint: null,
     lastKnownPosition: null,
+    members: [],
+    contacts: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -36,16 +46,48 @@ function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
   return coords ? { coords, recordedAt: value.recordedAt } : null;
 }
 
+const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
+
+function parseMember(value: unknown): HouseholdMember | null {
+  if (!isRecord(value)) return null;
+  const { id, name, category, takesMedication } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isMemberCategory(category)) return null;
+  return { id, name, category, takesMedication: takesMedication === true };
+}
+
+function parseContact(value: unknown): EmergencyContact | null {
+  if (!isRecord(value)) return null;
+  const { id, name, phone, relation } = value;
+  if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(phone)) return null;
+  return { id, name, phone, relation: typeof relation === "string" ? relation : "" };
+}
+
+/** A damaged record is skipped, the rest of the list survives. */
+function parseList<T>(value: unknown, parseItem: (item: unknown) => T | null): T[] {
+  if (!Array.isArray(value)) return [];
+  const items: T[] = [];
+  for (const raw of value as unknown[]) {
+    const item = parseItem(raw);
+    if (item) items.push(item);
+  }
+  return items.slice(0, MAX_RECORDS);
+}
+
 /**
  * Validates the stored shape field by field: a damaged sub-object becomes null instead of
  * reaching /alarm, where a missing `coords` would crash the guidance screen.
  */
 export function parsePlan(value: unknown): HouseholdPlan {
-  if (!isRecord(value) || value.schemaVersion !== CURRENT_SCHEMA_VERSION) return createEmptyPlan();
+  // v1 had no people lists: `parseList` turns the missing fields into empty arrays.
+  if (!isRecord(value) || (value.schemaVersion !== 1 && value.schemaVersion !== CURRENT_SCHEMA_VERSION)) {
+    return createEmptyPlan();
+  }
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     evacuationPoint: parseEvacuationPoint(value.evacuationPoint),
     lastKnownPosition: parseLastKnownPosition(value.lastKnownPosition),
+    members: parseList(value.members, parseMember),
+    contacts: parseList(value.contacts, parseContact),
     updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString(),
   };
 }
@@ -53,7 +95,7 @@ export function parsePlan(value: unknown): HouseholdPlan {
 /**
  * Synchronous on purpose: /alarm renders the target in its first React pass.
  * Never throws — a corrupted entry must not break the screen during a crisis.
- * Future schema versions add their migration branch here; unknown versions read as an empty plan.
+ * Migrations live in `parsePlan` (v1 → v2 adds the people lists); unknown versions read as an empty plan. Reading never writes back.
  */
 export function readPlan(): HouseholdPlan {
   try {
