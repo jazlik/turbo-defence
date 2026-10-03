@@ -2,6 +2,7 @@
 import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import AlarmButton from "@/components/AlarmButton";
+import AppMark from "@/components/AppMark.astro";
 import HouseholdLinkCard from "@/components/HouseholdLinkCard";
 import PlaceCard from "@/components/PlaceCard";
 ---
@@ -15,10 +16,10 @@ import PlaceCard from "@/components/PlaceCard";
         aria-label="W razie W — strona główna"
       >
         <span
-          class="flex size-10 items-center justify-center rounded-md bg-primary text-lg font-semibold text-primary-foreground"
+          class="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground"
           aria-hidden="true"
         >
-          W
+          <AppMark class="size-full" />
         </span>
         <span>W razie W</span>
       </a>
