@@ -8,6 +8,7 @@ import {
   History,
   Map as MapIcon,
   MapPinOff,
+  Navigation2,
   RotateCcw,
   Route,
   Satellite,
@@ -19,7 +20,7 @@ import {
 import DirectionArrow from "@/components/DirectionArrow";
 import HoldButton from "@/components/HoldButton";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
-import MapOverlay, { prefetchExecutionMap } from "@/components/map/MapOverlay";
+import MapOverlay, { prefetchExecutionMap, type MapNotice } from "@/components/map/MapOverlay";
 import { useNow } from "@/components/hooks/useNow";
 import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
@@ -160,7 +161,10 @@ export default function GuidanceScreen() {
   const [session] = useState(readSession);
   const { plan, steps, navigation, prepared, mapPackage } = session;
   const mapReady = isMapReady(mapPackage);
-  const [mapOpen, setMapOpen] = useState(false);
+  // Happy path: with a saved route and the offline map, the map is the default view; the big arrow is the
+  // fallback (no map, no route, map or storage error) and stays one tap away.
+  const [preferMap, setPreferMap] = useState(true);
+  const [mapFailed, setMapFailed] = useState(false);
   const [run, setRun] = useState(session.run);
   const [stepIndex, setStepIndex] = useState(session.stepIndex);
   // Dwustopniowe wyjście bez potwierdzenia GPS: przytrzymanie, a potem dotknięcie potwierdzenia.
@@ -437,20 +441,87 @@ export default function GuidanceScreen() {
   // przy spójnym planie — ekran prowadzenia nigdy nie pokazuje kroku bez celu.
   if (point === null) return <MissingPlaceScreen voice={voice} />;
 
-  if (mapOpen && mapReady && point.route && guidance && !showArrival) {
+  const mapAvailable = mapReady && !mapFailed && point.route !== null;
+
+  const compassButton = showCompassButton && (
+    <Button
+      type="button"
+      variant="secondary"
+      className="w-full text-base"
+      onClick={() => {
+        // Must stay inside the click handler: iOS only grants motion access to a user gesture.
+        void requestHeadingPermission();
+      }}
+    >
+      <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
+      Włącz kompas
+    </Button>
+  );
+
+  const fallbackHold = fallbackAvailable && (
+    <HoldButton
+      holdMs={HOLD_MS}
+      onComplete={switchToFallback}
+      label="Punkt niedostępny — idź do zapasowego"
+      icon={TriangleAlert}
+      hintId="hold-hint"
+      className="border-destructive text-destructive focus-visible:ring-destructive active:bg-surface-secondary"
+    />
+  );
+
+  if (preferMap && mapAvailable && point.route && guidance && !showArrival) {
+    // The arrow screen's status lines, condensed to one line above the map.
+    const mapNotice: MapNotice | null =
+      !guiding && locationProblem
+        ? { text: `${locationProblem.title}. ${locationProblem.instruction}`, emphasis: false }
+        : !guiding
+          ? { text: "Szukam sygnału GPS — wyjdź pod otwarte niebo.", emphasis: false }
+          : guidance.mode === "rejoin"
+            ? { text: "Wróć na trasę", emphasis: true }
+            : guidance.mode === "direct"
+              ? { text: "Jesteś daleko od zapisanej trasy — idź w kierunku celu.", emphasis: false }
+              : isStale
+                ? { text: `Dane z ${formatFixTime(staleFix.recordedAt)} — czekam na sygnał GPS`, emphasis: false }
+                : null;
+
     return (
       <MapOverlay
         mapPackage={mapPackage}
         destination={point.route.destination}
         route={point.route}
         guidance={guidance}
+        title={content.title}
         distanceCaption={DISTANCE_CAPTIONS[guidance.distanceKind]}
+        notice={mapNotice}
         position={origin}
         heading={heading}
         isStale={isStale}
-        onClose={() => {
-          setMapOpen(false);
+        onUnavailable={() => {
+          setMapFailed(true);
         }}
+        controls={
+          <>
+            <VoiceUnlockButton voice={voice} />
+            {compassButton}
+            {fallbackHold}
+            {fallbackAvailable && (
+              <p id="hold-hint" className="text-muted-foreground text-sm">
+                Przytrzymaj przez 2 sekundy.
+              </p>
+            )}
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full text-base"
+              onClick={() => {
+                setPreferMap(false);
+              }}
+            >
+              <Navigation2 className="size-5" strokeWidth={2} aria-hidden="true" />
+              Duża strzałka i więcej opcji
+            </Button>
+          </>
+        }
       />
     );
   }
@@ -547,28 +618,15 @@ export default function GuidanceScreen() {
 
         <VoiceUnlockButton voice={voice} />
 
-        {showCompassButton && (
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full text-base"
-            onClick={() => {
-              // Must stay inside the click handler: iOS only grants motion access to a user gesture.
-              void requestHeadingPermission();
-            }}
-          >
-            <Compass className="size-5" strokeWidth={2} aria-hidden="true" />
-            Włącz kompas
-          </Button>
-        )}
+        {compassButton}
 
-        {mapReady && point.route && !showArrival && (
+        {mapAvailable && !showArrival && (
           <Button
             type="button"
             variant="secondary"
             className="w-full text-base"
             onClick={() => {
-              setMapOpen(true);
+              setPreferMap(true);
             }}
           >
             <MapIcon className="size-5" strokeWidth={2} aria-hidden="true" />
@@ -576,16 +634,7 @@ export default function GuidanceScreen() {
           </Button>
         )}
 
-        {fallbackAvailable && (
-          <HoldButton
-            holdMs={HOLD_MS}
-            onComplete={switchToFallback}
-            label="Punkt niedostępny — idź do zapasowego"
-            icon={TriangleAlert}
-            hintId="hold-hint"
-            className="border-destructive text-destructive focus-visible:ring-destructive active:bg-surface-secondary"
-          />
-        )}
+        {fallbackHold}
 
         {!showArrival && (
           // Stopka nie jest objęta regionem aria-live sekcji: bez tego drugi etap pojawia się bez zapowiedzi.
