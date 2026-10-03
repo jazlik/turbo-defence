@@ -21,6 +21,10 @@
     "@protomaps/basemaps": "^5.7.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@tailwindcss/vite": "^4.2.4",
+    "@turf/along": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
+    "@turf/length": "^7.4.0",
+    "@turf/nearest-point-on-line": "^7.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^7.3.2",
@@ -38,6 +42,7 @@
   "devDependencies": {
     "@eslint/compat": "^2.1.1",
     "@eslint/js": "^10.0.1",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^22.20.5",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
