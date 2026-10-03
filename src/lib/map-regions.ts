@@ -41,3 +41,13 @@ export function proposeRegion(position: Coordinates | null): { region: MapRegion
   const containing = position ? MAP_REGIONS.find((region) => inBounds(position, region.bounds)) : undefined;
   return { region: containing ?? MAP_REGIONS[0], covers: position ? containing !== undefined : null };
 }
+
+/** The region whose package covers `position`, if any is on offer. */
+export const regionCovering = (position: Coordinates): MapRegion | undefined =>
+  MAP_REGIONS.find((region) => inBounds(position, region.bounds));
+
+/** Whether the downloaded package (identified by its region) covers `position`; an unknown region covers nothing. */
+export function packageCovers(regionId: string, position: Coordinates): boolean {
+  const region = MAP_REGIONS.find((candidate) => candidate.id === regionId);
+  return region !== undefined && inBounds(position, region.bounds);
+}

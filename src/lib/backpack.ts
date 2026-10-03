@@ -309,3 +309,16 @@ export function summarizeBackpack(items: readonly BackpackItem[], packed: readon
     total: items.length,
   };
 }
+
+/**
+ * Items without which the 72 h backpack does not hold up: water, food, documents and first aid, plus
+ * everything a household member needs and food for pets. A product decision, not a PRD requirement —
+ * the readiness level "Gotowi do wyjścia" asks only for these, "72H Ready" asks for the whole list.
+ */
+const KEY_ITEM_IDS: ReadonlySet<string> = new Set(["water", "food", "documents", "first-aid", "pet-food"]);
+
+export const isKeyItem = (item: BackpackItem): boolean => KEY_ITEM_IDS.has(item.id) || item.group === "needs";
+
+export function summarizeKeyItems(items: readonly BackpackItem[], packed: readonly PackedItem[]) {
+  return summarizeBackpack(items.filter(isKeyItem), packed);
+}
