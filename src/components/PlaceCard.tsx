@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { requestCurrentPosition, type GeolocationStatus } from "@/components/hooks/useGeolocation";
 import { parseCoordinates } from "@/lib/geo";
 import { readPlan, writePlan } from "@/lib/services/plan-storage";
-import type { Coordinates, HouseholdPlan } from "@/types";
+import type { Coordinates, HouseholdPlan, PlaceKind } from "@/types";
 
-const DEFAULT_LABEL = "Punkt ewakuacji";
+const DEFAULT_LABELS: Record<PlaceKind, string> = {
+  meeting: "Miejsce spotkania",
+  backup: "Miejsce zapasowe",
+  shelter: "Punkt ewakuacji",
+};
 
 const formatCoordinates = ({ latitude, longitude }: Coordinates) => `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 
@@ -20,21 +24,30 @@ const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
 
 type Feedback = { kind: "saved"; text: string } | { kind: "error"; text: string } | null;
 
-export default function EvacuationPointCard() {
+interface PlaceCardProps {
+  kind: PlaceKind;
+  title: string;
+  description: string;
+  /** Steruje wyłącznie wariantem „Ustaw tutaj”: trzy wypełnione przyciski obok siebie łamią §3 JV. */
+  emphasis: "primary" | "secondary";
+}
+
+export default function PlaceCard({ kind, title, description, emphasis }: PlaceCardProps) {
   const [plan, setPlan] = useState<HouseholdPlan>(readPlan);
-  const [label, setLabel] = useState(plan.places.shelter?.label ?? DEFAULT_LABEL);
+  const [label, setLabel] = useState(plan.places[kind]?.label ?? DEFAULT_LABELS[kind]);
   const [coordinatesInput, setCoordinatesInput] = useState("");
   const [locating, setLocating] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [inputError, setInputError] = useState<string | null>(null);
-  const ids = { label: useId(), coordinates: useId(), coordinatesError: useId() };
+  const ids = { title: useId(), label: useId(), coordinates: useId(), coordinatesError: useId() };
 
-  const savePoint = (coords: Coordinates, withPosition: boolean) => {
+  const savePlace = (coords: Coordinates, withPosition: boolean) => {
     const recordedAt = new Date().toISOString();
+    // Trzy wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz miejsce z innej karty.
     const stored = readPlan();
     const next: HouseholdPlan = {
       ...stored,
-      places: { ...stored.places, shelter: { label: label.trim() || DEFAULT_LABEL, coords } },
+      places: { ...stored.places, [kind]: { label: label.trim() || DEFAULT_LABELS[kind], coords } },
     };
     if (withPosition) next.lastKnownPosition = { coords, recordedAt };
     writePlan(next);
@@ -50,7 +63,7 @@ export default function EvacuationPointCard() {
       setFeedback({ kind: "error", text: LOCATION_ERRORS[result.status] ?? LOCATION_ERRORS.unavailable ?? "" });
       return;
     }
-    savePoint(result.fix.coords, true);
+    savePlace(result.fix.coords, true);
     setFeedback({
       kind: "saved",
       text: `Zapisano bieżącą pozycję (dokładność ±${Math.round(result.fix.accuracyMeters)} m).`,
@@ -69,18 +82,15 @@ export default function EvacuationPointCard() {
       return;
     }
     setInputError(null);
-    savePoint(parsed.coords, false);
+    savePlace(parsed.coords, false);
     setCoordinatesInput("");
-    setFeedback({ kind: "saved", text: "Zapisano punkt ze wpisanych współrzędnych." });
+    setFeedback({ kind: "saved", text: "Zapisano miejsce ze wpisanych współrzędnych." });
   };
 
-  const point = plan.places.shelter;
+  const place = plan.places[kind];
 
   return (
-    <section
-      aria-labelledby="evacuation-point-title"
-      className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
-    >
+    <section aria-labelledby={ids.title} className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8">
       <div className="flex items-start gap-4">
         <div
           className="bg-core-steel-soft text-core-steel-deep flex size-11 shrink-0 items-center justify-center rounded-full"
@@ -89,24 +99,25 @@ export default function EvacuationPointCard() {
           <MapPin className="size-5" strokeWidth={2} />
         </div>
         <div className="min-w-0">
-          <h2 id="evacuation-point-title" className="font-heading text-2xl tracking-[-0.015em]">
-            Punkt ewakuacji
-          </h2>
-          {point ? (
-            <p className="text-muted-foreground mt-1">
-              <span className="text-foreground font-medium">{point.label}</span>
+          <h3 id={ids.title} className="font-heading text-xl tracking-[-0.015em]">
+            {title}
+          </h3>
+          <p className="text-muted-foreground mt-1 text-sm">{description}</p>
+          {place ? (
+            <p className="text-muted-foreground mt-2">
+              <span className="text-foreground font-medium">{place.label}</span>
               <br />
-              <span className="font-operational text-sm">{formatCoordinates(point.coords)}</span>
+              <span className="font-operational text-sm">{formatCoordinates(place.coords)}</span>
             </p>
           ) : (
-            <p className="text-muted-foreground mt-1">Punkt ewakuacji: nie wskazano</p>
+            <p className="text-muted-foreground mt-2">Nie wskazano</p>
           )}
         </div>
       </div>
 
       <div className="mt-6 space-y-2">
         <label htmlFor={ids.label} className="block text-sm font-medium">
-          Nazwa punktu
+          Nazwa miejsca
         </label>
         <input
           id={ids.label}
@@ -122,6 +133,7 @@ export default function EvacuationPointCard() {
       <Button
         type="button"
         size="lg"
+        variant={emphasis === "primary" ? "default" : "outline"}
         className="mt-4 w-full sm:w-auto"
         aria-busy={locating}
         onClick={() => void setHere()}

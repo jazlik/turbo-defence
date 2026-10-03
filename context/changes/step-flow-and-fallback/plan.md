@@ -407,33 +407,33 @@ Pierwsza migracja schematu planu w tym projekcie. `schemaVersion: 1` z pojedyncz
 
 #### Automated
 
-- [x] 1.1 Lint przechodzi: `npm run lint`
-- [x] 1.2 Typy przechodzą: `npx astro check`
-- [x] 1.3 Testy przechodzą, łącznie z nowymi plikami `evacuation-steps.test.ts` i `run-storage.test.ts`: `npm test`
-- [x] 1.4 Build przechodzi: `npm run build`
-- [x] 1.5 Smoke przechodzi bez zmian w pliku: `npm run smoke`
+- [x] 1.1 Lint przechodzi: `npm run lint` — 6614e4f
+- [x] 1.2 Typy przechodzą: `npx astro check` — 6614e4f
+- [x] 1.3 Testy przechodzą, łącznie z nowymi plikami `evacuation-steps.test.ts` i `run-storage.test.ts`: `npm test` — 6614e4f
+- [x] 1.4 Build przechodzi: `npm run build` — 6614e4f
+- [x] 1.5 Smoke przechodzi bez zmian w pliku: `npm run smoke` — 6614e4f
 
 #### Manual
 
-- [x] 1.6 Plan zapisany przed zmianą (`schemaVersion: 1` z punktem ewakuacji) po wgraniu nowej wersji nadal prowadzi do tego samego punktu — migracja nie gubi danych
-- [x] 1.7 `/alarm` i strona domowa zachowują się dokładnie jak przed fazą
+- [x] 1.6 Plan zapisany przed zmianą (`schemaVersion: 1` z punktem ewakuacji) po wgraniu nowej wersji nadal prowadzi do tego samego punktu — migracja nie gubi danych — 6614e4f
+- [x] 1.7 `/alarm` i strona domowa zachowują się dokładnie jak przed fazą — 6614e4f
 
 ### Phase 2: Przygotowanie — sekcja „Miejsca”
 
 #### Automated
 
-- [ ] 2.1 Lint przechodzi: `npm run lint`
-- [ ] 2.2 Typy przechodzą: `npx astro check`
-- [ ] 2.3 Testy przechodzą: `npm test`
-- [ ] 2.4 Build przechodzi: `npm run build`
-- [ ] 2.5 Smoke z nową asercją przechodzi: `npm run smoke`
+- [x] 2.1 Lint przechodzi: `npm run lint`
+- [x] 2.2 Typy przechodzą: `npx astro check`
+- [x] 2.3 Testy przechodzą: `npm test`
+- [x] 2.4 Build przechodzi: `npm run build`
+- [x] 2.5 Smoke z nową asercją przechodzi: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 Ustawienie trzech miejsc po kolei („Ustaw tutaj” i wpisane współrzędne) zapisuje wszystkie trzy — żadne nie nadpisuje poprzedniego po odświeżeniu strony
-- [ ] 2.7 Każde miejsce przeżywa zamknięcie i ponowne otwarcie aplikacji
-- [ ] 2.8 Strona domowa ma nadal jeden czytelny dominujący następny krok, a nie trzy równorzędne stalowe przyciski
-- [ ] 2.9 Blok statusu offline nadal dochodzi do stanu „Gotowe do pracy offline”
+- [x] 2.6 Ustawienie trzech miejsc po kolei („Ustaw tutaj” i wpisane współrzędne) zapisuje wszystkie trzy — żadne nie nadpisuje poprzedniego po odświeżeniu strony
+- [x] 2.7 Każde miejsce przeżywa zamknięcie i ponowne otwarcie aplikacji
+- [x] 2.8 Strona domowa ma nadal jeden czytelny dominujący następny krok, a nie trzy równorzędne stalowe przyciski
+- [x] 2.9 Blok statusu offline nadal dochodzi do stanu „Gotowe do pracy offline”
 
 ### Phase 3: Prowadzenie — kroki, „niedostępne” i potwierdzenie dojścia
 
