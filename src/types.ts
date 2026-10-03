@@ -39,12 +39,19 @@ export interface EmergencyContact {
   relation: string;
 }
 
+/** A backpack item ticked off, with the quantity it was packed for; `null` for items without a quantity. */
+export interface PackedItem {
+  itemId: string;
+  quantity: number | null;
+}
+
 export interface HouseholdPlan {
-  schemaVersion: 3;
+  schemaVersion: 4;
   places: Record<PlaceKind, Place | null>;
   lastKnownPosition: LastKnownPosition | null;
   members: HouseholdMember[];
   contacts: EmergencyContact[];
+  packedItems: PackedItem[];
   /** ISO 8601 */
   updatedAt: string;
 }

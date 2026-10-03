@@ -33,7 +33,7 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 | S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                 | S-01          | US-01, FR-015                                                                         | done     |
 | S-04 | offline-map-and-route   | pobrać mapę regionu, mieć trasę do punktu odświeżaną przy dostępie do sieci i zobaczyć je offline jako drugi poziom prowadzenia | S-01          | US-01, FR-007, FR-014                                                                 | proposed |
 | S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                            | S-01          | FR-002                                                                                | proposed |
-| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | proposed |
+| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                        | S-05          | FR-003                                                                                | done     |
 | S-07 | first-run-onboarding    | przy pierwszym uruchomieniu przejść interaktywny onboarding od domowników do pobrania trasy                                     | S-04, S-06    | US-01, FR-001                                                                         | proposed |
 | S-08 | readiness-screen        | zobaczyć jakościowy poziom gotowości i następny quick win                                                                       | S-07          | FR-008, FR-009                                                                        | proposed |
 | S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                            | S-08          | FR-010, FR-011                                                                        | proposed |
@@ -157,7 +157,7 @@ Slices below build on these and do NOT re-scaffold them.
 - **Unknowns:**
   - Jakie pozycje plecaka i reguły dopasowania przyjmujemy (treść poradnika GOV jako źródło)? — Owner: team. Block: no.
 - **Risk:** wartość zależy od treści, nie od techniki; trzymamy prosty zestaw reguł (dzieci, leki, zwierzęta), żeby nie zjadł czasu potrzebnego na prowadzenie.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Onboarding przy pierwszym uruchomieniu
 
@@ -254,3 +254,4 @@ Rozstrzygnięte 2026-10-03:
 - **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.
 - **S-01: użytkownik może wskazać punkt ewakuacji, przytrzymać przycisk alarmu i w trybie samolotowym iść za dużą strzałką z odległością do punktu; plan zostaje zapisany na urządzeniu.** — Archived 2026-10-03 → `context/archive/2026-10-03-guided-to-point-offline/`. Lesson: —.
 - **S-03: użytkownik słyszy kolejne kroki po polsku, domyślnie włączone, i może głos wyłączyć.** — Archived 2026-10-03 → `context/archive/2026-10-03-voice-guidance/`. Lesson: —.
+- **S-06: organizator może odhaczać pozycje checklisty plecaka ewakuacyjnego dobranej do składu rodziny.** — Archived 2026-10-03 → `context/archive/2026-10-03-personalized-backpack/`. Lesson: —.

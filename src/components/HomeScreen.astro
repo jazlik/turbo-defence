@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronRight, Compass, LoaderCircle, TriangleAlert } from
 
 import AlarmButton from "@/components/AlarmButton";
 import AppMark from "@/components/AppMark.astro";
+import BackpackLinkCard from "@/components/BackpackLinkCard";
 import HouseholdLinkCard from "@/components/HouseholdLinkCard";
 import PlaceCard from "@/components/PlaceCard";
 ---
@@ -83,6 +84,8 @@ import PlaceCard from "@/components/PlaceCard";
       </section>
 
       <HouseholdLinkCard client:only="react" />
+
+      <BackpackLinkCard client:only="react" />
 
       <a
         href="/czujniki"
