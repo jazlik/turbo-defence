@@ -1,12 +1,12 @@
-import type { Coordinates, EvacuationPoint, HouseholdPlan, LastKnownPosition } from "@/types";
+import type { Coordinates, HouseholdPlan, LastKnownPosition, Place, PlaceKind } from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
-    evacuationPoint: null,
+    places: { meeting: null, backup: null, shelter: null },
     lastKnownPosition: null,
     updatedAt: new Date().toISOString(),
   };
@@ -23,10 +23,20 @@ function parseCoords(value: unknown): Coordinates | null {
   return { latitude, longitude };
 }
 
-function parseEvacuationPoint(value: unknown): EvacuationPoint | null {
+function parsePlace(value: unknown): Place | null {
   if (!isRecord(value) || typeof value.label !== "string") return null;
   const coords = parseCoords(value.coords);
   return coords ? { label: value.label, coords } : null;
+}
+
+/** Każde miejsce jest walidowane osobno: uszkodzone nie unieważnia dwóch pozostałych. */
+function parsePlaces(value: unknown): Record<PlaceKind, Place | null> {
+  const source = isRecord(value) ? value : {};
+  return {
+    meeting: parsePlace(source.meeting),
+    backup: parsePlace(source.backup),
+    shelter: parsePlace(source.shelter),
+  };
 }
 
 function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
@@ -41,19 +51,36 @@ function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
  * reaching /alarm, where a missing `coords` would crash the guidance screen.
  */
 export function parsePlan(value: unknown): HouseholdPlan {
-  if (!isRecord(value) || value.schemaVersion !== CURRENT_SCHEMA_VERSION) return createEmptyPlan();
-  return {
-    schemaVersion: CURRENT_SCHEMA_VERSION,
-    evacuationPoint: parseEvacuationPoint(value.evacuationPoint),
-    lastKnownPosition: parseLastKnownPosition(value.lastKnownPosition),
-    updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString(),
-  };
+  if (!isRecord(value)) return createEmptyPlan();
+  const lastKnownPosition = parseLastKnownPosition(value.lastKnownPosition);
+  const updatedAt = typeof value.updatedAt === "string" ? value.updatedAt : new Date().toISOString();
+
+  if (value.schemaVersion === CURRENT_SCHEMA_VERSION) {
+    return {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      places: parsePlaces(value.places),
+      lastKnownPosition,
+      updatedAt,
+    };
+  }
+
+  // v1 trzymało jedno miejsce — staje się punktem ewakuacji, a dwa pozostałe czekają na uzupełnienie.
+  if (value.schemaVersion === 1) {
+    return {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      places: { meeting: null, backup: null, shelter: parsePlace(value.evacuationPoint) },
+      lastKnownPosition,
+      updatedAt,
+    };
+  }
+
+  return createEmptyPlan();
 }
 
 /**
  * Synchronous on purpose: /alarm renders the target in its first React pass.
  * Never throws — a corrupted entry must not break the screen during a crisis.
- * Future schema versions add their migration branch here; unknown versions read as an empty plan.
+ * Future schema versions add their migration branch to parsePlan; unknown versions read as an empty plan.
  */
 export function readPlan(): HouseholdPlan {
   try {

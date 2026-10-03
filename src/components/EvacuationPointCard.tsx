@@ -22,7 +22,7 @@ type Feedback = { kind: "saved"; text: string } | { kind: "error"; text: string 
 
 export default function EvacuationPointCard() {
   const [plan, setPlan] = useState<HouseholdPlan>(readPlan);
-  const [label, setLabel] = useState(plan.evacuationPoint?.label ?? DEFAULT_LABEL);
+  const [label, setLabel] = useState(plan.places.shelter?.label ?? DEFAULT_LABEL);
   const [coordinatesInput, setCoordinatesInput] = useState("");
   const [locating, setLocating] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
@@ -31,9 +31,10 @@ export default function EvacuationPointCard() {
 
   const savePoint = (coords: Coordinates, withPosition: boolean) => {
     const recordedAt = new Date().toISOString();
+    const stored = readPlan();
     const next: HouseholdPlan = {
-      ...readPlan(),
-      evacuationPoint: { label: label.trim() || DEFAULT_LABEL, coords },
+      ...stored,
+      places: { ...stored.places, shelter: { label: label.trim() || DEFAULT_LABEL, coords } },
     };
     if (withPosition) next.lastKnownPosition = { coords, recordedAt };
     writePlan(next);
@@ -73,7 +74,7 @@ export default function EvacuationPointCard() {
     setFeedback({ kind: "saved", text: "Zapisano punkt ze wpisanych współrzędnych." });
   };
 
-  const point = plan.evacuationPoint;
+  const point = plan.places.shelter;
 
   return (
     <section

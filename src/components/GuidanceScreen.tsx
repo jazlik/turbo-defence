@@ -49,7 +49,7 @@ function ExitLink() {
 export default function GuidanceScreen() {
   // Synchronous read: the target and instruction are on screen before any sensor answers.
   const [plan] = useState(readPlan);
-  const point = plan.evacuationPoint;
+  const point = plan.places.shelter;
 
   const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: point !== null });
   const { heading, source } = useHeading(coords, accuracyMeters);
