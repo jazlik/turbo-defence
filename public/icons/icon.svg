@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
   <title id="title">W razie W</title>
-  <rect width="512" height="512" rx="80" fill="#536B75"/>
-  <text x="256" y="351" font-family="Arial, sans-serif" font-size="280" font-weight="600" text-anchor="middle" fill="#FFFFFF">W</text>
+  <rect width="512" height="512" fill="#536B75"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m100 238 140-110q16-13 32 0l140 110"/>
+    <path d="m120 290 24 102 32-66 32 66 20-102"/>
+    <path d="m284 290 20 102 32-66 32 66 24-102"/>
+  </g>
 </svg>
