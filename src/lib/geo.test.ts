@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bearingDegrees, distanceMeters, formatDistance, relativeBearing } from "./geo";
+import { bearingDegrees, distanceMeters, formatDistance, parseCoordinates, relativeBearing } from "./geo";
 
 const warsawCentre = { latitude: 52.2297, longitude: 21.0122 };
 const krakowSquare = { latitude: 50.0647, longitude: 19.945 };
@@ -67,5 +67,28 @@ describe("formatDistance", () => {
 
   it("does not show 1000 m", () => {
     expect(formatDistance(996)).toBe("1,0 km");
+  });
+});
+
+describe("parseCoordinates", () => {
+  it("parses comma-separated decimal degrees", () => {
+    expect(parseCoordinates("52.2297, 21.0122")).toEqual({ ok: true, coords: warsawCentre });
+  });
+
+  it("accepts negative values and whitespace separation", () => {
+    expect(parseCoordinates(" -33.8688 151.2093 ")).toEqual({
+      ok: true,
+      coords: { latitude: -33.8688, longitude: 151.2093 },
+    });
+  });
+
+  it("rejects text", () => {
+    expect(parseCoordinates("abc")).toEqual({ ok: false, reason: "format" });
+    expect(parseCoordinates("52.2297")).toEqual({ ok: false, reason: "format" });
+  });
+
+  it("rejects out-of-range values", () => {
+    expect(parseCoordinates("200, 0")).toEqual({ ok: false, reason: "range" });
+    expect(parseCoordinates("0, 181")).toEqual({ ok: false, reason: "range" });
   });
 });

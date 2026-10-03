@@ -1,4 +1,4 @@
-import type { HouseholdPlan } from "@/types";
+import type { Coordinates, HouseholdPlan } from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
 const CURRENT_SCHEMA_VERSION = 1;
@@ -40,4 +40,14 @@ export function writePlan(plan: HouseholdPlan): void {
   } catch {
     // Storage unavailable (private mode, blocked site data) — the plan lives only for this session.
   }
+}
+
+/** Every GPS fix refreshes the position the next /alarm entry starts from. */
+export function saveLastKnownPosition(coords: Coordinates): HouseholdPlan {
+  const plan: HouseholdPlan = {
+    ...readPlan(),
+    lastKnownPosition: { coords, recordedAt: new Date().toISOString() },
+  };
+  writePlan(plan);
+  return plan;
 }

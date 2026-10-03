@@ -418,33 +418,33 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Automated
 
-- [x] 1.1 Testy przechodzą: `npm test`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Typy przechodzą: `npx astro check`
-- [x] 1.4 Build przechodzi: `npm run build`
-- [x] 1.5 CI uruchamia `npm test` w jobie `ci`
+- [x] 1.1 Testy przechodzą: `npm test` — 958fe22
+- [x] 1.2 Lint przechodzi: `npm run lint` — 958fe22
+- [x] 1.3 Typy przechodzą: `npx astro check` — 958fe22
+- [x] 1.4 Build przechodzi: `npm run build` — 958fe22
+- [x] 1.5 CI uruchamia `npm test` w jobie `ci` — 958fe22
 
 #### Manual
 
-- [x] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test
+- [x] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test — 958fe22
 
 ### Phase 2: Przygotowanie — punkt ewakuacji i sprawdzenie czujników
 
 #### Automated
 
-- [ ] 2.1 Lint przechodzi: `npm run lint`
-- [ ] 2.2 Typy przechodzą: `npx astro check`
-- [ ] 2.3 Build przechodzi: `npm run build`
-- [ ] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke`
-- [ ] 2.5 `dist/czujniki.html` istnieje po buildzie
+- [x] 2.1 Lint przechodzi: `npm run lint`
+- [x] 2.2 Typy przechodzą: `npx astro check`
+- [x] 2.3 Build przechodzi: `npm run build`
+- [x] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke`
+- [x] 2.5 `dist/czujniki.html` istnieje po buildzie
 
 #### Manual
 
 - [ ] 2.6 „Ustaw tutaj" zapisuje punkt, który przeżywa ponowne otwarcie aplikacji
-- [ ] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu
+- [x] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu
 - [ ] 2.8 Na `/czujniki` oba czujniki raportują wynik, a kurs reaguje na obrót telefonu
-- [ ] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat
-- [ ] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony
+- [x] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat
+- [x] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony
 
 ### Phase 3: Prowadzenie — alarm i ekran `/alarm`
 
