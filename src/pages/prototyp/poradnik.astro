@@ -1,0 +1,124 @@
+---
+// Prototyp eksploracyjny (nienormatywny, JEZYK_WIZUALNY.md §16): poradnik
+// po pierwszym wejściu jako 5 kart do przeklikania — same ilustracje, copy
+// zastąpione szarymi belkami. Strona nie jest nigdzie linkowana.
+// Karty i sceny: context/foundation/ilustracje/style.md, „Prototyp poradnika”.
+import { ArrowLeft, ArrowRight } from "lucide-react";
+
+import Layout from "@/layouts/Layout.astro";
+
+const cards = [
+  { id: 1, feature: "domownicy", src: "/prototyp/poradnik/karta-1.webp" },
+  { id: 2, feature: "plecak", src: "/prototyp/poradnik/karta-2.webp" },
+  { id: 3, feature: "miejsca", src: "/prototyp/poradnik/karta-3.webp" },
+  { id: 4, feature: "prowadzenie offline", src: null },
+  { id: 5, feature: "udostępnienie", src: null },
+];
+---
+
+<Layout title="Prototyp poradnika — W razie W">
+  <main class="flex min-h-screen justify-center bg-background px-4 pt-12 pb-8 text-foreground">
+    <section
+      class="flex w-full max-w-sm flex-col"
+      aria-roledescription="karuzela"
+      aria-label="Prototyp poradnika"
+      data-carousel
+    >
+      <div class="flex gap-1.5" aria-hidden="true">
+        {cards.map((card) => (
+          <span class="h-1 flex-1 rounded-full bg-core-steel-soft" data-dot={card.id} />
+        ))}
+      </div>
+
+      {cards.map((card, index) => (
+        <article
+          class="mt-6 flex flex-col"
+          data-card={card.id}
+          aria-roledescription="karta"
+          aria-label={`Karta ${card.id} z ${cards.length}: ${card.feature}`}
+          hidden={index !== 0}
+        >
+          <div class="relative aspect-[4/3] rounded-lg border border-border bg-surface">
+            {card.src ? (
+              <img
+                src={card.src}
+                alt=""
+                class="absolute inset-4 h-[calc(100%-2rem)] w-[calc(100%-2rem)] object-contain"
+              />
+            ) : (
+              <div class="absolute inset-4 flex items-center justify-center rounded-md border-2 border-dashed border-border text-sm text-muted-foreground">
+                {card.feature}
+              </div>
+            )}
+          </div>
+          <div class="mt-6 space-y-3" aria-hidden="true">
+            <div class="h-6 w-3/4 rounded-sm bg-foreground" />
+            <div class="h-3 w-full rounded-sm bg-muted-foreground/50" />
+            <div class="h-3 w-5/6 rounded-sm bg-muted-foreground/50" />
+          </div>
+        </article>
+      ))}
+
+      <div class="mt-10 flex gap-3">
+        <button
+          type="button"
+          class="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-surface text-foreground disabled:opacity-40"
+          aria-label="Wstecz"
+          data-prev
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          class="flex h-12 flex-1 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground"
+          data-next
+        >
+          <span data-next-label>Dalej</span>
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-carousel]");
+  if (root) {
+    const cards = [...root.querySelectorAll<HTMLElement>("[data-card]")];
+    const dots = [...root.querySelectorAll<HTMLElement>("[data-dot]")];
+    const prev = root.querySelector<HTMLButtonElement>("[data-prev]");
+    const next = root.querySelector<HTMLButtonElement>("[data-next]");
+    const nextLabel = root.querySelector<HTMLElement>("[data-next-label]");
+    let current = 0;
+
+    const show = (index: number) => {
+      current = (index + cards.length) % cards.length;
+      cards.forEach((card, i) => (card.hidden = i !== current));
+      dots.forEach((dot, i) => {
+        dot.classList.toggle("bg-core-steel", i <= current);
+        dot.classList.toggle("bg-core-steel-soft", i > current);
+      });
+      if (prev) prev.disabled = current === 0;
+      if (nextLabel) nextLabel.textContent = current === cards.length - 1 ? "Od początku" : "Dalej";
+    };
+
+    prev?.addEventListener("click", () => show(current - 1));
+    next?.addEventListener("click", () => show(current + 1));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight") show(current + 1);
+      if (event.key === "ArrowLeft" && current > 0) show(current - 1);
+    });
+
+    let touchX: number | null = null;
+    root.addEventListener("touchstart", (event) => (touchX = event.touches[0].clientX), { passive: true });
+    root.addEventListener("touchend", (event) => {
+      if (touchX === null) return;
+      const delta = event.changedTouches[0].clientX - touchX;
+      if (delta < -40) show(current + 1);
+      if (delta > 40 && current > 0) show(current - 1);
+      touchX = null;
+    });
+
+    show(0);
+  }
+</script>

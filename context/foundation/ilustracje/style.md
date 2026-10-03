@@ -20,7 +20,11 @@ Każde zlecenie generacji **zaczyna się od `Styl: D` albo `Styl: A`**. Agent bi
 
 **Zakazy:** no military, survival or tactical gear, no uniforms, no flags, no red, no amber, no screens or app interface, no text, no letters, no numbers, no logos, no frame, no elements entering from outside the canvas. Transparent background (czysto białe dopuszczalne).
 
-**Twarz:** otwarta — rozstrzyga runda „D — twarze” niżej. Do czasu decyzji fragment twarzy dopisuje się z wybranego wariantu.
+**Twarz (decyzja człowieka: wariant c3):** `Friendly faces: two small dot eyes, a tiny simple nose line and a gentle small smile — calm, not cartoonish.`
+
+**Doprecyzowania po rundzie twarzy (dopisywane do każdego promptu D):** `Hair drawn as contour, not filled. The steel blue fill is used on exactly one key object named in the scene — trees, furniture and everything else stay white contour. Keep the same line weight as the reference images.`
+
+**Referencje do generatora (do czasu własnego zestawu):** `kierunki-v1/d-twarze/plan-c3.png` + 2 obrazy Open Doodles z rundy 1. Po wyborze kart poradnika 4 najlepsze karty stają się zestawem referencji stylu D.
 
 ## Styl A — płaska (odłożony)
 
@@ -54,3 +58,19 @@ Uwaga człowieka do D: styl się podoba, ale postacie mają być bardziej przyja
 **c4 — jedna linia.** Profile i ujęcia trzy czwarte nadają scenie bardziej dorosły, editorialowy ton. Twarze są wyrazistsze od pustych, ale mniej bezpośrednie niż warianty z oczami skierowanymi do odbiorcy.
 
 Potem: `npm run illustrations:sheet -- context/foundation/ilustracje/kierunki-v1`, w tym pliku pod tabelą 1–2 zdania o każdym wariancie (bez wybierania), commit jako Daniel Karski <daniel.karski5q@gmail.com> bez `Co-Authored-By`, push `feat/illustration-directions`, stop.
+
+## Ścieżka poradnika — propozycja do akceptacji
+
+Poradnik po pierwszym wejściu: **5 kart do przeklikania**, jedna karta = jedna core funkcja z [roadmapy](../roadmap.md), w kolejności przepływu MVP z PRD. Copy osobno; tu tylko sceny. Prototyp do przeklikania: `/prototyp/poradnik` (`src/pages/prototyp/poradnik.astro`, tylko na tym branchu, nielinkowany); karty 1–3 mają na razie zastępcze obrazy z rund eksploracji.
+
+| Karta | Funkcja (roadmapa)                          | Co ma zrozumieć użytkownik                    | Scena (`Styl: D`)                                                                                                                                        | Obiekt w stali |
+| ----- | ------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 1     | domownicy i kontakty (S-05)                 | plan jest dla mojego domu i moich ludzi       | Two adults, a child and a grandparent stand together in the open doorway of their home, calm and close.                                                  | drzwi          |
+| 2     | plecak (S-06)                               | każdy ma spakowany plecak                     | An adult and a child kneel on the floor packing an evacuation backpack; a water bottle, a flashlight and a documents folder lie beside it.               | plecak         |
+| 3     | miejsca: spotkania, zapasowe, schron (S-07) | wiemy, gdzie się spotkać, gdy nie ma kontaktu | A family meets at an agreed spot: a bench under a tree; the child runs towards the parents.                                                              | ławka          |
+| 4     | prowadzenie offline (S-01, S-04)            | aplikacja poprowadzi do punktu bez internetu  | One adult walks calmly along a path holding a phone, heading towards a simple shelter building in the distance; the phone screen is a plain solid shape. | telefon        |
+| 5     | udostępnienie planu (S-09)                  | cała rodzina ma ten sam plan                  | An adult hands a phone to a smiling grandparent sitting in an armchair, showing them the shared plan; the phone screen is a plain solid shape.           | telefon        |
+
+Karta 4 opisuje funkcję w spokojnym tonie przygotowania — nie pokazuje kryzysu (Execution Mode nie ma ilustracji, §12).
+
+**Po akceptacji ścieżki (zadanie dla Codexa):** `Styl: D`, po 2 kandydatów na kartę → `kierunki-v1/poradnik/karta-<N>-c1.png`, `-c2.png`; arkusz; człowiek wybiera po jednym; eksport wybranych: `npm run illustrations:export -- <png> public/prototyp/poradnik/karta-<N>.webp`; commit, push, stop.
