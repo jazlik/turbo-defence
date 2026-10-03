@@ -210,8 +210,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Open Roadmap Questions
 
-1. **Offline i prywatność poza NFR:** zespół świadomie nie uznał ich za twarde wymagania MVP. Kłóci się to z zasadami z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu (demo w trybie samolotowym), z kryterium akceptacji US-01 („Całość działa w trybie samolotowym”) i z profilem lokalnym bez serwera. Do potwierdzenia: czy `PROJECT.md` aktualizujemy, czy wracamy do tych NFR. — Owner: zespół. Block: roadmap-wide (roadmapa przyjmuje na razie, że działanie offline jest wymagane, bo wymaga go główne kryterium sukcesu).
-2. **„72H Ready” jako poziom gotowości (FR-009, must-have) i jako milestone (FR-016, nice-to-have):** ten sam przykład występuje w obu wymaganiach. Do rozstrzygnięcia, czym w MVP różni się poziom gotowości od kamienia milowego. — Owner: zespół. Block: nie blokuje planowania; rozstrzygnąć na starcie planu S-08.
+1. **„72H Ready” jako poziom gotowości (FR-009, must-have) i jako milestone (FR-016, nice-to-have):** ten sam przykład występuje w obu wymaganiach. Do rozstrzygnięcia, czym w MVP różni się poziom gotowości od kamienia milowego. — Owner: zespół. Block: nie blokuje planowania; rozstrzygnąć na starcie planu S-08.
+
+Rozstrzygnięte 2026-10-03:
+
+- **Offline i prywatność poza NFR:** oba wracają w PRD jako twarde NFR (offline-first, dane nie opuszczają urządzenia). Zakres offline dla mapy i trasy: PRD „Mapa i nawigacja offline w MVP”.
 
 ## Parked
 
@@ -220,7 +223,6 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Warstwa społeczności** — Why parked: PRD §Non-Goals; MVP obsługuje jedno gospodarstwo domowe.
 - **Przeliczanie trasy offline** — Why parked: PRD §Non-Goals; w MVP po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci.
 - **Szyfrowany transfer planu** — Why parked: PRD §Non-Goals; przekazanie w najprostszej formie (FR-010).
-- **Twarde gwarancje pełnego offline i prywatności** — Why parked: PRD §Non-Goals i Otwarte pytanie 1.
 - **Punkty i streaki** — Why parked: PRD §Non-Goals; odrzucone w decyzjach zakresowych.
 - **Role domowników i scenariusze (FR-005)** — Why parked: nice-to-have; w MVP jeden wspólny plan.
 - **Kamienie milowe gotowości (FR-016)** — Why parked: nice-to-have; cel „szybkość do demo”.
