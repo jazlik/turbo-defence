@@ -439,11 +439,11 @@ Pierwsza migracja schematu planu w tym projekcie. `schemaVersion: 1` z pojedyncz
 
 #### Automated
 
-- [x] 3.1 Lint przechodzi: `npm run lint`
-- [x] 3.2 Typy przechodzą: `npx astro check`
-- [x] 3.3 Testy przechodzą: `npm test`
-- [x] 3.4 Build przechodzi: `npm run build`
-- [x] 3.5 Smoke przechodzi: `npm run smoke`
+- [x] 3.1 Lint przechodzi: `npm run lint` — 481ee72
+- [x] 3.2 Typy przechodzą: `npx astro check` — 481ee72
+- [x] 3.3 Testy przechodzą: `npm test` — 481ee72
+- [x] 3.4 Build przechodzi: `npm run build` — 481ee72
+- [x] 3.5 Smoke przechodzi: `npm run smoke` — 481ee72
 
 #### Manual
 
