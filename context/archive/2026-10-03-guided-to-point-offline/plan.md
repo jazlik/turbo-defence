@@ -11,8 +11,8 @@ PRD: US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnien
 
 Po `F-01` repozytorium jest statyczną PWA bez backendu i to wszystko, co mamy:
 
-- `src/pages/index.astro` renderuje `src/components/Welcome.astro` — stronę ze startera: gradient `bg-cosmic` i nagłówek w gradiencie blue→purple→pink. To estetyka jawnie zakazana w `JEZYK_WIZUALNY.md` §2 i §17.
-- `src/styles/global.css:6-73` zawiera nietkniętą paletę shadcn (oklch, neutral). Żaden token z `JEZYK_WIZUALNY.md` §6 nie istnieje w kodzie.
+- `src/pages/index.astro` renderuje `src/components/Welcome.astro` — po PR #16 ekran powitalny w nowym języku wizualnym, ale bez żadnej funkcji produktu.
+- PR #16 dostarczył warstwę wizualną: font Commissioner (self-hostowany `.woff2`), tokeny §6 w `src/styles/global.css` z osobnym zestawem dla `[data-mode="execution"]` (`global.css:101-134`: `--background` #0b1117, `--foreground` #f3f7fa, `--muted-foreground` #a8b5c0, `--guidance` #f2c15c, `--safe` #6bc49b), mapowanie na klasy Tailwind w `@theme inline` (`bg-background`, `text-guidance`, `text-safe`…), wariant `execution:` oraz prop `mode: "preparation" | "execution"` w `src/layouts/Layout.astro`, który ustawia `data-mode` i `theme-color`. Wzorzec użycia: `src/pages/design.astro`.
 - Nie ma żadnej warstwy zapisu danych: brak `src/types.ts`, brak `src/lib/services/`, brak jakiegokolwiek dostępu do localStorage czy IndexedDB.
 - Jedyny komponent React to `src/components/ui/button.tsx` (shadcn). Nie ma ani jednego islandu na stronie.
 - Nie ma frameworka testów. CI (`.github/workflows/ci.yml`) uruchamia `npm ci`, `astro sync`, `npm run lint`, `npx astro check`, `npm run build`, osobno `npm run smoke`, a na `main` deploy i smoke na żywo.
@@ -25,7 +25,7 @@ Czyli: cała logika, cały zapis danych, cała obsługa czujników i oba realne 
 
 Na telefonie, pod publicznym adresem `https://w-razie-w.jzogala.workers.dev`, po jednym otwarciu online:
 
-1. Strona domowa pokazuje stan planu („Punkt ewakuacji: nie wskazano" albo nazwę i odległość), przycisk zapisu punktu, odnośnik do sprawdzenia czujników i przycisk alarmu.
+1. Strona domowa pokazuje stan planu („Punkt ewakuacji: nie wskazano" albo nazwę i współrzędne), przycisk zapisu punktu, odnośnik do sprawdzenia czujników i przycisk alarmu.
 2. Organizator zapisuje punkt — przyciskiem „Ustaw tutaj" (bieżąca pozycja z GPS) albo wpisując współrzędne. Plan ląduje w localStorage i przeżywa zamknięcie aplikacji.
 3. Ekran „Sprawdź czujniki" pyta o zgody, pokazuje na żywo pozycję z dokładnością i kurs kompasu, i zapisuje ostatnią znaną pozycję.
 4. Włączony tryb samolotowy. Przytrzymanie alarmu przez 2 s przenosi na `/alarm`, gdzie natychmiast widać cel i instrukcję, a strzałka z odległością pojawia się od razu z ostatniej znanej pozycji (z podpisem czasu) i przełącza się na bieżącą po pierwszym fixie.
@@ -35,10 +35,10 @@ Weryfikacja: `npm run lint`, `npx astro check`, `npm test`, `npm run build`, `np
 
 ### Key Discoveries
 
-- **Strona domowa jest objęta kontraktem smoke testu.** `scripts/smoke.mjs:20` wymaga `data-offline-status` w HTML `/`; element pochodzi z `src/components/Welcome.astro:10`, a skrypt rejestrujący SW w `src/layouts/Layout.astro:33` go wypełnia. Przebudowa strony musi zachować i atrybut, i działanie skryptu.
+- **Strona domowa jest objęta kontraktem smoke testu.** `scripts/smoke.mjs:20` wymaga `data-offline-status` w HTML `/`; element pochodzi z `src/components/Welcome.astro:67`, a skrypt rejestrujący SW w `src/layouts/Layout.astro:39` go wypełnia. Przebudowa strony musi zachować i atrybut, i działanie skryptu.
 - **localStorage jest tu wyborem wydajnościowym, nie tylko prostotą.** Odczyt jest synchroniczny, więc `/alarm` renderuje cel i instrukcję w pierwszym przebiegu Reacta, bez stanu ładowania — to jest mechanizm spełnienia NFR „pierwszy krok < 2 s".
 - **Kompas to dwa różne API.** iOS podaje `event.webkitCompassHeading` (stopnie od północy, zgodnie z ruchem wskazówek) i wymaga `DeviceOrientationEvent.requestPermission()` wywołanego z gestu użytkownika. Chromium na Androidzie używa zdarzenia `deviceorientationabsolute` i `event.alpha` liczonego przeciwnie do ruchu wskazówek, czyli kurs to `(360 - alpha) % 360`. Obie ścieżki wymagają HTTPS — mamy je pod workers.dev.
-- **Nowe strony wchodzą do precache bez zmian w konfiguracji.** Glob w `scripts/generate-sw.mjs:5` łapie `**/*.html`, więc `dist/alarm/index.html` i `dist/czujniki/index.html` są precache'owane automatycznie. Gdybyśmy dodali webfont, musi być self-hostowany `.woff2`, inaczej wypadnie z precache.
+- **Nowe strony wchodzą do precache, ale przy domyślnym `build.format: "directory"` service worker ich nie znajdzie.** Glob w `scripts/generate-sw.mjs:5` łapie `**/*.html`, więc `dist/alarm/index.html` trafia do precache jako `alarm/index.html`. Workbox dla nawigacji na `/alarm` sprawdza jednak tylko `/alarm` i `/alarm.html` (`index.html` dokleja wyłącznie do ścieżek kończących się `/`), więc nie trafia i `navigateFallback` podaje `/index.html` — stronę domową, online i offline. Ten sam błąd ma już `/design`. Dlatego w fazie 2 przełączamy `build.format` na `"file"` (`dist/alarm.html`), co `cleanURLs` w Workboxie dopasowuje do `/alarm`. Smoke tego nie wykryje, bo zwykły `fetch` omija SW — pilnuje tego test ręczny offline.
 - **Odległości referencyjne do testów są wyliczone i sprawdzone**: Warszawa Centrum (52.2297, 21.0122) → Kraków Rynek (50.0647, 19.9450) = 251 977 m, azymut 197,6°; Centrum → PKiN (52.2317, 21.0059) = 483,3 m, azymut 297,4°; 1° szerokości na równiku = 111 195 m, azymut 0°; ten sam punkt = 0 m.
 
 ## What We're NOT Doing
@@ -48,7 +48,7 @@ Weryfikacja: `npm run lint`, `npx astro check`, `npm test`, `npm run build`, `np
 - **Sekwencja kroków i wyjście „niedostępne" na miejsce zapasowe** — S-02 (`step-flow-and-fallback`). `/alarm` prowadzi do jednego punktu.
 - **Voice guidance** — S-03.
 - **Domownicy, plecak, onboarding, ekran gotowości, udostępnianie** — S-05…S-09.
-- **Globalna warstwa tokenów z `JEZYK_WIZUALNY.md` §6.** Decyzja zespołu: osobne zadanie po demie. W tym slice'ie wartości §6 wchodzą lokalnie w dwa nowe ekrany; `global.css` i paleta shadcn zostają nietknięte. Gradientu `bg-cosmic` nie przenosimy do nowego markupu.
+- **Zmiany w warstwie tokenów.** Tokeny z PR #16 wystarczają; ten slice ich używa i nie dopisuje nowych do `global.css`. Żadnych hexów wpisanych lokalnie w komponentach.
 - **Tryb demo z symulowaną pozycją.** Decyzja zespołu: bez planu B, demo na zewnątrz na realnych czujnikach. Ryzyko przyjęte świadomie — patrz Open Risks w `plan-brief.md`.
 - **Wibracje** — wycięte z Execution Mode decyzją zespołu (US-01, odstępstwo od `PROJECT.md` 4.1 pkt 6).
 - **Testy komponentów React.** Vitest wchodzi wyłącznie dla czystych funkcji geo.
@@ -69,7 +69,7 @@ Wszystkie wyspy montujemy jako `client:only="react"`, bo każda czyta localStora
 
 ## Critical Implementation Details
 
-**Timing i cykl życia zgód.** `DeviceOrientationEvent.requestPermission()` na iOS działa tylko wywołane bezpośrednio z obsługi gestu użytkownika (kliknięcie przycisku), nigdy z `useEffect`. Dlatego żądanie zgody na kompas żyje na ekranie `/czujniki` za jawnym przyciskiem, a nie przy wejściu na `/alarm` — na `/alarm` tylko podłączamy nasłuch i obsługujemy przypadek braku zgody fallbackiem na azymut z ruchu.
+**Timing i cykl życia zgód.** `DeviceOrientationEvent.requestPermission()` na iOS działa tylko wywołane bezpośrednio z obsługi gestu użytkownika (kliknięcie przycisku), nigdy z `useEffect`. Dlatego żądanie zgody na kompas żyje na ekranie `/czujniki` za jawnym przyciskiem, a nie przy wejściu na `/alarm` — na `/alarm` tylko podłączamy nasłuch i obsługujemy przypadek braku zgody fallbackiem na azymut z ruchu. Zgoda iOS nie jest pewnie pamiętana między uruchomieniami PWA, więc `/alarm` ma też awaryjną ścieżkę z gestu: gdy `DeviceOrientationEvent.requestPermission` istnieje, a przez ~1 s nie przyszło żadne zdarzenie kompasu, pokazuje drugorzędny przycisk „Włącz kompas", który wywołuje `requestHeadingPermission()` bezpośrednio w obsłudze kliknięcia.
 
 **Sekwencja stanów na `/alarm`.** Kolejność ma znaczenie dla NFR: najpierw synchroniczny odczyt planu i render celu oraz instrukcji, potem w `useEffect` start `watchPosition` i nasłuchu kompasu. Odwrotna kolejność (czekanie na pozycję przed pierwszym renderem) łamie próg 2 s przy zimnym fixie, który realnie trwa 10–30 s.
 
@@ -132,7 +132,7 @@ Daty jako łańcuchy ISO 8601, nie `Date` — plan musi przejść przez `JSON.st
 
 **Intent**: Dodać vitest jako jedyną nową zależność dev i wpuścić testy do CI, żeby regresja w geo zatrzymywała merge.
 
-**Contract**: `vitest` w `devDependencies` z przypiętą wersją, skrypt `"test": "vitest run"`. W jobie `ci` krok `npm test` po `npm run lint`. Środowisko domyślne (node), bez jsdom — testujemy wyłącznie funkcje czyste. Jeśli reguły ESLint z type-checkiem zgłoszą plik testowy poza `tsconfig`, dopisać go do zakresu zamiast wyciszać regułę.
+**Contract**: `vitest` w `devDependencies` przypięty na `5.0.3` (peer `vite` `^6.4.0 || ^7.0.0 || ^8.0.0` obejmuje Vite 8.3 z Astro 7; po instalacji `npm ls vite` musi pokazać jedną kopię), skrypt `"test": "vitest run"`. W jobie `ci` krok `npm test` po `npm run lint`. Środowisko domyślne (node), bez jsdom — testujemy wyłącznie funkcje czyste. Jeśli reguły ESLint z type-checkiem zgłoszą plik testowy poza `tsconfig`, dopisać go do zakresu zamiast wyciszać regułę.
 
 ### Success Criteria
 
@@ -174,7 +174,7 @@ Dwa ekrany Preparation Mode, które zapełniają plan danymi: strona domowa z za
 
 **Intent**: Kurs urządzenia z kompasu, a gdy kompasu lub zgody nie ma — azymut z kolejnych pozycji GPS. Pokrywa oba warunki: użytkownik stoi i użytkownik idzie.
 
-**Contract**: `useHeading(positions: Coordinates[])` zwraca `{ heading: number | null, source: "compass" | "movement" | null }`. Normalizacja kursu jest różna na obu platformach i to jest sedno tego pliku:
+**Contract**: `useHeading(coords: Coordinates | null, accuracyMeters: number | null)` zwraca `{ heading: number | null, source: "compass" | "movement" | null }`. Normalizacja kursu jest różna na obu platformach i to jest sedno tego pliku:
 
 ```ts
 // iOS Safari: webkitCompassHeading już jest stopniami od północy, zgodnie z ruchem wskazówek
@@ -183,7 +183,9 @@ const heading =
   typeof e.webkitCompassHeading === "number" ? e.webkitCompassHeading : (360 - e.alpha) % 360;
 ```
 
-Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływane wyłącznie z obsługi gestu (iOS). Fallback na azymut z ruchu aktywuje się, gdy nie ma kursu z kompasu, a dystans między dwiema ostatnimi pozycjami przekroczył 5 m.
+Przypadki brzegowe: zdarzenia z `alpha === null` (Android) ignorujemy; `webkitCompassHeading` nie ma w `lib.dom`, więc lokalny typ `type CompassEvent = DeviceOrientationEvent & { webkitCompassHeading?: number }` zamiast `any`; przeglądarka bez `deviceorientationabsolute` i bez `webkitCompassHeading` (np. Firefox na Androidzie) to brak kompasu, czyli od razu fallback z ruchu — zwykłe `deviceorientation` z względną `alpha` nie wskazuje północy i go nie używamy. Obsługujemy tylko orientację pionową, bez kompensacji `screen.orientation.angle`.
+
+Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływane wyłącznie z obsługi gestu (iOS). Fallback na azymut z ruchu aktywuje się, gdy nie ma kursu z kompasu. Hook sam trzyma punkt odniesienia w `useRef` (bez historii przekazywanej z zewnątrz): azymut z ruchu to `bearingDegrees(odniesienie, coords)` i jest liczony, a odniesienie przesuwane, dopiero gdy `distanceMeters(odniesienie, coords) > max(10, accuracyMeters)` — próg poniżej szumu GPS (5–20 m) kręciłby strzałką stojącego użytkownika. Do tego czasu zostaje poprzedni kurs z ruchu albo `null`.
 
 #### 3. Karta punktu ewakuacji
 
@@ -199,7 +201,7 @@ Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływa
 
 **Intent**: Zastąpić stronę ze startera realnym ekranem Preparation Mode: stan planu, zapis punktu, odnośnik do czujników, przycisk alarmu.
 
-**Contract**: Statyczny HTML Astro z dwiema wyspami (`EvacuationPointCard`, `AlarmButton`, obie `client:only="react"`). **Musi zachować element z atrybutem `data-offline-status`** — `scripts/smoke.mjs:20` go wymaga, a skrypt w `src/layouts/Layout.astro:33` go wypełnia. Układ mobile-first, neutralne tło, jedna dominująca akcja na sekcję (`JEZYK_WIZUALNY.md` §4). Żadnego `bg-cosmic` ani gradientowych nagłówków. Usuwa `src/components/Welcome.astro`.
+**Contract**: Statyczny HTML Astro z dwiema wyspami (`EvacuationPointCard`, `AlarmButton`, obie `client:only="react"`). **Musi zachować element z atrybutem `data-offline-status`** — `scripts/smoke.mjs:20` go wymaga, a skrypt w `src/layouts/Layout.astro:39` go wypełnia. Układ mobile-first, neutralne tło, jedna dominująca akcja na sekcję (`JEZYK_WIZUALNY.md` §4). Kolory wyłącznie z tokenów (`<Layout>` w trybie domyślnym `preparation`). Usuwa `src/components/Welcome.astro`.
 
 #### 5. Ekran sprawdzenia czujników
 
@@ -209,6 +211,14 @@ Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływa
 
 **Contract**: Dwa jawne przyciski: „Sprawdź lokalizację" i „Sprawdź kompas" (ten drugi wywołuje `requestHeadingPermission()` bezpośrednio w obsłudze kliknięcia — warunek iOS). Pokazuje na żywo szerokość, długość, dokładność w metrach, kurs w stopniach i źródło kursu. Każdy fix zapisuje `lastKnownPosition`. Dla każdego czujnika jeden z trzech wyników, z tekstem i ikoną, nie tylko kolorem: działa / brak zgody / niedostępny. Przy braku zgody komunikat mówi, co zrobić (ustawienia przeglądarki), zgodnie z `JEZYK_WIZUALNY.md` §13.
 
+#### 6. Format builda zgodny z service workerem
+
+**File**: `astro.config.mjs`
+
+**Intent**: Sprawić, żeby nawigacja na `/czujniki`, `/alarm` (i istniejące `/design`) trafiała w precache, a nie w `navigateFallback` na stronę domową.
+
+**Contract**: `build: { format: "file" }` — strony lądują jako `dist/czujniki.html`, `dist/alarm.html`; Workbox (`cleanURLs`) dopasowuje `/alarm` → `/alarm.html`, a assets Cloudflare serwują `/alarm` z `alarm.html`. Linki i `location.assign` używają adresów bez ukośnika na końcu. `scripts/generate-sw.mjs` bez zmian.
+
 ### Success Criteria
 
 #### Automated Verification
@@ -217,7 +227,7 @@ Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływa
 - Typy przechodzą: `npx astro check`
 - Build przechodzi: `npm run build`
 - Smoke przechodzi po przebudowie strony domowej: `npm run smoke`
-- `dist/czujniki/index.html` istnieje po buildzie
+- `dist/czujniki.html` istnieje po buildzie
 
 #### Manual Verification
 
@@ -225,6 +235,7 @@ Eksportuje też `requestHeadingPermission(): Promise<PermissionState>` wywoływa
 - Wpis współrzędnych „52.2297, 21.0122" zapisuje punkt, a wpis „abc" i „200, 0" pokazuje błąd i nie psuje planu
 - Na `/czujniki` na Androidzie i iOS oba czujniki raportują wynik, a kurs zmienia się przy obracaniu telefonem
 - Odmowa zgody na lokalizację daje czytelny komunikat, a nie puste pole
+- Po jednym otwarciu online, w trybie samolotowym, wejście na `/czujniki` i `/design` pokazuje te strony, a nie stronę domową
 
 **Implementation Note**: Po zaliczeniu weryfikacji automatycznej zatrzymaj się na potwierdzenie testów ręcznych na realnym telefonie (oba systemy, jeśli są dostępne), zanim przejdziesz do fazy 3.
 
@@ -261,7 +272,9 @@ Serce slice'u: przycisk alarmu chroniony przytrzymaniem i ekran Execution Mode z
 | Prowadzenie | jest fix albo `lastKnownPosition` | Strzałka obrócona o `relativeBearing`, odległość, podpis „w linii prostej"; przy danych z `lastKnownPosition` dodatkowo „dane z HH:MM" i przygaszona strzałka |
 | Na miejscu | odległość < 25 m | „Jesteś na miejscu", bez strzałki |
 
-Kolory bezpośrednio z `JEZYK_WIZUALNY.md` §6, lokalnie w komponencie (bez zmian w `global.css`): tło `#0B1117`, tekst `#F3F7FA`, tekst pomocniczy `#A8B5C0`, strzałka i odległość `#F2C15C`, stan „na miejscu" `#6BC49B`. Odległość cyframi tabularnymi (§8). Jedna akcja drugorzędna „Wyjdź z trybu alarmu", wyraźnie podrzędna wobec prowadzenia — bez czerwieni, bo nie jest to akcja awaryjna (wyjście „niedostępne" przychodzi w S-02). Każdy fix aktualizuje `lastKnownPosition`, żeby następne wejście w tryb alarmu startowało ze świeższych danych.
+Addendum (impl-review F2, F3, F7): „Na miejscu" potwierdza wyłącznie żywy fix (młodszy niż 20 s). Dane nieaktualne — `lastKnownPosition` albo fix, po którym `watchPosition` zamilkł — w promieniu 25 m dają „Szukam sygnału GPS", bo „Ustaw tutaj" zapisuje sam punkt jako ostatnią pozycję. Fix starszy niż 20 s jest pokazywany jak `lastKnownPosition` (przygaszona strzałka, „Dane z …", z datą, gdy nie dziś). Przy `status` `denied` lub `unavailable` zamiast „Szukam sygnału GPS" ekran mówi, co zrobić.
+
+Strona renderowana przez `<Layout mode="execution">`, kolory wyłącznie z tokenów §6 przez klasy Tailwind (wzorzec: `src/pages/design.astro`): tło `bg-background`, tekst `text-foreground`, tekst pomocniczy `text-muted-foreground`, strzałka i odległość `text-guidance`, stan „na miejscu" `text-safe`. Bez hexów w komponencie. Odległość cyframi tabularnymi (§8). Jedna akcja drugorzędna „Wyjdź z trybu alarmu", wyraźnie podrzędna wobec prowadzenia — bez czerwieni, bo nie jest to akcja awaryjna (wyjście „niedostępne" przychodzi w S-02). Każdy fix aktualizuje `lastKnownPosition`, żeby następne wejście w tryb alarmu startowało ze świeższych danych. Ekran nie może gasnąć w marszu: w efekcie `navigator.wakeLock?.request("screen")`, zwolnienie w funkcji sprzątającej, ponowne przejęcie przy `visibilitychange` (blokada przepada po zminimalizowaniu); brak wsparcia lub odmowa — cicho pomijamy, bez komunikatu.
 
 #### 3. Strzałka kierunku
 
@@ -277,7 +290,7 @@ Kolory bezpośrednio z `JEZYK_WIZUALNY.md` §6, lokalnie w komponencie (bez zmia
 
 **Intent**: Pilnować, że `/alarm` istnieje w buildzie i jest w liście precache SW — bez tego regresja w routingu albo w globie wyjdzie dopiero na telefonie w trybie samolotowym.
 
-**Contract**: Dodaje `get("/alarm")` ze sprawdzeniem, że odpowiedź jest HTML, oraz asercję, że treść `/sw.js` zawiera `alarm/index.html`. Analogicznie dla `/czujniki`. Zachowuje obecny kontrakt na `/`, manifest i ikony.
+**Contract**: Dodaje `get("/alarm")` ze sprawdzeniem, że odpowiedź jest HTML, oraz asercję, że treść `/sw.js` zawiera `alarm.html`. Analogicznie dla `/czujniki` (`czujniki.html`). Zachowuje obecny kontrakt na `/`, manifest i ikony.
 
 ### Success Criteria
 
@@ -288,7 +301,7 @@ Kolory bezpośrednio z `JEZYK_WIZUALNY.md` §6, lokalnie w komponencie (bez zmia
 - Testy przechodzą: `npm test`
 - Build przechodzi: `npm run build`
 - Smoke z nowymi asercjami przechodzi: `npm run smoke`
-- `/sw.js` zawiera `alarm/index.html` w liście precache
+- `/sw.js` zawiera `alarm.html` w liście precache
 
 #### Manual Verification
 
@@ -298,6 +311,8 @@ Kolory bezpośrednio z `JEZYK_WIZUALNY.md` §6, lokalnie w komponencie (bez zmia
 - Odległość maleje w trakcie przejścia w stronę punktu i poniżej 25 m pojawia się „Jesteś na miejscu"
 - Przy odmówionej zgodzie na kompas strzałka działa po kilku krokach marszu (fallback na azymut z ruchu)
 - Wejście na `/alarm` bez zapisanego punktu pokazuje komunikat, a nie pusty ekran ani błąd
+- Ekran na `/alarm` nie gaśnie przez 2 min marszu bez dotykania telefonu
+- Na iOS po zamknięciu i ponownym uruchomieniu PWA `/alarm` pokazuje „Włącz kompas", jeśli kompas milczy, a dotknięcie przywraca kurs z kompasu
 
 **Implementation Note**: Po zaliczeniu weryfikacji automatycznej zatrzymaj się na potwierdzenie testów ręcznych w terenie, zanim przejdziesz do fazy 4.
 
@@ -333,7 +348,7 @@ Zamknięcie slice'u: potwierdzenie całej ścieżki na telefonie pod publicznym 
 
 **Intent**: Nowa komenda i nowa konwencja muszą być w pliku, który agent czyta na starcie.
 
-**Contract**: W bloku Commands dopisać `npm test` (vitest, tylko funkcje czyste w `src/lib/`). W Key conventions dopisać, że wyspy czytające localStorage montujemy jako `client:only="react"`, oraz że kolory Execution Mode są wpisane lokalnie w komponentach do czasu osobnego zadania o warstwie tokenów.
+**Contract**: W bloku Commands dopisać `npm test` (vitest, tylko funkcje czyste w `src/lib/`). W Key conventions dopisać, że wyspy czytające localStorage montujemy jako `client:only="react"`, oraz że ekrany Execution Mode używają `<Layout mode="execution">` i tokenów z `global.css`, nie hexów w komponentach.
 
 ### Success Criteria
 
@@ -405,52 +420,55 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 #### Automated
 
-- [ ] 1.1 Testy przechodzą: `npm test`
-- [ ] 1.2 Lint przechodzi: `npm run lint`
-- [ ] 1.3 Typy przechodzą: `npx astro check`
-- [ ] 1.4 Build przechodzi: `npm run build`
-- [ ] 1.5 CI uruchamia `npm test` w jobie `ci`
+- [x] 1.1 Testy przechodzą: `npm test` — 958fe22
+- [x] 1.2 Lint przechodzi: `npm run lint` — 958fe22
+- [x] 1.3 Typy przechodzą: `npx astro check` — 958fe22
+- [x] 1.4 Build przechodzi: `npm run build` — 958fe22
+- [x] 1.5 CI uruchamia `npm test` w jobie `ci` — 958fe22
 
 #### Manual
 
-- [ ] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test
+- [x] 1.6 Celowa zmiana znaku w `bearingDegrees` wywala test — 958fe22
 
 ### Phase 2: Przygotowanie — punkt ewakuacji i sprawdzenie czujników
 
 #### Automated
 
-- [ ] 2.1 Lint przechodzi: `npm run lint`
-- [ ] 2.2 Typy przechodzą: `npx astro check`
-- [ ] 2.3 Build przechodzi: `npm run build`
-- [ ] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke`
-- [ ] 2.5 `dist/czujniki/index.html` istnieje po buildzie
+- [x] 2.1 Lint przechodzi: `npm run lint` — f2a799e
+- [x] 2.2 Typy przechodzą: `npx astro check` — f2a799e
+- [x] 2.3 Build przechodzi: `npm run build` — f2a799e
+- [x] 2.4 Smoke przechodzi po przebudowie strony domowej: `npm run smoke` — f2a799e
+- [x] 2.5 `dist/czujniki.html` istnieje po buildzie — f2a799e
 
 #### Manual
 
 - [ ] 2.6 „Ustaw tutaj" zapisuje punkt, który przeżywa ponowne otwarcie aplikacji
-- [ ] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu
+- [x] 2.7 Wpis współrzędnych działa, a niepoprawny wpis pokazuje błąd i nie psuje planu — f2a799e
 - [ ] 2.8 Na `/czujniki` oba czujniki raportują wynik, a kurs reaguje na obrót telefonu
-- [ ] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat
+- [x] 2.9 Odmowa zgody na lokalizację daje czytelny komunikat — f2a799e
+- [x] 2.10 `/czujniki` i `/design` otwierają się offline jako właściwe strony — f2a799e
 
 ### Phase 3: Prowadzenie — alarm i ekran `/alarm`
 
 #### Automated
 
-- [ ] 3.1 Lint przechodzi: `npm run lint`
-- [ ] 3.2 Typy przechodzą: `npx astro check`
-- [ ] 3.3 Testy przechodzą: `npm test`
-- [ ] 3.4 Build przechodzi: `npm run build`
-- [ ] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke`
-- [ ] 3.6 `/sw.js` zawiera `alarm/index.html` w liście precache
+- [x] 3.1 Lint przechodzi: `npm run lint` — 766f23e
+- [x] 3.2 Typy przechodzą: `npx astro check` — 766f23e
+- [x] 3.3 Testy przechodzą: `npm test` — 766f23e
+- [x] 3.4 Build przechodzi: `npm run build` — 766f23e
+- [x] 3.5 Smoke z nowymi asercjami przechodzi: `npm run smoke` — 766f23e
+- [x] 3.6 `/sw.js` zawiera `alarm.html` w liście precache — 766f23e
 
 #### Manual
 
 - [ ] 3.7 Cel i instrukcja widoczne w mniej niż 2 s od zwolnienia alarmu (stoper)
-- [ ] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu
+- [x] 3.8 Zwolnienie przycisku po 1 s nie uruchamia trybu alarmu — 766f23e
 - [ ] 3.9 Strzałka obraca się z telefonem i wskazuje w stronę punktu
 - [ ] 3.10 Odległość maleje w marszu, a poniżej 25 m pojawia się „Jesteś na miejscu"
 - [ ] 3.11 Przy odmówionej zgodzie na kompas działa fallback na azymut z ruchu
-- [ ] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd
+- [x] 3.12 `/alarm` bez zapisanego punktu pokazuje komunikat, nie błąd — 766f23e
+- [ ] 3.13 Ekran na `/alarm` nie gaśnie przez 2 min marszu
+- [ ] 3.14 Na iOS po ponownym uruchomieniu „Włącz kompas" przywraca kurs z kompasu
 
 ### Phase 4: Weryfikacja offline i domknięcie dokumentów
 
@@ -463,5 +481,5 @@ Brak danych do migracji — slice wprowadza pierwszy zapis lokalny w historii pr
 
 - [ ] 4.3 Cała ścieżka przechodzi na telefonie w trybie samolotowym
 - [ ] 4.4 Plan przeżywa zamknięcie i ponowne otwarcie aplikacji bez sieci
-- [ ] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed`
-- [ ] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP
+- [x] 4.5 `roadmap.md` ma `S-01` jako `done` i `S-10` jako `proposed` — 629f098
+- [x] 4.6 Żaden dokument nie opisuje automatycznego wyboru schronu jako części MVP — 629f098

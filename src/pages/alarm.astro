@@ -1,0 +1,10 @@
+---
+import GuidanceScreen from "@/components/GuidanceScreen";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Alarm — W razie W" mode="execution">
+  <div class="mx-auto min-h-screen max-w-lg bg-background text-foreground">
+    <GuidanceScreen client:only="react" />
+  </div>
+</Layout>

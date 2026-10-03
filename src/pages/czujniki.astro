@@ -1,0 +1,27 @@
+---
+import { ArrowLeft } from "lucide-react";
+
+import SensorCheck from "@/components/SensorCheck";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Sprawdź czujniki — W razie W">
+  <main class="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8 sm:py-12">
+    <div class="mx-auto max-w-2xl">
+      <a
+        href="/"
+        class="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm font-medium text-core-steel-deep outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <ArrowLeft className="size-5" strokeWidth={2} aria-hidden="true" />
+        Wróć do planu
+      </a>
+      <h1 class="font-heading mt-4 text-3xl tracking-[-0.015em] sm:text-4xl">Sprawdź czujniki</h1>
+      <p class="mt-3 text-lg text-muted-foreground">
+        Zrób to teraz, na spokojnie. W kryzysie aplikacja skorzysta z udzielonych zgód i z ostatniej zapisanej pozycji.
+      </p>
+      <div class="mt-8">
+        <SensorCheck client:only="react" />
+      </div>
+    </div>
+  </main>
+</Layout>

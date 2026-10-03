@@ -10,7 +10,7 @@ target_scale:
   qps: low
   data_volume: small
 timeline_budget:
-  mvp_weeks: 1          # faktycznie 24 godziny (hackathon)
+  mvp_weeks: 1 # faktycznie 24 godziny (hackathon)
   hard_deadline: null
   after_hours_only: true
 ---
@@ -36,11 +36,13 @@ Główny ból, który demo ma udowodnić, ma dwie części: (1) zachęcić i pop
 Państwo samo potwierdza problem i zostawia go nierozwiązanym. Papierowy poradnik bezpieczeństwa (16 mln egzemplarzy) zawiera wzór rodzinnego planu na kryzys i wprost każe go przećwiczyć, ale cyfrowe odpowiedniki tego nie robią: mObywatel daje pięć sekcji wiedzy ogólnej, #wGotowości quizy i zapisy na szkolenia, GdzieSięUkryć.pl mapę punktów schronienia.
 
 Warstwy, na których nie konkurujemy:
+
 - **Treść** (zasady postępowania, plecak, sygnały, numery SOS). Darmowa, oficjalna, w aplikacjach, które ludzie już mają. Powołujemy się na nią i personalizujemy (FR-003), nie duplikujemy jej.
 - **Mapa schronów.** Buduje ją PSP w GdzieSięUkryć.pl. W MVP punkt wskazuje organizator ręcznie (FR-004, Non-Goals).
 - **Zasięg i cena.** mObywatel ma ponad 12 mln użytkowników i jest darmowy.
 
 Czym się różnimy:
+
 - **Execution Mode.** Jedyne z tych narzędzi, które przechodzi od „co się stało?” do „co mam teraz zrobić?”. Duża strzałka zamiast mapy (FR-014), głos (FR-015), jedno wyjście awaryjne na miejsce zapasowe (FR-013). GdzieSięUkryć.pl przekierowuje nawigację do Map Google.
 - **Rodzina jako jednostka.** Aplikacje państwowe działają na jedno konto i jedną tożsamość (mObywatel wymaga pełnoletności i mDowodu, #wGotowości logowania Profilem Zaufanym), a problem zaczyna się dopiero wtedy, gdy domownicy są w różnych miejscach (FR-002, FR-010, FR-011).
 - **Offline-first i dane wyłącznie na urządzeniu.** Według wszystkich trzech analiz to element najtrudniejszy do skopiowania przez aplikację rządową. Dlatego są twardymi NFR, nie udogodnieniem.
@@ -49,6 +51,7 @@ Czym się różnimy:
 Pozycjonowanie jednym zdaniem: **mObywatel mówi, co wiedzieć. My mówimy, co Twoja rodzina konkretnie zrobi, i prowadzimy ją przez to bez sieci.**
 
 Ryzyka:
+
 - **#wGotowości ma od marca 2026 moduł „Plan na kryzys”.** Treści nie udało się zweryfikować z zewnątrz. Potencjalnie bezpośredni konkurent rdzenia produktu. Patrz Open Questions.
 - **Państwo może dodać plan rodzinny do mObywatela.** Wzór już istnieje, a aplikacja szybko dostaje nowe moduły (poradnik w lutym, Odyseusz w lipcu 2026).
 - **Gamifikacja nie jest wyróżnikiem.** #wGotowości ma już punkty, odznaki i ranking. Niezależnie potwierdza to decyzję o odrzuceniu punktów i streaków (FR-016).
@@ -66,12 +69,15 @@ Ryzyka:
 ## Success Criteria
 
 ### Primary
+
 - Cały przepływ (kroki 1–8) przechodzi na żywo na scenie, a Execution Mode prowadzi do punktu w trybie samolotowym.
 
 ### Secondary
+
 - Domownik na drugim telefonie otrzymuje plan i wykonuje go.
 
 ### Guardrails
+
 - Brak guardrails w MVP. To świadoma decyzja zespołu na hackathon.
 
 ## User Stories
@@ -83,6 +89,7 @@ Ryzyka:
 - **Then** Execution Mode prowadzi go krok po kroku do punktu
 
 #### Acceptance Criteria
+
 - Główny widok to duża strzałka z odległością do punktu, a mapa z trasą jest drugim poziomem.
 - Każdy ekran pokazuje dokładnie jeden następny krok.
 - Głos czyta kroki domyślnie i można go wyłączyć.
@@ -104,12 +111,14 @@ Przepływ MVP (źródło: `PROJECT.md`, sekcje 5 i 8; zatwierdzony przez zespó�
 8. Kryzys: przycisk alarmu włącza Execution Mode, który prowadzi krok po kroku do punktu.
 
 Decyzje zakresowe:
+
 - **Zakres:** pełny, wszystkie 8 kroków, łącznie z mapą offline, trasą przygotowaną przy dostępie do sieci i voice guidance. Bez przeliczania trasy offline (patrz „Mapa i nawigacja offline w MVP”).
 - **Udostępnianie planu:** w MVP, w najprostszej formie, bez szyfrowanego transferu.
 - **Zachęta do przygotowań:** poziom gotowości (jakościowy) w MVP, jako część ekranu gotowości. Milestones zostają w nice-to-have, punkty i streaki odrzucone (FR-016).
 - **Voice:** po rundzie sokratejskiej wraca do MVP jako must-have (FR-015).
 
 ### Onboarding i plan
+
 - FR-001: Organizator może przejść interaktywny onboarding przygotowań (plecak, dokąd się ewakuować, plan dla rodziny). Priority: must-have
   > Socrates: Zarzut: „onboarding powtarza poradnik GOV, czyli to, co według tezy nie działa”. Rozstrzygnięcie: treść poradnika GOV jest dobra, słaba jest jego forma, bo nie jest interaktywna. Onboarding zostaje i przekazuje tę treść interaktywnie.
 - FR-002: Organizator może dodać domowników i kontakty awaryjne. Priority: must-have
@@ -122,6 +131,7 @@ Decyzje zakresowe:
   > Socrates: Zarzut: „bez ról dziecko dostaje ten sam plan co dorosły”. Rozstrzygnięcie: zostaje nice-to-have, w MVP jest jeden wspólny plan.
 
 ### Offline
+
 - FR-006: Organizator może zapisać plan lokalnie i korzystać z niego bez sieci. Priority: must-have
   > Socrates: Zarzut: „plan jest na jednym telefonie, więc gdy telefon padnie, plan znika”. Rozstrzygnięcie: przekazanie planu domownikom (FR-010) pełni rolę kopii zapasowej.
 - FR-007: Organizator może pobrać na urządzenie mapę większego obszaru (np. regionu lub województwa). Gdy urządzenie ma sieć, aplikacja okresowo aktualizuje lokalizację użytkownika i przygotowuje albo odświeża z niej trasę do wybranego punktu ewakuacji, bez ponownego pobierania mapy. Priority: must-have
@@ -142,18 +152,21 @@ Decyzja zespołu z 2026-10-03. „Offline” w produkcie dotyczy przede wszystki
 Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętrznego API, wyznacza nową trasę z aktualnej pozycji do punktu na podstawie lokalnej mapy.
 
 ### Gotowość
+
 - FR-008: Organizator widzi następny krok albo grupę kroków podnoszących gotowość, przedstawione jako quick wins (micro-missions), a nie jako lista braków. Priority: must-have
   > Socrates: Zarzut: „lista luk demotywuje, bo pokazuje porażkę zamiast postępu”. Rozstrzygnięcie: zmodyfikowane, luki są pokazywane jako quick wins. FR-018 (micro-missions) zostało tu wchłonięte.
 - FR-009: Organizator widzi poziom gotowości (Readiness level) wyrażony jakościowo (np. „72H Ready”), a nie procentem. Priority: must-have
   > Socrates: Zarzut: „procent daje fałszywe poczucie bezpieczeństwa”. Rozstrzygnięcie: zmodyfikowane, poziomy jakościowe zamiast procentów.
 
 ### Udostępnianie
+
 - FR-010: Organizator może przekazać plan domownikowi. Każda kopia pokazuje datę wersji, a nieprzekazane zmiany pojawiają się jako krok do wykonania na ekranie gotowości. Priority: must-have
   > Socrates: Zarzut: „domownik może mieć w kryzysie starą wersję planu”. Rozstrzygnięcie: zmodyfikowane, plan ma datę wersji i wykrywane są nieprzekazane zmiany.
 - FR-011: Domownik może otworzyć otrzymany plan tylko do odczytu, z wyjątkiem własnych danych, które może poprawić. Priority: must-have
   > Socrates: Zarzut: „domownik nie może poprawić oczywistego błędu we własnych danych”. Rozstrzygnięcie: zmodyfikowane, domownik może edytować własne dane.
 
 ### Execution Mode
+
 - FR-012: Organizator lub domownik może ręcznie uruchomić Execution Mode przyciskiem alarmu, chronionym przed przypadkowym uruchomieniem (przytrzymanie albo potwierdzenie). Priority: must-have
   > Socrates: Zarzut: „przypadkowe naciśnięcie w kieszeni uruchamia tryb kryzysowy”. Rozstrzygnięcie: zmodyfikowane, start wymaga przytrzymania albo potwierdzenia.
 - FR-013: W Execution Mode użytkownik jest prowadzony krok po kroku, z dużymi komunikatami (bez wibracji). Jedno wyjście awaryjne („niedostępne”) przełącza go na miejsce zapasowe. Priority: must-have
@@ -164,6 +177,7 @@ Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętr
   > Socrates: Zarzut: „w kryzysie użytkownik idzie i nie patrzy w ekran”. Rozstrzygnięcie: wraca do MVP jako must-have.
 
 ### Nice-to-have
+
 - FR-016: Organizator osiąga milestones gotowości (np. „72H Ready”), bez punktów i streaków. Priority: nice-to-have
   > Socrates: Zarzut: „gamifikacja ewakuacji może trywializować zagrożenie”. Rozstrzygnięcie: zmodyfikowane, zostają tylko poważne kamienie milowe.
 - FR-017: Organizator może przeprowadzić emergency drill i zobaczyć wykryte luki w planie. Priority: nice-to-have
@@ -197,7 +211,7 @@ Uwaga: model ról zakłada przekazanie planu domownikom. `PROJECT.md` ma tu sprz
 
 ## Non-Goals
 
-- **Bez własnej bazy i propozycji schronów.** Organizator wskazuje punkt ręcznie. Propozycje schronów i integracja z danymi państwowymi przychodzą po MVP (FR-004).
+- **Bez własnej bazy i propozycji schronów.** Organizator wskazuje punkt ręcznie. Propozycje schronów i integracja z danymi państwowymi przychodzą po MVP (FR-004). Automatyczny wybór najbliższego schronu z trasą jest zaplanowany po MVP jako `S-10` w `roadmap.md`.
 - **Bez automatycznego startu z alertów.** Execution Mode uruchamia się tylko ręcznie. Integracja z RSO i innymi alertami przychodzi po MVP (`PROJECT.md` 4.1 pkt 7).
 - **Bez warstwy społeczności.** Brak punktów pomocy, zasobów sąsiedzkich i koordynacji lokalnej, bo MVP obsługuje jedno gospodarstwo domowe.
 - **Bez przeliczania trasy offline.** Po utracie sieci prowadzenie korzysta z ostatniej trasy przygotowanej przy dostępie do sieci. Pełne przeliczanie trasy na urządzeniu przychodzi po MVP (FR-007).
@@ -212,5 +226,7 @@ Uwaga: model ról zakłada przekazanie planu domownikom. `PROJECT.md` ma tu sprz
 3. **Trasa a NFR „Dane nie opuszczają urządzenia”:** jeśli trasę przygotowuje zewnętrzny serwis, trafiają do niego lokalizacja użytkownika i punkt docelowy. NFR dopuszcza dziś jako jedyny ruch danych na zewnątrz przekazanie planu domownikowi. Do rozstrzygnięcia w planie S-04: wyjątek w NFR albo sposób przygotowania trasy bez wysyłania lokalizacji. Owner: zespół.
 
 Rozstrzygnięte 2026-10-03:
+
+- **Prowadzenie w S-01 (`guided-to-point-offline`).** Odległość do punktu w MVP jest liczona w linii prostej i tak podpisana w interfejsie; trasa przychodzi dopiero w S-04. Próg dojścia („Jesteś na miejscu”) to 25 m. Tryb demo z symulowaną pozycją został odrzucony — demo na zewnątrz, na realnych czujnikach.
 - **Mapa i nawigacja offline w MVP.** Mapa regionu na urządzeniu, trasa odświeżana z bieżącej lokalizacji, dopóki jest sieć, a po jej utracie prowadzenie po ostatniej trasie z GPS. Bez przeliczania trasy offline. Patrz FR-007 i „Mapa i nawigacja offline w MVP”.
 - **Offline i prywatność poza NFR.** Zespół wcześniej nie uznał ich za twarde wymagania MVP, co kłóciło się z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu, z kryterium akceptacji US-01 i z profilem lokalnym bez serwera. Decyzja: oba wracają jako twarde NFR. Patrz Non-Functional Requirements i Competitive Positioning.
