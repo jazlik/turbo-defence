@@ -28,6 +28,9 @@ Użytkownik widzi poziom (Zaczynamy → Podstawy → Gotowi do wyjścia → 72H 
 | Podstrony | `/miejsca`, `/offline`, istniejące zostają, wspólne „← Gotowość” | Nazwy zgodne z myśleniem użytkownika, bez „mapy” w tytule | Plan |
 | Strona główna | Poziom + jeden quick win + pasek obszarów; pełna lista na `/droga` | Prostota (§3 pkt 7 JV) i pełny obraz osobno | Plan |
 | Czujniki | Nowy klucz `wrw.sensors` | Jedyny stan, którego nie da się wyliczyć z istniejących danych | Plan |
+| Tryb offline (service worker) | Quick win „Włącz tryb offline” w modelu gotowości, karta stanu na `/offline`, blok ze strony głównej usunięty | Fundament NFR offline-first musi wpływać na poziom; dodane w fazie 3 | Plan (faza 3) |
+| Odświeżanie trasy i wznawianie mapy | `useReadiness` montuje `useRouteRefresh` i `useMapPackage` | Bez kart na `/` te hooki przestałyby działać (FR-007) | Plan (faza 3) |
+| Nagłówek ekranu | Karta poziomu jest widocznym tytułem, `h1` tylko dla czytników | Mniej tekstu nad najważniejszym stanem | Plan (faza 3) |
 
 ## Scope
 

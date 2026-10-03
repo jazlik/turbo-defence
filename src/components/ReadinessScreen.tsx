@@ -1,0 +1,81 @@
+import { ArrowRight, CheckCircle2, TriangleAlert } from "lucide-react";
+
+import AlarmButton from "@/components/AlarmButton";
+import AreaStrip from "@/components/AreaStrip";
+import { useReadiness } from "@/components/hooks/useReadiness";
+import ReadinessLevel from "@/components/ReadinessLevel";
+import { Button } from "@/components/ui/button";
+import type { QuickWin } from "@/lib/readiness";
+
+const stepLabel = (quickWin: QuickWin) =>
+  quickWin.progress
+    ? `${quickWin.title} (${String(quickWin.progress.done)} z ${String(quickWin.progress.total)})`
+    : quickWin.title;
+
+export default function ReadinessScreen() {
+  const { level, next, areas, notices } = useReadiness();
+  // A plan that could not be read says nothing about the household: no level, no invitation to write over it.
+  const unreadable = notices.some((notice) => notice.id === "plan-unreadable");
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Karta poziomu jest widocznym tytułem ekranu; nagłówek zostaje dla czytników i struktury strony. */}
+        <h1 className="sr-only">Gotowość do ewakuacji</h1>
+
+        <div role="status" aria-live="polite" className="space-y-3 empty:hidden">
+          {notices.map((notice) => (
+            <p
+              key={notice.id}
+              className="border-border bg-surface text-attention-foreground flex items-start gap-3 rounded-md border p-4 text-sm"
+            >
+              <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+              {notice.text}
+            </p>
+          ))}
+        </div>
+
+        {!unreadable && (
+          <>
+            <ReadinessLevel level={level} />
+
+            <section
+              aria-labelledby="next-title"
+              className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
+            >
+              <h2 id="next-title" className="text-muted-foreground text-sm font-medium">
+                Następny krok
+              </h2>
+              {next ? (
+                <>
+                  <p className="mt-2 text-lg">{next.reason}</p>
+                  <Button asChild size="lg" className="mt-4 w-full sm:w-auto">
+                    <a href={next.href}>
+                      {stepLabel(next)}
+                      <ArrowRight strokeWidth={2} aria-hidden="true" />
+                    </a>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-safe mt-2 flex items-start gap-2 text-lg">
+                  <CheckCircle2 className="mt-1 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+                  <span>Wszystko przygotowane. Plan jest gotowy na 72 godziny.</span>
+                </p>
+              )}
+            </section>
+
+            <AreaStrip areas={areas} />
+
+            <p className="text-muted-foreground text-sm">Plan zostaje na tym urządzeniu.</p>
+          </>
+        )}
+      </div>
+
+      <div className="border-border bg-background fixed inset-x-0 bottom-0 z-10 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8">
+        <div className="mx-auto max-w-2xl">
+          <AlarmButton compact />
+        </div>
+      </div>
+    </>
+  );
+}

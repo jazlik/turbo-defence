@@ -364,8 +364,8 @@ Brak migracji danych: `wrw.plan` (v4), `wrw.navigation` i `wrw.map` bez zmian. N
 
 #### Automated
 
-- [x] 2.1 Lint, typy i build przechodzą: `npm run lint && npx astro check && npm run build`
-- [x] 2.2 Smoke przechodzi na buildzie: `npm run smoke`
+- [x] 2.1 Lint, typy i build przechodzą: `npm run lint && npx astro check && npm run build` — d36d19d
+- [x] 2.2 Smoke przechodzi na buildzie: `npm run smoke` — d36d19d
 
 #### Manual
 
@@ -378,9 +378,9 @@ Brak migracji danych: `wrw.plan` (v4), `wrw.navigation` i `wrw.map` bez zmian. N
 
 #### Automated
 
-- [ ] 3.1 Testy, lint, typy, build: `npm test && npm run lint && npx astro check && npm run build`
-- [ ] 3.2 Smoke przechodzi: `npm run smoke`
-- [ ] 3.3 Brak nieużywanych komponentów po usunięciu kart
+- [x] 3.1 Testy, lint, typy, build: `npm test && npm run lint && npx astro check && npm run build`
+- [x] 3.2 Smoke przechodzi: `npm run smoke`
+- [x] 3.3 Brak nieużywanych komponentów po usunięciu kart
 
 #### Manual
 

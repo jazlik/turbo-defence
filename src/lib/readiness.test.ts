@@ -57,6 +57,7 @@ const input = (overrides: Partial<ReadinessInput> = {}): ReadinessInput => ({
   map: null,
   sensors: null,
   install: "na",
+  shell: "na",
   ...overrides,
 });
 
@@ -208,6 +209,8 @@ function advance(current: ReadinessInput, id: QuickWinId): ReadinessInput {
     }
     case "backup":
       return { ...current, plan: { ...plan, places: { ...plan.places, backup: place("Park") } } };
+    case "offline-shell":
+      return { ...current, shell: "ready" };
     case "install":
       return { ...current, install: "done" };
     case "map":
@@ -368,5 +371,29 @@ describe("computeReadiness — areas and unreadable plan", () => {
     expect(readiness.next).toBeNull();
     expect(readiness.quickWins).toEqual([]);
     expect(readiness.notices.map((notice) => notice.id)).toEqual(["plan-unreadable"]);
+  });
+});
+
+describe("computeReadiness — offline shell", () => {
+  it("is left out where no worker is registered", () => {
+    const ids = computeReadiness(input({ shell: "na" })).quickWins.map((quickWin) => quickWin.id);
+    expect(ids).not.toContain("offline-shell");
+  });
+
+  it("comes first in the offline stage and holds the top level back until it is ready", () => {
+    const pending = computeReadiness(readyInput({ shell: "pending" }));
+    expect(win(pending, "offline-shell").status).toBe("todo");
+    expect(pending.level.id).toBe("ready-to-go");
+    expect(pending.next?.id).toBe("offline-shell");
+    expect(computeReadiness(readyInput({ shell: "ready" })).level.id).toBe("ready-72h");
+  });
+
+  it("explains an unsupported or failed worker and raises a notice", () => {
+    for (const shell of ["unsupported", "failed"] as const) {
+      const readiness = computeReadiness(readyInput({ shell }));
+      expect(win(readiness, "offline-shell").reason).not.toBe("");
+      expect(readiness.notices.map((notice) => notice.id)).toContain("offline-unavailable");
+    }
+    expect(computeReadiness(readyInput({ shell: "pending" })).notices).toEqual([]);
   });
 });

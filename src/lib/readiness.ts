@@ -3,6 +3,7 @@ import { distanceMeters } from "./geo";
 import { packageCovers, regionCovering } from "./map-regions";
 import { SHORTLIST_RADIUS_METERS } from "./shelters";
 import type { InstallState } from "./services/install";
+import type { OfflineShellState } from "./services/offline-shell";
 import { isMapReady, type MapPackageState } from "./services/map-storage";
 import type { PlanSource } from "./services/plan-storage";
 import { sensorsReady, type SensorCheckState } from "./services/sensor-storage";
@@ -17,7 +18,16 @@ import type { HouseholdPlan, NavigationState } from "@/types";
 export type AreaId = "places" | "family" | "backpack" | "offline" | "sensors";
 export type StageId = "target" | "family" | "offline" | "complete";
 export type QuickWinId =
-  "meeting" | "shelter" | "household" | "backpack-key" | "backup" | "install" | "map" | "sensors" | "backpack-full";
+  | "meeting"
+  | "shelter"
+  | "household"
+  | "backpack-key"
+  | "backup"
+  | "offline-shell"
+  | "install"
+  | "map"
+  | "sensors"
+  | "backpack-full";
 export type QuickWinStatus = "done" | "todo" | "unavailable";
 export type LevelId = "start" | "basics" | "ready-to-go" | "ready-72h";
 
@@ -80,7 +90,8 @@ export interface AreaStatus {
   status: "done" | "partial" | "todo";
 }
 
-export type NoticeId = "map-outside-region" | "map-no-region" | "route-stale" | "plan-unreadable";
+export type NoticeId =
+  "map-outside-region" | "map-no-region" | "route-stale" | "plan-unreadable" | "offline-unavailable";
 
 export interface ReadinessNotice {
   id: NoticeId;
@@ -94,6 +105,7 @@ export interface ReadinessInput {
   map: MapPackageState | null;
   sensors: SensorCheckState | null;
   install: InstallState;
+  shell: OfflineShellState;
 }
 
 export interface Readiness {
@@ -110,9 +122,19 @@ const NOTICE_TEXT = {
   "map-no-region":
     "Jesteś poza obszarem dostępnych map offline (na razie Małopolska). Prowadzenie strzałką działa bez mapy.",
   "route-stale": "Trasa do schronu jest nieaktualna dla Twojej pozycji. Odśwież ją, gdy masz internet.",
+  "offline-unavailable":
+    "Tryb offline nie działa na tym urządzeniu, więc aplikacja nie otworzy się bez internetu. Otwórz ją przez HTTPS w aktualnej przeglądarce.",
   "plan-unreadable":
     "Nie udało się odczytać zapisanego planu. Nie nadpisuj go: odśwież aplikację albo otwórz ją w tej samej przeglądarce, w której plan zapisano.",
 } as const;
+
+const SHELL_REASON: Record<Exclude<OfflineShellState, "na">, string> = {
+  ready: "Aplikacja otworzy się bez internetu.",
+  pending: "Aplikacja zapisuje się na tym urządzeniu. Poczekaj chwilę i odśwież stronę.",
+  unsupported:
+    "Ta przeglądarka albo adres nie obsługuje trybu offline. Otwórz aplikację przez HTTPS w aktualnej przeglądarce.",
+  failed: "Nie udało się zapisać aplikacji na tym urządzeniu. Odśwież stronę przy włączonym internecie.",
+};
 
 const status = (done: boolean): QuickWinStatus => (done ? "done" : "todo");
 
@@ -122,7 +144,7 @@ interface Evaluation {
 }
 
 function evaluate(input: ReadinessInput): Evaluation {
-  const { plan, navigation, map, sensors, install } = input;
+  const { plan, navigation, map, sensors, install, shell } = input;
   const position = plan.lastKnownPosition?.coords ?? null;
   const notices: ReadinessNotice[] = [];
   const quickWins: QuickWin[] = [];
@@ -198,6 +220,20 @@ function evaluate(input: ReadinessInput): Evaluation {
     reason: "Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne.",
     href: "/miejsca",
   });
+
+  if (shell !== "na") {
+    const broken = shell === "unsupported" || shell === "failed";
+    if (broken) notices.push({ id: "offline-unavailable", text: NOTICE_TEXT["offline-unavailable"] });
+    quickWins.push({
+      id: "offline-shell",
+      area: "offline",
+      stage: "offline",
+      status: status(shell === "ready"),
+      title: "Włącz tryb offline",
+      reason: SHELL_REASON[shell],
+      href: "/offline",
+    });
+  }
 
   if (install !== "na") {
     quickWins.push({

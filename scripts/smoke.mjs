@@ -17,9 +17,8 @@ if (!(home.headers.get("content-type") ?? "").includes("text/html")) fail("/ is 
 const html = await home.text();
 if (!html.includes('lang="pl"')) fail('/ is missing lang="pl"');
 if (!html.includes("manifest.webmanifest")) fail("/ does not link manifest.webmanifest");
-if (!html.includes("data-offline-status")) fail("/ is missing the offline status element");
-// The three place cards are client:only islands; the section heading is their only static trace in the HTML.
-if (!html.includes('id="places-title"')) fail("/ is missing the places section heading");
+// The readiness screen is a client:only island; its component URL in the island tag is its only static trace.
+if (!html.includes("ReadinessScreen")) fail("/ is missing the readiness screen island");
 
 const manifestRes = await get("/manifest.webmanifest");
 const manifest = await manifestRes.json();
@@ -29,6 +28,9 @@ for (const icon of manifest.icons) {
   const res = await get(icon.src);
   if (!(res.headers.get("content-type") ?? "").includes("image/png")) fail(`${icon.src} is not image/png`);
 }
+
+const offlinePage = await get("/offline");
+if (!(await offlinePage.text()).includes("OfflineShellCard")) fail("/offline is missing the offline shell card");
 
 for (const path of ["/alarm", "/czujniki", "/domownicy", "/plecak", "/miejsca", "/offline"]) {
   const res = await get(path);
