@@ -27,7 +27,7 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 
 | ID   | Change ID                | Outcome (user can …)                                                                 | Prerequisites    | PRD refs                                   | Status   |
 | ---- | ------------------------ | ------------------------------------------------------------------------------------ | ---------------- | ------------------------------------------ | -------- |
-| F-01 | offline-app-shell        | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main` | —                | US-01, NFR (cały interfejs po polsku), Access Control | ready    |
+| F-01 | offline-app-shell        | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main` | —                | US-01, NFR (cały interfejs po polsku), Access Control | done     |
 | S-01 | guided-to-point-offline  | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością | F-01             | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | proposed |
 | S-02 | step-flow-and-fallback   | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe | S-01             | US-01, FR-013                              | proposed |
 | S-03 | voice-guidance           | słyszeć kolejne kroki po polsku i wyłączyć głos                                      | S-01             | US-01, FR-015                              | proposed |
@@ -73,7 +73,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** sekwencjonowane pierwsze, bo bez działania offline i publicznego adresu nie da się zweryfikować gwiazdy przewodniej na telefonie; zakres to tylko powłoka i wdrożenie, a zapis planu, mapa i treści wchodzą w slice'ach, które ich używają.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -225,3 +225,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Wibracje w Execution Mode** — Why parked: decyzja zespołu w US-01 (odstępstwo od `PROJECT.md` 4.1 pkt 6).
 
 ## Done
+- **F-01: (foundation) aplikacja buduje się jako statyczna, bez serwera i kont; po pierwszym otwarciu ładuje się w trybie samolotowym; interfejs jest po polsku; każdy merge do `main` wdraża ją pod publiczny adres.** — Archived 2026-10-03 → `context/archive/2026-10-03-offline-app-shell/`. Lesson: —.

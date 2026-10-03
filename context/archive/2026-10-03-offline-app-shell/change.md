@@ -1,10 +1,10 @@
 ---
 change_id: offline-app-shell
 title: Offline app shell
-status: implementing
+status: archived
 created: 2026-10-03
 updated: 2026-10-03
-archived_at: null
+archived_at: 2026-10-03T17:18:26Z
 ---
 
 ## Notes
