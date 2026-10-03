@@ -50,6 +50,7 @@ Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` 
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
 - **Language**: UI copy is Polish (`<html lang="pl">`).
+- **Voice guidance**: the on/off setting lives under `wrw.voice` (`@/lib/services/voice-settings`), outside `HouseholdPlan` — it is a per-device preference, not shared with household members. New spoken guidance is added as a `GuidanceVoiceState` variant with its text in `phraseFor` (`@/lib/voice`) and spoken through `useVoiceGuidance`, never by calling `speechSynthesis` directly.
 - **Islands reading localStorage** (e.g. the household plan via `@/lib/services/plan-storage`) mount as `client:only="react"` — static HTML would not contain the saved data and hydration would mismatch.
 - **Execution Mode screens** use `<Layout mode="execution">` and the tokens from `src/styles/global.css` via Tailwind classes (`bg-background`, `text-guidance`, `text-safe`…); no hex values in components.
 
