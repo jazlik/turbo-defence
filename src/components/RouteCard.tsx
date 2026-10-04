@@ -10,7 +10,7 @@ const FAILURES: Record<RouteRefreshFailure, string> = {
   offline: "Brak internetu — trasę przygotuję, gdy wróci sieć.",
   "no-position": "Nie udało się ustalić pozycji. Sprawdź zgodę na lokalizację i spróbuj ponownie na zewnątrz.",
   "no-candidates":
-    "W promieniu 15 km nie ma punktu schronienia z danych PSP (na razie Małopolska). Prowadzenie użyje Twojego punktu zapasowego.",
+    "W promieniu 15 km nie ma punktu schronienia z danych PSP (na razie Małopolska). Prowadzenie użyje Twojego własnego schronu.",
   "routing-error": "Serwis tras nie odpowiedział. Spróbuję ponownie przy następnym otwarciu aplikacji.",
 };
 

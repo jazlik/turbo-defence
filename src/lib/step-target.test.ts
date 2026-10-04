@@ -8,8 +8,8 @@ import type { HouseholdPlan, NavigationState, Place, SavedRoute } from "@/types"
 const place = (label: string): Place => ({ label, coords: { latitude: 50.06, longitude: 19.94 } });
 
 const plan = (shelter: Place | null): HouseholdPlan => ({
-  schemaVersion: 4,
-  places: { meeting: place("Plac"), backup: place("Park"), shelter },
+  schemaVersion: 5,
+  shelter,
   lastKnownPosition: null,
   members: [],
   contacts: [],
@@ -38,29 +38,33 @@ const withRoutes: NavigationState = {
 
 describe("resolveStepTarget", () => {
   it("leads the shelter step to PSP route A, and to route B after 'niedostępne'", () => {
-    expect(resolveStepTarget("shelter", plan(place("Szkoła")), withRoutes, false)).toMatchObject({
+    expect(resolveStepTarget(plan(place("Szkoła")), withRoutes, false)).toMatchObject({
       label: "ul. A 1",
       source: "psp",
       role: "primary",
     });
-    expect(resolveStepTarget("shelter", plan(place("Szkoła")), withRoutes, true)).toMatchObject({
+    expect(resolveStepTarget(plan(place("Szkoła")), withRoutes, true)).toMatchObject({
       label: "ul. B 2",
       role: "alternate",
     });
   });
 
-  it("falls back to the manual shelter without a prepared route", () => {
-    expect(resolveStepTarget("shelter", plan(place("Szkoła")), createEmptyNavigation(), false)).toMatchObject({
+  it("falls back to the own shelter without a prepared route", () => {
+    expect(resolveStepTarget(plan(place("Szkoła")), createEmptyNavigation(), false)).toMatchObject({
       label: "Szkoła",
       source: "manual",
       route: null,
     });
-    expect(resolveStepTarget("shelter", plan(null), createEmptyNavigation(), false)).toBeNull();
+    expect(resolveStepTarget(plan(null), createEmptyNavigation(), false)).toBeNull();
   });
 
-  it("keeps manual places for the meeting and backup steps", () => {
-    expect(resolveStepTarget("meeting", plan(null), withRoutes, false)).toMatchObject({ label: "Plac", route: null });
-    expect(resolveStepTarget("backup", plan(null), withRoutes, true)).toMatchObject({ label: "Park", route: null });
+  it("stays on route A after 'niedostępne' when there is no route B", () => {
+    const onlyA = { ...withRoutes, alternate: null };
+    expect(resolveStepTarget(plan(place("Szkoła")), onlyA, true)).toMatchObject({ label: "ul. A 1", role: "primary" });
+  });
+
+  it("has no target without a route and without an own shelter", () => {
+    expect(resolveStepTarget(plan(null), createEmptyNavigation(), true)).toBeNull();
   });
 });
 
@@ -73,8 +77,8 @@ describe("shelter fallback", () => {
   it("renames the shelter step while route B is active", () => {
     const shelter = buildSteps(plan(null), { shelterRoute: true }).find((step) => step.id === "shelter");
     if (!shelter) throw new Error("missing shelter step");
-    const onB = resolveStepTarget("shelter", plan(null), withRoutes, true);
+    const onB = resolveStepTarget(plan(null), withRoutes, true);
     expect(shelterFallbackContent(shelter, onB)?.title).toBe("Idź do zapasowego schronu");
-    expect(shelterFallbackContent(shelter, resolveStepTarget("shelter", plan(null), withRoutes, false))).toBeNull();
+    expect(shelterFallbackContent(shelter, resolveStepTarget(plan(null), withRoutes, false))).toBeNull();
   });
 });

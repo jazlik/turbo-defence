@@ -21,8 +21,8 @@ export interface HoldAction {
 
 /**
  * Automat przytrzymania wydzielony 1:1 z `AlarmButton` (S-01, sprawdzony w terenie na Androidzie).
- * Przytrzymanie chroni akcje, których nie da się cofnąć: alarm, przełączenie na miejsce
- * zapasowe i potwierdzenie dojścia bez potwierdzenia GPS.
+ * Przytrzymanie chroni akcje, których nie da się cofnąć: alarm, przełączenie na zapasowy
+ * schron i potwierdzenie dojścia bez potwierdzenia GPS.
  * Jedynym dotykowym wejściem jest delegowany przez Reacta `onPointerDown`, co na iOS Safari
  * wymaga, żeby root wyspy (`astro-island`) generował boks — patrz reguła w `global.css`.
  */

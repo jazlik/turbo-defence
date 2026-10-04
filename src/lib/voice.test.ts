@@ -118,7 +118,7 @@ describe("pickPolishVoice", () => {
 
 describe("phraseFor", () => {
   const label = "Szkoła";
-  const title = "Idź do punktu ewakuacji";
+  const title = "Idź do schronu";
   const guidingAt = (
     meters: number,
     live: boolean,
@@ -128,13 +128,13 @@ describe("phraseFor", () => {
   it("returns non-empty text on entry into every variant", () => {
     const states: GuidanceVoiceState[] = [
       { kind: "noSteps" },
-      { kind: "resume", title: "Idź do miejsca spotkania" },
+      { kind: "resume", title: "Idź do schronu" },
       { kind: "action", title: "Zabierz plecak ewakuacyjny", instruction: "Weź przygotowany plecak i wyjdź z domu." },
       { kind: "searching", label },
       { kind: "locationProblem", label, problem: "denied" },
       guidingAt(480, true),
       guidingAt(480, false),
-      { kind: "arrived", label, next: "Idź do punktu ewakuacji" },
+      { kind: "arrived", label, next: "Idź do schronu" },
       { kind: "arrived", label, next: null },
     ];
     for (const state of states) {
@@ -166,26 +166,32 @@ describe("phraseFor", () => {
     expect(phraseFor(next, guidingAt(300, true))).toContain("Utracono sygnał GPS");
   });
 
-  it("announces the switch to the backup place when the fallback turns on", () => {
-    const prev = guidingAt(300, true, { title: "Idź do miejsca spotkania", label: "Boisko" });
-    const next = guidingAt(900, true, { title: "Idź do miejsca zapasowego", label: "Kościół", fallback: true });
+  it("tells the user to prepare a shelter when there are no steps", () => {
+    const text = phraseFor({ kind: "noSteps" }, null);
+    expect(text).toContain("Nie wskazano schronu");
+    expect(text).not.toMatch(/spotkani|zapasow/);
+  });
+
+  it("announces the switch to the backup shelter when the fallback turns on", () => {
+    const prev = guidingAt(300, true, { title: "Idź do schronu", label: "ul. A 1" });
+    const next = guidingAt(900, true, { title: "Idź do zapasowego schronu", label: "ul. B 2", fallback: true });
     const text = phraseFor(next, prev);
-    expect(text).toContain("Punkt niedostępny");
-    expect(text).toContain("Kościół");
+    expect(text).toContain("Schron niedostępny");
+    expect(text).toContain("ul. B 2");
   });
 
   it("announces the new target when the step changes without a fallback", () => {
-    const prev = guidingAt(300, true, { title: "Idź do miejsca spotkania", label: "Boisko" });
-    const next = guidingAt(1200, true, { title: "Idź do punktu ewakuacji", label: "Szkoła" });
+    const prev = guidingAt(300, true, { title: "Idź do zapasowego schronu", label: "ul. B 2" });
+    const next = guidingAt(1200, true, { title: "Idź do schronu", label: "Szkoła" });
     const text = phraseFor(next, prev);
-    expect(text).toContain("Idź do punktu ewakuacji");
+    expect(text).toContain("Idź do schronu");
     expect(text).toContain("Szkoła");
-    expect(text).not.toContain("Punkt niedostępny");
+    expect(text).not.toContain("Schron niedostępny");
   });
 
   it("names the next step on an intermediate arrival and closes the run on the last one", () => {
-    const intermediate = phraseFor({ kind: "arrived", label: "Boisko", next: "Idź do punktu ewakuacji" }, null);
-    expect(intermediate).toContain("Idź do punktu ewakuacji");
+    const intermediate = phraseFor({ kind: "arrived", label: "Boisko", next: "Idź do schronu" }, null);
+    expect(intermediate).toContain("Idź do schronu");
     const last = phraseFor({ kind: "arrived", label: "Szkoła", next: null }, null);
     expect(last).toContain("koniec zaplanowanej drogi");
   });

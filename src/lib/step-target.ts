@@ -1,7 +1,7 @@
 import type { EvacuationStep } from "@/lib/evacuation-steps";
-import type { Coordinates, HouseholdPlan, NavigationState, PlaceKind, RouteRole, SavedRoute } from "@/types";
+import type { Coordinates, HouseholdPlan, NavigationState, RouteRole, SavedRoute } from "@/types";
 
-/** Where the current navigate step leads: a plan place, or for the shelter step the saved PSP route (S-04). */
+/** Where the shelter step leads: the saved PSP route (S-04), or the organiser's own shelter. */
 export interface StepTarget {
   label: string;
   coords: Coordinates;
@@ -16,25 +16,20 @@ export const shelterAlternateAvailable = (navigation: NavigationState) =>
 
 /**
  * Team decision (S-04 merge with S-02): the shelter step follows the automatically chosen PSP shelter — route A,
- * route B after "niedostępne" — and falls back to the manually set shelter when no route was prepared.
- * Meeting and backup steps keep their manual places.
+ * route B after "niedostępne" — and falls back to the organiser's own shelter when no route was prepared.
  */
 export function resolveStepTarget(
-  kind: PlaceKind | null,
   plan: HouseholdPlan,
   navigation: NavigationState,
   fallbackActive: boolean,
 ): StepTarget | null {
-  if (kind === null) return null;
-  if (kind === "shelter") {
-    const role: RouteRole = fallbackActive && navigation.alternate !== null ? "alternate" : "primary";
-    const route = role === "alternate" ? navigation.alternate : navigation.primary;
-    if (route) {
-      const { label, coords } = route.destination;
-      return { label, coords, source: "psp", route, role };
-    }
+  const role: RouteRole = fallbackActive && navigation.alternate !== null ? "alternate" : "primary";
+  const route = role === "alternate" ? navigation.alternate : navigation.primary;
+  if (route) {
+    const { label, coords } = route.destination;
+    return { label, coords, source: "psp", route, role };
   }
-  const place = plan.places[kind];
+  const place = plan.shelter;
   return place ? { label: place.label, coords: place.coords, source: "manual", route: null, role: null } : null;
 }
 
@@ -43,7 +38,7 @@ export function shelterFallbackContent(
   step: EvacuationStep,
   target: StepTarget | null,
 ): { title: string; instruction: string } | null {
-  if (step.kind !== "navigate" || step.place !== "shelter" || target?.role !== "alternate") return null;
+  if (step.kind !== "navigate" || target?.role !== "alternate") return null;
   return {
     title: "Idź do zapasowego schronu",
     instruction: "Schron jest niedostępny. Idź do zapasowego schronu wybranego przy przygotowaniu trasy.",

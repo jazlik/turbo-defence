@@ -5,13 +5,9 @@ import { Button } from "@/components/ui/button";
 import { requestCurrentPosition, type GeolocationStatus } from "@/components/hooks/useGeolocation";
 import { parseCoordinates } from "@/lib/geo";
 import { readPlan, writePlan } from "@/lib/services/plan-storage";
-import type { Coordinates, HouseholdPlan, PlaceKind } from "@/types";
+import type { Coordinates, HouseholdPlan } from "@/types";
 
-const DEFAULT_LABELS: Record<PlaceKind, string> = {
-  meeting: "Miejsce spotkania",
-  backup: "Miejsce zapasowe",
-  shelter: "Punkt ewakuacji",
-};
+const DEFAULT_LABEL = "Własny schron";
 
 const formatCoordinates = ({ latitude, longitude }: Coordinates) =>
   `${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"}, ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`;
@@ -30,16 +26,13 @@ const STORAGE_ERROR =
 type Feedback = { kind: "saved"; text: string } | { kind: "error"; text: string } | null;
 
 interface PlaceCardProps {
-  kind: PlaceKind;
   title: string;
   description: string;
-  /** Steruje wyłącznie wariantem „Ustaw tutaj”: trzy wypełnione przyciski obok siebie łamią §3 JV. */
-  emphasis: "primary" | "secondary";
 }
 
-export default function PlaceCard({ kind, title, description, emphasis }: PlaceCardProps) {
+export default function PlaceCard({ title, description }: PlaceCardProps) {
   const [plan, setPlan] = useState<HouseholdPlan>(readPlan);
-  const [label, setLabel] = useState(plan.places[kind]?.label ?? DEFAULT_LABELS[kind]);
+  const [label, setLabel] = useState(plan.shelter?.label ?? DEFAULT_LABEL);
   const [coordinatesInput, setCoordinatesInput] = useState("");
   const [locating, setLocating] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
@@ -49,12 +42,9 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
   /** `false`, gdy urządzenie odmówiło zapisu — wołający nie może wtedy potwierdzić zapisania. */
   const savePlace = (coords: Coordinates, withPosition: boolean): boolean => {
     const recordedAt = new Date().toISOString();
-    // Trzy wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz miejsce z innej karty.
+    // Inne wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz ich zmiany.
     const stored = readPlan();
-    const next: HouseholdPlan = {
-      ...stored,
-      places: { ...stored.places, [kind]: { label: label.trim() || DEFAULT_LABELS[kind], coords } },
-    };
+    const next: HouseholdPlan = { ...stored, shelter: { label: label.trim() || DEFAULT_LABEL, coords } };
     if (withPosition) next.lastKnownPosition = { coords, recordedAt };
     const saved = writePlan(next);
     setPlan(next);
@@ -100,7 +90,7 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
     setFeedback({ kind: "saved", text: "Zapisano miejsce ze wpisanych współrzędnych." });
   };
 
-  const place = plan.places[kind];
+  const place = plan.shelter;
 
   return (
     <section aria-labelledby={ids.title} className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8">
@@ -146,7 +136,7 @@ export default function PlaceCard({ kind, title, description, emphasis }: PlaceC
       <Button
         type="button"
         size="lg"
-        variant={emphasis === "primary" ? "default" : "outline"}
+        variant="default"
         className="mt-4 w-full sm:w-auto"
         aria-busy={locating}
         onClick={() => void setHere()}

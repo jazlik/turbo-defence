@@ -6,7 +6,7 @@ const now = Date.parse("2026-10-03T12:00:00.000Z");
 
 const validRun = {
   schemaVersion: 1,
-  stepId: "meeting",
+  stepId: "shelter",
   fallbackActive: true,
   startedAt: "2026-10-03T11:30:00.000Z",
   updatedAt: "2026-10-03T11:55:00.000Z",

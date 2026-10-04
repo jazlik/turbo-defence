@@ -7,13 +7,13 @@ const lastKnownPosition = {
   recordedAt: "2026-10-03T12:00:00.000Z",
 };
 
+const meeting = { label: "Plac przed domem", coords: { latitude: 52.2297, longitude: 21.0122 } };
+const backup = { label: "Park", coords: { latitude: 52.2301, longitude: 21.0144 } };
+const shelter = { label: "Szkoła", coords: { latitude: 52.241, longitude: 21.0202 } };
+
 const validPlan = {
-  schemaVersion: 4,
-  places: {
-    meeting: { label: "Plac przed domem", coords: { latitude: 52.2297, longitude: 21.0122 } },
-    backup: { label: "Park", coords: { latitude: 52.2301, longitude: 21.0144 } },
-    shelter: { label: "Szkoła", coords: { latitude: 52.241, longitude: 21.0202 } },
-  },
+  schemaVersion: 5,
+  shelter,
   lastKnownPosition,
   members: [
     {
@@ -31,16 +31,25 @@ const validPlan = {
   updatedAt: "2026-10-03T12:00:00.000Z",
 };
 
+const brokenPlaces = [
+  { label: "a" },
+  "foo",
+  { label: "a", coords: { latitude: "52", longitude: 21 } },
+  { label: "a", coords: { latitude: null, longitude: 21 } },
+  { label: "a", coords: { latitude: 52, longitude: 200 } },
+  { label: 7, coords: { latitude: 52, longitude: 21 } },
+];
+
 describe("parsePlan", () => {
   it("keeps a valid plan unchanged", () => {
     expect(parsePlan(validPlan)).toEqual(validPlan);
   });
 
   it("returns an empty plan for a non-object or an unknown schema version", () => {
-    for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 5 }, { ...validPlan, schemaVersion: "4" }]) {
+    for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 6 }, { ...validPlan, schemaVersion: "5" }]) {
       const plan = parsePlan(value);
-      expect(plan.schemaVersion).toBe(4);
-      expect(plan.places).toEqual({ meeting: null, backup: null, shelter: null });
+      expect(plan.schemaVersion).toBe(5);
+      expect(plan.shelter).toBeNull();
       expect(plan.lastKnownPosition).toBeNull();
       expect(plan.members).toEqual([]);
       expect(plan.contacts).toEqual([]);
@@ -48,27 +57,12 @@ describe("parsePlan", () => {
     }
   });
 
-  it("drops a place without valid coordinates and keeps the other two", () => {
-    const broken = [
-      { label: "a" },
-      "foo",
-      { label: "a", coords: { latitude: "52", longitude: 21 } },
-      { label: "a", coords: { latitude: null, longitude: 21 } },
-      { label: "a", coords: { latitude: 52, longitude: 200 } },
-      { label: 7, coords: { latitude: 52, longitude: 21 } },
-    ];
-    for (const meeting of broken) {
-      const plan = parsePlan({ ...validPlan, places: { ...validPlan.places, meeting } });
-      expect(plan.places.meeting).toBeNull();
-      expect(plan.places.backup).toEqual(validPlan.places.backup);
-      expect(plan.places.shelter).toEqual(validPlan.places.shelter);
+  it("drops a shelter without valid coordinates and keeps the rest of the plan", () => {
+    for (const broken of brokenPlaces) {
+      const plan = parsePlan({ ...validPlan, shelter: broken });
+      expect(plan.shelter).toBeNull();
       expect(plan.lastKnownPosition).toEqual(lastKnownPosition);
-    }
-  });
-
-  it("drops all three places when the places field itself is damaged", () => {
-    for (const places of [null, "places", 42]) {
-      expect(parsePlan({ ...validPlan, places }).places).toEqual({ meeting: null, backup: null, shelter: null });
+      expect(plan.members).toEqual(validPlan.members);
     }
   });
 
@@ -81,21 +75,72 @@ describe("parsePlan", () => {
     for (const value of broken) {
       const plan = parsePlan({ ...validPlan, lastKnownPosition: value });
       expect(plan.lastKnownPosition).toBeNull();
-      expect(plan.places).toEqual(validPlan.places);
+      expect(plan.shelter).toEqual(shelter);
+    }
+  });
+});
+
+describe("parsePlan migration to one alarm target", () => {
+  const v4 = (places: unknown) => {
+    const { shelter: _shelter, ...rest } = validPlan;
+    return { ...rest, schemaVersion: 4, places };
+  };
+
+  it("keeps the v4 shelter even when the meeting place is set", () => {
+    const result = parsePlanWithSource(v4({ meeting, backup, shelter }));
+    expect(result.source).toBe("migrated");
+    expect(result.plan).toEqual(validPlan);
+  });
+
+  it("promotes the v4 meeting place, with its name, when there was no shelter", () => {
+    expect(parsePlan(v4({ meeting, backup, shelter: null })).shelter).toEqual(meeting);
+  });
+
+  it("promotes the v4 backup place when it was the only one", () => {
+    expect(parsePlan(v4({ meeting: null, backup, shelter: null })).shelter).toEqual(backup);
+  });
+
+  it("skips a damaged place and promotes the next one", () => {
+    for (const broken of brokenPlaces) {
+      expect(parsePlan(v4({ meeting, backup, shelter: broken })).shelter).toEqual(meeting);
+      expect(parsePlan(v4({ meeting: broken, backup, shelter: null })).shelter).toEqual(backup);
     }
   });
 
+  it("migrates a v4 plan without places to no shelter", () => {
+    for (const places of [{ meeting: null, backup: null, shelter: null }, null, "places", 42]) {
+      expect(parsePlan(v4(places)).shelter).toBeNull();
+    }
+  });
+
+  it("migrates a v3 plan keeping the target, position, members and contacts, with no ticks", () => {
+    const { packedItems: _packed, ...rest } = v4({ meeting, backup: null, shelter: null });
+    const result = parsePlanWithSource({ ...rest, schemaVersion: 3 });
+    expect(result.source).toBe("migrated");
+    expect(result.plan).toEqual({ ...validPlan, shelter: meeting, packedItems: [] });
+  });
+
+  it("migrates a v2 plan keeping the target and the position, with empty people lists", () => {
+    const plan = parsePlan({ schemaVersion: 2, places: { meeting: null, backup, shelter: null }, lastKnownPosition });
+    expect(plan.schemaVersion).toBe(5);
+    expect(plan.shelter).toEqual(backup);
+    expect(plan.lastKnownPosition).toEqual(lastKnownPosition);
+    expect(plan.members).toEqual([]);
+    expect(plan.contacts).toEqual([]);
+    expect(plan.packedItems).toEqual([]);
+    expect(parsePlan({ schemaVersion: 2, places: { meeting, backup, shelter } }).shelter).toEqual(shelter);
+  });
+
   it("migrates a v1 plan: the evacuation point becomes the shelter", () => {
-    const evacuationPoint = { label: "Szkoła", coords: { latitude: 52.241, longitude: 21.0202 } };
     const plan = parsePlan({
       schemaVersion: 1,
-      evacuationPoint,
+      evacuationPoint: shelter,
       lastKnownPosition,
       updatedAt: "2026-10-01T08:00:00.000Z",
     });
     expect(plan).toEqual({
-      schemaVersion: 4,
-      places: { meeting: null, backup: null, shelter: evacuationPoint },
+      schemaVersion: 5,
+      shelter,
       lastKnownPosition,
       members: [],
       contacts: [],
@@ -104,27 +149,9 @@ describe("parsePlan", () => {
     });
   });
 
-  it("migrates a v2 plan keeping all three places and the position, with empty people lists", () => {
-    const { members: _members, contacts: _contacts, packedItems: _packed, ...rest } = validPlan;
-    const plan = parsePlan({ ...rest, schemaVersion: 2 });
-    expect(plan.schemaVersion).toBe(4);
-    expect(plan.places).toEqual(validPlan.places);
-    expect(plan.lastKnownPosition).toEqual(lastKnownPosition);
-    expect(plan.members).toEqual([]);
-    expect(plan.contacts).toEqual([]);
-    expect(plan.packedItems).toEqual([]);
-  });
-
-  it("migrates a v3 plan keeping places, position, members and contacts, with no ticks", () => {
-    const { packedItems: _packed, ...rest } = validPlan;
-    const result = parsePlanWithSource({ ...rest, schemaVersion: 3 });
-    expect(result.source).toBe("migrated");
-    expect(result.plan).toEqual({ ...validPlan, packedItems: [] });
-  });
-
-  it("migrates a v1 plan with a damaged evacuation point to an empty shelter", () => {
+  it("migrates a v1 plan with a damaged evacuation point to no shelter", () => {
     const plan = parsePlan({ schemaVersion: 1, evacuationPoint: { label: "Szkoła" }, lastKnownPosition });
-    expect(plan.places).toEqual({ meeting: null, backup: null, shelter: null });
+    expect(plan.shelter).toBeNull();
     expect(plan.lastKnownPosition).toEqual(lastKnownPosition);
   });
 });
@@ -215,14 +242,15 @@ describe("parsePlan packed items", () => {
 
 describe("parsePlanWithSource", () => {
   it("marks an unknown schema version as unreadable so no automatic write overwrites it", () => {
-    for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 5 }, { ...validPlan, schemaVersion: "4" }]) {
+    for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 6 }, { ...validPlan, schemaVersion: "5" }]) {
       expect(parsePlanWithSource(value).source).toBe("unreadable");
     }
   });
 
   it("reports a readable plan as stored and older versions as migrated", () => {
     expect(parsePlanWithSource(validPlan).source).toBe("stored");
-    expect(parsePlanWithSource({ schemaVersion: 2, places: validPlan.places }).source).toBe("migrated");
+    expect(parsePlanWithSource({ schemaVersion: 4, places: { shelter } }).source).toBe("migrated");
+    expect(parsePlanWithSource({ schemaVersion: 2, places: { meeting } }).source).toBe("migrated");
     expect(parsePlanWithSource({ schemaVersion: 1, evacuationPoint: null }).source).toBe("migrated");
   });
 });

@@ -25,7 +25,7 @@ import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
-import { buildSteps, resumeIndex, stepContent, targetPlaceKind } from "@/lib/evacuation-steps";
+import { buildSteps, resumeIndex } from "@/lib/evacuation-steps";
 import { formatClockTime } from "@/lib/format";
 import { formatDistance } from "@/lib/geo";
 import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
@@ -70,15 +70,14 @@ function MissingPlaceScreen({ voice }: { voice: ReturnType<typeof useVoiceGuidan
     <main className="flex min-h-screen flex-col justify-between gap-8 px-4 py-8">
       <div>
         <MapPinOff className="text-guidance size-12" strokeWidth={2} aria-hidden="true" />
-        <h1 className="font-heading mt-6 text-3xl">Nie wskazano żadnego miejsca</h1>
+        <h1 className="font-heading mt-6 text-3xl">Nie wskazano schronu</h1>
         <p className="text-muted-foreground mt-3 text-lg">
-          Bez zapisanego miejsca nie mogę prowadzić. Wróć do planu i ustaw miejsce spotkania albo punkt ewakuacji —
-          zajmie to chwilę.
+          Bez schronu nie mogę prowadzić. Wróć do planu i przygotuj miejsce ewakuacji — zajmie to chwilę.
         </p>
       </div>
       <div className="flex flex-col items-center gap-3">
         <Button asChild size="lg" className="min-h-14 w-full text-lg font-semibold">
-          <a href="/">Ustaw miejsca w planie</a>
+          <a href="/miejsca">Przygotuj miejsce ewakuacji</a>
         </Button>
         <VoiceToggle voice={voice} />
       </div>
@@ -173,14 +172,9 @@ export default function GuidanceScreen() {
   // `at` zwraca `undefined` poza zakresem — indeksowanie nawiasem kłamałoby o typie przy pustej sekwencji.
   const step = steps.at(stepIndex);
   const nextStep = steps.at(stepIndex + 1);
-  const targetKind = step ? targetPlaceKind(step, run) : null;
-  const point = resolveStepTarget(targetKind, plan, navigation, run?.fallbackActive ?? false);
-  // The shelter step's "niedostępne" switches to the prepared PSP route B (S-04).
-  const shelterFallback =
-    step?.kind === "navigate" &&
-    step.place === "shelter" &&
-    point?.source === "psp" &&
-    shelterAlternateAvailable(navigation);
+  const point = step?.kind === "navigate" ? resolveStepTarget(plan, navigation, run?.fallbackActive ?? false) : null;
+  // The shelter step's "niedostępne" switches to the prepared PSP route B (S-04) — the only fallback.
+  const shelterFallback = step?.kind === "navigate" && point?.source === "psp" && shelterAlternateAvailable(navigation);
 
   const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: steps.length > 0 });
   const { heading, source } = useHeading(coords, accuracyMeters);
@@ -249,7 +243,7 @@ export default function GuidanceScreen() {
   };
 
   const switchToFallback = () => {
-    if (step?.kind !== "navigate" || (step.fallback === null && !shelterFallback)) return;
+    if (step?.kind !== "navigate" || !shelterFallback) return;
     // Flaga musi trafić do stanu w tym samym renderze co do localStorage: inaczej strzałka
     // pokazywałaby stary kierunek, czyli w kryzysie wskazywała w złe miejsce.
     const next = runAt(step.id, true);
@@ -275,7 +269,9 @@ export default function GuidanceScreen() {
     window.location.assign("/");
   };
 
-  const content = step ? (shelterFallbackContent(step, point) ?? stepContent(step, run)) : null;
+  const content = step
+    ? (shelterFallbackContent(step, point) ?? { title: step.title, instruction: step.instruction })
+    : null;
 
   const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
   // Without a live fix fall back to this session's last fix, then to the position saved before the alarm.
@@ -288,7 +284,7 @@ export default function GuidanceScreen() {
         : null;
   const origin = liveFix ?? staleFix?.coords ?? null;
   const isStale = liveFix === null && staleFix !== null;
-  // One navigation core (S-04): straight bearing for plan places, route following for the PSP shelter.
+  // One navigation core (S-04): straight bearing for the own shelter, route following for the PSP shelter.
   const guidanceKey = `${step?.id ?? ""}:${point?.label ?? ""}:${point?.role ?? ""}`;
   const [modeMemory, setModeMemory] = useState<{ key: string; mode: GuidanceMode | null }>({ key: "", mode: null });
   const previousMode = modeMemory.key === guidanceKey ? modeMemory.mode : null;
@@ -316,7 +312,7 @@ export default function GuidanceScreen() {
   const straightDistance = guidance?.straightDistanceMeters ?? null;
   const locationProblemKind = liveFix === null && (status === "denied" || status === "unavailable") ? status : null;
   const locationProblem = locationProblemKind ? LOCATION_PROBLEMS[locationProblemKind] : null;
-  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
+  // Only a live fix can confirm arrival — a saved position may be the target point itself.
   const arrived = guidance?.arrived ?? false;
   const showArrival = arrived || confirmedArrival;
   // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
@@ -331,10 +327,7 @@ export default function GuidanceScreen() {
   // Po dojściu zostaje jedna akcja guidance: czerwone „punkt niedostępny” pod nogami celu,
   // na który właśnie doszliśmy, czyta się jak ostrzeżenie o tym miejscu.
   const fallbackAvailable =
-    step?.kind === "navigate" &&
-    !showArrival &&
-    (step.fallback !== null || shelterFallback) &&
-    !(run?.fallbackActive ?? false);
+    step?.kind === "navigate" && !showArrival && shelterFallback && !(run?.fallbackActive ?? false);
 
   // Stan głosu musi powstać przed pierwszym `return`, bo `useVoiceGuidance` jest hookiem.
   // Kolejność warunków odpowiada kolejności ekranów poniżej, żeby głos mówił to, co widać.
@@ -580,7 +573,7 @@ export default function GuidanceScreen() {
           <HoldButton
             holdMs={HOLD_MS}
             onComplete={switchToFallback}
-            label="Punkt niedostępny — idź do zapasowego"
+            label="Schron niedostępny — idź do zapasowego"
             icon={TriangleAlert}
             hintId="hold-hint"
             className="border-destructive text-destructive focus-visible:ring-destructive active:bg-surface-secondary"

@@ -18,8 +18,8 @@ const ARRIVAL_JITTER_METERS = 50;
 export type VoiceStatus = "loading" | "ready" | "blocked" | "unavailable" | "off";
 
 function stateKey(state: GuidanceVoiceState): string {
-  // Tytuł kroku wchodzi do klucza: bez tego przejście z miejsca spotkania na punkt ewakuacji
-  // (oba to `guiding:live`) nie zmieniłoby klucza i głos przemilczałby zmianę celu.
+  // Tytuł kroku wchodzi do klucza: bez tego przejście na zapasowy schron (przed i po to
+  // `guiding:live`) nie zmieniłoby klucza i głos przemilczałby zmianę celu.
   if (state.kind === "guiding") return `guiding:${state.title}:${state.live ? "live" : "stale"}`;
   if (state.kind === "arrived") return `arrived:${state.label}`;
   if (state.kind === "locationProblem") return `locationProblem:${state.problem}`;
@@ -149,7 +149,7 @@ export function useVoiceGuidance(state: GuidanceVoiceState) {
     if (announced?.kind !== "guiding" || !announced.live) return;
     const next = nextDistanceAnnouncement(lastMarkRef.current, liveMeters);
     lastMarkRef.current = next.mark;
-    // „Do celu”, nie „do punktu”: celem bywa też miejsce spotkania i miejsce zapasowe.
+    // „Do celu”, nie „do schronu”: nazwa celu padła już przy wejściu w prowadzenie.
     if (next.announce) say(`Do celu ${spokenDistance(liveMeters)}.`);
   }, [active, liveMeters, say]);
 
