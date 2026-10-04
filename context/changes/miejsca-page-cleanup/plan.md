@@ -541,9 +541,9 @@ Edytor własnego schronu dostaje mapę: pinezka stoi na środku, użytkownik prz
 
 #### Automated
 
-- [x] 4.1 No stale references in docs outside superseded decision entries
-- [x] 4.2 Format passes: `npm run format`
+- [x] 4.1 No stale references in docs outside superseded decision entries — ed444d9
+- [x] 4.2 Format passes: `npm run format` — ed444d9
 
 #### Manual
 
-- [x] 4.3 PRD spójny: FR-004, FR-013, Business Logic i decyzje bez sprzeczności
+- [x] 4.3 PRD spójny: FR-004, FR-013, Business Logic i decyzje bez sprzeczności — ed444d9

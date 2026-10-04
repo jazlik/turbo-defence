@@ -1,7 +1,7 @@
 ---
 change_id: miejsca-page-cleanup
 title: Uporządkowanie strony /miejsca — zwięźlejsza forma, lepszy UX, przegląd zbędnych elementów
-status: implementing
+status: implemented
 created: 2026-10-04
 updated: 2026-10-04
 archived_at: null
