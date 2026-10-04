@@ -77,6 +77,24 @@ const scriptsConfig = defineConfig({
   rules: { "no-console": "off" },
 });
 
+// The screenshot scripts also contain functions that run inside the browser page (`addInitScript`).
+const screenshotsConfig = defineConfig({
+  files: ["scripts/screenshots/**/*.mjs"],
+  languageOptions: {
+    globals: {
+      window: true,
+      document: true,
+      navigator: true,
+      localStorage: true,
+      setTimeout: true,
+      setInterval: true,
+      Event: true,
+      TextEncoder: true,
+      StorageManager: true,
+    },
+  },
+});
+
 export default defineConfig(
   includeIgnoreFile(gitignorePath),
   baseConfig,
@@ -85,5 +103,6 @@ export default defineConfig(
   eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
   astroConfig,
   scriptsConfig,
+  screenshotsConfig,
   eslintPluginPrettier,
 );

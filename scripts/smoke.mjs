@@ -51,7 +51,8 @@ for (const icon of manifest.icons) {
 }
 
 const offlinePage = await get("/offline");
-if (!(await offlinePage.text()).includes("OfflineShellCard")) fail("/offline is missing the offline shell card");
+// OfflineScreen is the single island that owns the shell card, install card and map card.
+if (!(await offlinePage.text()).includes("OfflineScreen")) fail("/offline is missing its OfflineScreen island");
 
 // Shelter and route live on /miejsca, next to the own shelter (miejsca-page-cleanup).
 const placesHtml = await (await get("/miejsca")).text();

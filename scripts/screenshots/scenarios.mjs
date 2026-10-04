@@ -6,23 +6,24 @@ import { join } from "node:path";
 
 // The real backpack builder gives exact item ids and quantities (a stale quantity counts as "outdated").
 const outfile = join(mkdtempSync(join(tmpdir(), "wrw-shots-")), "backpack.mjs");
-await build({ entryPoints: ["src/lib/backpack.ts"], bundle: true, format: "esm", outfile, alias: { "@": "./src" }, logLevel: "silent" });
+await build({
+  entryPoints: ["src/lib/backpack.ts"],
+  bundle: true,
+  format: "esm",
+  outfile,
+  alias: { "@": "./src" },
+  logLevel: "silent",
+});
 const { buildBackpack, isKeyItem } = await import(pathToFileURL(outfile).href);
 const packAll = (members, only = () => true) =>
-  buildBackpack(members).filter(only).map((item) => ({ itemId: item.id, quantity: item.quantity?.amount ?? null }));
+  buildBackpack(members)
+    .filter(only)
+    .map((item) => ({ itemId: item.id, quantity: item.quantity?.amount ?? null }));
 
 // Seeds for the iPhone 13 mini screenshot run. Shapes follow src/lib/services/*-storage.ts.
 const NOW = new Date().toISOString();
 const ORIGIN = { latitude: 50.0647, longitude: 19.945 };
 const SHELTER = { latitude: 50.0647, longitude: 19.93 };
-
-const BASE_IDS = [
-  "water", "food", "clothes", "blanket", "masks", "documents", "cash", "flashlight", "radio", "powerbank",
-  "first-aid", "fire", "knife", "whistle", "hygiene", "trash-bags", "notebook", "guide",
-];
-const CHILD_IDS = ["child-documents", "child-clothes", "child-snacks", "child-diapers", "child-toy", "child-card"];
-const KEY_IDS = ["water", "food", "documents", "first-aid"];
-const packed = (ids) => ids.map((itemId) => ({ itemId, quantity: null }));
 
 const members = [
   { id: "m1", name: "Ola", category: "child", needs: [] },
@@ -99,12 +100,22 @@ export const POS = {
 /** `ready` is a selector that appears once the island has mounted. */
 export const core = [
   { name: "home-start", path: "/", storage: {}, ready: "text=Twój plan" },
-  { name: "home-basics", path: "/", storage: { "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER } }) }, ready: "text=Twój plan" },
+  {
+    name: "home-basics",
+    path: "/",
+    storage: { "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER } }) },
+    ready: "text=Twój plan",
+  },
   {
     name: "home-ready-to-go",
     path: "/",
     storage: {
-      "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER }, members, contacts, packedItems: packAll(members, isKeyItem) }),
+      "wrw.plan": plan({
+        shelter: { label: "Moja szkoła", coords: SHELTER },
+        members,
+        contacts,
+        packedItems: packAll(members, isKeyItem),
+      }),
     },
     ready: "text=Twój plan",
   },
@@ -119,16 +130,74 @@ export const core = [
 
   { name: "alarm-no-target", path: "/alarm", storage: {}, ready: "text=Nie ma przygotowanego celu" },
   { name: "alarm-backpack", path: "/alarm", storage: { "wrw.plan": full }, ready: "text=Zrobione" },
-  { name: "alarm-gps-search", path: "/alarm", storage: { "wrw.plan": { ...full, lastKnownPosition: null }, "wrw.navigation": navigation(), "wrw.run": run("shelter") }, ready: "text=Szukam", noPos: true, resume: true },
-  { name: "alarm-nav-route", path: "/alarm", storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") }, pos: POS.onRoute, resume: true },
-  { name: "alarm-nav-direct", path: "/alarm", storage: { "wrw.plan": full, "wrw.run": run("shelter") }, pos: POS.onRoute, resume: true },
-  { name: "alarm-nav-rejoin", path: "/alarm", storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") }, pos: POS.rejoin, resume: true },
-  { name: "alarm-arrived", path: "/alarm", storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") }, pos: POS.arrived, resume: true },
-  { name: "alarm-resume-prompt", path: "/alarm", storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") }, ready: "text=Przerwana", pos: POS.onRoute },
+  {
+    name: "alarm-gps-search",
+    path: "/alarm",
+    storage: {
+      "wrw.plan": { ...full, lastKnownPosition: null },
+      "wrw.navigation": navigation(),
+      "wrw.run": run("shelter"),
+    },
+    ready: "text=Szukam",
+    noPos: true,
+    resume: true,
+  },
+  {
+    name: "alarm-nav-route",
+    path: "/alarm",
+    storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") },
+    pos: POS.onRoute,
+    resume: true,
+  },
+  {
+    name: "alarm-nav-direct",
+    path: "/alarm",
+    storage: { "wrw.plan": full, "wrw.run": run("shelter") },
+    pos: POS.onRoute,
+    resume: true,
+  },
+  {
+    name: "alarm-nav-rejoin",
+    path: "/alarm",
+    storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") },
+    pos: POS.rejoin,
+    resume: true,
+  },
+  {
+    name: "alarm-arrived",
+    path: "/alarm",
+    storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") },
+    pos: POS.arrived,
+    resume: true,
+  },
+  {
+    name: "alarm-resume-prompt",
+    path: "/alarm",
+    storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.run": run("shelter") },
+    ready: "text=Przerwana",
+    pos: POS.onRoute,
+  },
 
-  { name: "miejsca", path: "/miejsca", storage: { "wrw.plan": full, "wrw.navigation": navigation() }, ready: "text=Miejsca" },
+  {
+    name: "miejsca",
+    path: "/miejsca",
+    storage: { "wrw.plan": full, "wrw.navigation": navigation() },
+    ready: "text=Miejsca",
+  },
   { name: "domownicy", path: "/domownicy", storage: { "wrw.plan": full }, ready: "text=Ola" },
   { name: "plecak", path: "/plecak", storage: { "wrw.plan": partial }, ready: "text=Do spakowania" },
-  { name: "offline", path: "/offline", standalone: true, storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.map": mapReady }, ready: "text=Mapa" },
-  { name: "czujniki", path: "/czujniki", storage: { "wrw.plan": full, "wrw.sensors": sensors }, ready: "text=Lokalizacja", pos: POS.onRoute },
+  {
+    name: "offline",
+    path: "/offline",
+    standalone: true,
+    storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.map": mapReady },
+    ready: "text=Mapa",
+  },
+  {
+    name: "czujniki",
+    path: "/czujniki",
+    storage: { "wrw.plan": full, "wrw.sensors": sensors },
+    ready: "text=Lokalizacja",
+    pos: POS.onRoute,
+  },
 ];

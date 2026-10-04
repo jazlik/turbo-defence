@@ -29,7 +29,10 @@ for (const scenario of core) {
       // A map flagged ready is only trusted when its OPFS file exists: stand in for the file (size + PMTiles magic).
       const map = storage["wrw.map"];
       if (map?.status === "ready") {
-        const file = { size: map.bytes, slice: () => ({ arrayBuffer: async () => new TextEncoder().encode("PMTiles").buffer }) };
+        const file = {
+          size: map.bytes,
+          slice: () => ({ arrayBuffer: async () => new TextEncoder().encode("PMTiles").buffer }),
+        };
         Object.defineProperty(StorageManager.prototype, "getDirectory", {
           configurable: true,
           value: async () => ({ getFileHandle: async () => ({ getFile: async () => file }) }),
@@ -37,11 +40,23 @@ for (const scenario of core) {
       }
       if (standalone) Object.defineProperty(navigator, "standalone", { value: true });
       navigator.geolocation.watchPosition = (ok) => {
-        if (pos) setTimeout(() => ok({ coords: { ...pos, heading: null, speed: null, altitude: null, altitudeAccuracy: null }, timestamp: Date.now() }), 100);
+        if (pos)
+          setTimeout(
+            () =>
+              ok({
+                coords: { ...pos, heading: null, speed: null, altitude: null, altitudeAccuracy: null },
+                timestamp: Date.now(),
+              }),
+            100,
+          );
         return 1;
       };
       navigator.geolocation.getCurrentPosition = (ok) => {
-        if (pos) ok({ coords: { ...pos, heading: null, speed: null, altitude: null, altitudeAccuracy: null }, timestamp: Date.now() });
+        if (pos)
+          ok({
+            coords: { ...pos, heading: null, speed: null, altitude: null, altitudeAccuracy: null },
+            timestamp: Date.now(),
+          });
       };
       // Compass: a steady heading so the arrow renders.
       setInterval(() => {
@@ -50,7 +65,11 @@ for (const scenario of core) {
         window.dispatchEvent(event);
       }, 300);
     },
-    { storage: scenario.storage, pos: scenario.noPos ? null : (scenario.pos ?? null), standalone: scenario.standalone ?? false },
+    {
+      storage: scenario.storage,
+      pos: scenario.noPos ? null : (scenario.pos ?? null),
+      standalone: scenario.standalone ?? false,
+    },
   );
   const page = await context.newPage();
   await page.addInitScript(() => {
@@ -66,7 +85,10 @@ for (const scenario of core) {
     const resume = page.getByRole("button", { name: /wznów|kontynuuj|dalej/i }).first();
     if (await resume.isVisible().catch(() => false)) await resume.click();
   }
-  if (scenario.ready) await page.waitForSelector(scenario.ready, { timeout: 8000 }).catch(() => console.warn(`! ${scenario.name}: "${scenario.ready}" not found`));
+  if (scenario.ready)
+    await page
+      .waitForSelector(scenario.ready, { timeout: 8000 })
+      .catch(() => console.warn(`! ${scenario.name}: "${scenario.ready}" not found`));
   if (scenario.action === "hold-alarm") {
     const box = await page.getByText("Uruchom alarm").first().boundingBox();
     if (box) {
