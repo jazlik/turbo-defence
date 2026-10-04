@@ -4,7 +4,27 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 
 ## Wersja robocza decku
 
-`W_razie_W_HackYeah_2026_wersja_robocza.pptx` — szablon zespołu z wstawionymi: logo (slajdy 1, 5), ikonami Lucide (5, 7, 8, 9) i zrzutami aplikacji (6) i ilustracją slajdu 4 (`kandydaci/slajd-4-c1.png`, rekomendacja: zwarty stos, postać w środku; c2 = alternatywa). Podgląd każdego slajdu w pełnym rozmiarze (1600×900): `podglad/slajd-1.png` … `slajd-9.png` — złożony na PDF szablonu, bo LibreOffice w środowisku agenta nie renderuje PPTX; ostatecznie sprawdź w PowerPoincie. Puste nadal: wycinki z mediów i miniatury materiałów (2–4), nazwa zespołu i imiona.
+`W_razie_W_HackYeah_2026_wersja_robocza.pptx` (+ `.pdf`) — szkielet zespołu z wgranymi assetami i poprawioną kompozycją (2026-10-04):
+
+- **Okładka:** po prawej pole `#E3E7E9` z dużą ilustracją „rodzina w drzwiach”, ucięta dolną krawędzią; z drzwi wychodzi przerywana ścieżka w stali — motyw „od planu do punktu”, który wraca na slajdach 5 i 6.
+- **Rozwiązanie (5):** ilustracje poradnika zamiast ikon (rodzina w drzwiach, udostępnienie, plecak, prowadzenie), w kartach tylko tytuły; opisy funkcji przeniesione do notatek prelegenta. Pod kartami przerywana „droga” łącząca 4 funkcje.
+- **Informacja ≠ gotowość (4):** większa postać pod stosem (2,85″).
+- **Dwa tryby (6):** zrzuty offline bez ramki, ucięte dolną krawędzią; nad nimi ścieżka — stalowa po jasnej stronie, bursztynowa (guidance) po ciemnej.
+- **Czym się różnimy (7), Dalsze kroki (8):** ikony powiększone z 0,43″ do 0,64″. Slajd 8 czeka na 4 ilustracje (zadanie niżej) — wtedy dostanie układ jak slajd 5.
+- **Aneks (9):** ikony + źródło 77%.
+
+Podgląd każdego slajdu: `podglad/slajd-1.png` … `slajd-9.png` — prawdziwy render PPTX (LibreOffice Impress z fontem Commissioner 400/500/600/700). Puste nadal: wycinki (2–4), nazwa zespołu i imiona.
+
+## Zadanie dla Codexa — 4 ilustracje na „Dalsze kroki” (slajd 8)
+
+`Styl: D` (kontur, `JEZYK_WIZUALNY.md` §12), referencje stylu: 4 karty z `public/ilustracje/poradnik/`. **2 kandydatów na ilustrację**, zapis `kandydaci/slajd-8-<n>-c1.png`, `-c2.png`. Każda scena: 1–2 osoby z rodziny poradnika, jeden obiekt w stali `#536B75`, bez tekstu, bez interfejsu na ekranach (ekran = jednolity kształt), przezroczyste tło.
+
+1. `rodzina` — Gdzie jest rodzina: „An adult holds a phone and looks at it calmly; around the phone, three small round markers float in the air connected by thin dashed lines, like family members' positions. The phone is the only steel blue object.”
+2. `wspolny-plan` — Wspólny plan: „Two adults and a teenager sit side by side, each holding a phone; the three phones show the same plain steel blue screen. No text.”
+3. `oficjalne-dane` — Oficjalne dane: „An adult stands next to a simple public information pillar with a blank steel blue panel, holding a phone; a thin dashed line connects the pillar to the phone. No text, no symbols.”
+4. `scenariusze` — Więcej scenariuszy: „A family of three at home in the evening during a power cut, calm, sitting at a table lit by one camping lantern; a water bottle and a radio on the table. The lantern is the only steel blue object.”
+
+Commit jako Daniel Karski bez `Co-Authored-By`, push `feat/deck-visuals`, stop — nie edytuj PPTX.
 
 ## Mapa slotów
 
