@@ -17,7 +17,7 @@ top_blocker: time
 
 ## Vision recap
 
-Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej rodziny, a istniejące narzędzia wymagają sieci dokładnie wtedy, gdy jej nie ma. Aplikacja przenosi wszystkie decyzje ewakuacyjne na czas spokoju (domownicy, plecak, miejsce spotkania, miejsce zapasowe, schron), a w kryzysie, bez sieci, przejmuje kontrolę i prowadzi krok po kroku do punktu. Demo na hackathonie (24 h) ma pokazać cały przepływ 1–8 na scenie, z prowadzeniem do punktu w trybie samolotowym.
+Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej rodziny, a istniejące narzędzia wymagają sieci dokładnie wtedy, gdy jej nie ma. Aplikacja przenosi wszystkie decyzje ewakuacyjne na czas spokoju (domownicy, plecak, schron), a w kryzysie, bez sieci, przejmuje kontrolę i prowadzi krok po kroku do punktu. Demo na hackathonie (24 h) ma pokazać cały przepływ 1–8 na scenie, z prowadzeniem do punktu w trybie samolotowym.
 
 ## North star
 
@@ -25,28 +25,28 @@ Ludzie znają poradniki kryzysowe, ale nie zamieniają ich w plan dla własnej r
 
 ## At a glance
 
-| ID   | Change ID               | Outcome (user can …)                                                                                                                                | Prerequisites | PRD refs                                                                              | Status   |
-| ---- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | -------- |
-| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                                    | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
-| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                                               | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
-| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na miejsce zapasowe                                               | S-01          | US-01, FR-013                                                                         | proposed |
-| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                                     | S-01          | US-01, FR-015                                                                         | done     |
-| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć automatycznie wybrany schron PSP z trasą odświeżaną przy dostępie do sieci i iść po niej offline (mapa jako drugi poziom) | S-01          | US-01, FR-004, FR-007, FR-014                                                         | proposed |
-| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                | S-01          | FR-002                                                                                | done     |
-| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                            | S-05          | FR-003                                                                                | done     |
-| S-07 | first-run-onboarding    | (usunięte 2026-10-04) zastąpione przez quick winy i mapę gotowości w S-08 | — | — | dropped |
-| S-08 | readiness-screen        | zobaczyć na stronie głównej jakościowy poziom gotowości, następny quick win i milestone'y; alarm jest przyklejony na dole, konfiguratory są podstronami                                                                                           | S-06          | FR-008, FR-009                                                                        | proposed |
-| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                                                | S-08          | FR-010, FR-011                                                                        | proposed |
-| S-10 | auto-shelter-and-route  | (po MVP) mieć trasę odświeżaną w tle, gdy aplikacja jest zamknięta, i mapę dla kolejnych regionów                                                   | S-04          | FR-007 (rozszerzenie)                                                                 | proposed |
+| ID   | Change ID               | Outcome (user can …)                                                                                                                                    | Prerequisites | PRD refs                                                                              | Status   |
+| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------- | -------- |
+| F-01 | offline-app-shell       | (foundation) aplikacja jest statyczna, otwiera się bez sieci i wdraża się automatycznie z `main`                                                        | —             | US-01, NFR (cały interfejs po polsku), Access Control                                 | done     |
+| S-01 | guided-to-point-offline | wskazać punkt, przytrzymać alarm i w trybie samolotowym iść za strzałką z odległością                                                                   | F-01          | US-01, FR-004, FR-006, FR-012, FR-014, NFR (pierwszy krok < 2 s od zwolnienia alarmu) | done     |
+| S-02 | step-flow-and-fallback  | przejść ewakuację krok po kroku i jednym przyciskiem „niedostępne” przełączyć się na zapasowy schron                                                    | S-01          | US-01, FR-013                                                                         | proposed |
+| S-03 | voice-guidance          | słyszeć kolejne kroki po polsku i wyłączyć głos                                                                                                         | S-01          | US-01, FR-015                                                                         | done     |
+| S-04 | offline-map-and-route   | pobrać mapę regionu, mieć automatycznie wybrany schron PSP z trasą odświeżaną przy dostępie do sieci i iść po niej offline (mapa jako drugi poziom)     | S-01          | US-01, FR-004, FR-007, FR-014                                                         | proposed |
+| S-05 | household-members       | dodać domowników i kontakty awaryjne                                                                                                                    | S-01          | FR-002                                                                                | done     |
+| S-06 | personalized-backpack   | odhaczać checklistę plecaka dopasowaną do składu rodziny                                                                                                | S-05          | FR-003                                                                                | done     |
+| S-07 | first-run-onboarding    | (usunięte 2026-10-04) zastąpione przez quick winy i mapę gotowości w S-08                                                                               | —             | —                                                                                     | dropped  |
+| S-08 | readiness-screen        | zobaczyć na stronie głównej jakościowy poziom gotowości, następny quick win i milestone'y; alarm jest przyklejony na dole, konfiguratory są podstronami | S-06          | FR-008, FR-009                                                                        | proposed |
+| S-09 | share-plan              | przekazać plan domownikowi, który otwiera go tylko do odczytu i poprawia własne dane                                                                    | S-08          | FR-010, FR-011                                                                        | proposed |
+| S-10 | auto-shelter-and-route  | (po MVP) mieć trasę odświeżaną w tle, gdy aplikacja jest zamknięta, i mapę dla kolejnych regionów                                                       | S-04          | FR-007 (rozszerzenie)                                                                 | proposed |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                  | Chain                                                   | Note                                                                          |
-| ------ | ---------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| A      | Prowadzenie w kryzysie | `F-01` → `S-01` → `S-02` / `S-03` / `S-04` (równolegle) | Ścieżka głównego kryterium sukcesu; przy celu „szybkość” idzie pierwsza.      |
-| B      | Przygotowanie i plan   | `S-05` → `S-06` → `S-08` → `S-09`                        | Dołącza do strumienia A w `S-01` (zapis planu); S-07 usunięte. |
+| Stream | Theme                  | Chain                                                   | Note                                                                     |
+| ------ | ---------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| A      | Prowadzenie w kryzysie | `F-01` → `S-01` → `S-02` / `S-03` / `S-04` (równolegle) | Ścieżka głównego kryterium sukcesu; przy celu „szybkość” idzie pierwsza. |
+| B      | Przygotowanie i plan   | `S-05` → `S-06` → `S-08` → `S-09`                       | Dołącza do strumienia A w `S-01` (zapis planu); S-07 usunięte.           |
 
 ## Baseline
 
@@ -55,7 +55,7 @@ Slices below build on these and do NOT re-scaffold them.
 
 - **Frontend:** present — statyczna PWA Astro 7 z wyspami React 19, Tailwind 4 i shadcn/ui; tokeny wizualne w `src/styles/global.css`, tryby `preparation` / `execution` w `src/layouts/Layout.astro`. Ekrany: `/` (plan i alarm), `/czujniki`, `/alarm`, `/design`.
 - **Backend / API:** absent — świadomie: `output: "static"`, bez serwera, API i middleware (PRD: dane nie opuszczają urządzenia).
-- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 2`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`) z trzema miejscami w `places` (`meeting`, `backup`, `shelter`); migracja v1 → v2 mapuje dawny `evacuationPoint` na `places.shelter`. Każda zmiana kształtu podnosi wersję i dopisuje migrację w `parsePlan`; nieczytelny wpis zwraca `source: "unreadable"` i nie jest nadpisywany automatycznym zapisem. Przebieg ewakuacji żyje osobno pod kluczem `wrw.run` (`src/lib/services/run-storage.ts`, `schemaVersion: 1`) i jest wznawiany tylko w progu świeżości `RUN_FRESH_MS` (6 h); sekwencja kroków nie jest zapisywana — wylicza ją `buildSteps` z planu (`src/lib/evacuation-steps.ts`).
+- **Data:** present — plan gospodarstwa `HouseholdPlan` (`src/types.ts`, `schemaVersion: 5`) w localStorage pod kluczem `wrw.plan` (`src/lib/services/plan-storage.ts`) z jednym polem celu `shelter` (własny schron); migracje v1–v4 → v5 zachowują cel (`shelter`, a gdy go nie było — dawne miejsce spotkania lub zapasowe). Każda zmiana kształtu podnosi wersję i dopisuje migrację w `parsePlan`; nieczytelny wpis zwraca `source: "unreadable"` i nie jest nadpisywany automatycznym zapisem. Przebieg ewakuacji żyje osobno pod kluczem `wrw.run` (`src/lib/services/run-storage.ts`, `schemaVersion: 1`) i jest wznawiany tylko w progu świeżości `RUN_FRESH_MS` (6 h); sekwencja kroków nie jest zapisywana — wylicza ją `buildSteps` z planu (`src/lib/evacuation-steps.ts`).
 - **Auth:** absent — świadomie: profil lokalny, bez kont.
 - **Offline:** present — service worker Workbox (`scripts/generate-sw.mjs`) precache'uje cały build; `build.format: "file"`, żeby podstrony trafiały w precache.
 - **Map & routes:** present (S-04, w realizacji) — lekka paczka mapy w OPFS (`scripts/map/`, `src/workers/map-download.worker.ts`), trasy A/B w `wrw.navigation`, snapshot PSP w `public/data/`, navigation core w `src/lib/navigation.ts` + `useGuidance`.
@@ -95,9 +95,9 @@ Slices below build on these and do NOT re-scaffold them.
 - **Risk:** najwyżej ryzykowny element demo idzie pierwszy; jeśli lokalizacja lub kompas zawiodą, zostaje najwięcej czasu na plan B. Decyzja z planowania: demo na zewnątrz na realnych czujnikach, tryb z symulowaną pozycją odrzucony.
 - **Status:** done
 
-### S-02: Kroki ewakuacji i przełączenie na miejsce zapasowe
+### S-02: Kroki ewakuacji i przełączenie na zapasowy schron
 
-- **Outcome:** użytkownik może przejść ewakuację jako sekwencję jednego kroku na ekran (miejsce spotkania, potem dalsze kroki) i przyciskiem „niedostępne” przełączyć prowadzenie na miejsce zapasowe.
+- **Outcome:** użytkownik może przejść ewakuację jako sekwencję jednego kroku na ekran (plecak, potem schron) i przyciskiem „niedostępne” przełączyć prowadzenie na zapasowy schron (trasa B). Zmienione 2026-10-04 (`miejsca-page-cleanup`): pierwotnie krok miejsca spotkania z wyjściem na miejsce zapasowe.
 - **Change ID:** step-flow-and-fallback
 - **PRD refs:** US-01, FR-013
 - **Prerequisites:** S-01
@@ -208,13 +208,13 @@ Slices below build on these and do NOT re-scaffold them.
 | ---------- | ----------------------- | ---------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
 | F-01       | offline-app-shell       | Statyczna powłoka offline + wdrożenie z main               | yes                   | Run `/10x-plan offline-app-shell`                                                      |
 | S-01       | guided-to-point-offline | Prowadzenie do punktu offline (alarm, strzałka, odległość) | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
-| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → miejsce zapasowe         | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
+| S-02       | step-flow-and-fallback  | Kroki ewakuacji i „niedostępne” → zapasowy schron          | yes                   | Zaimplementowane 2026-10-03; testy w terenie i archiwizacja po deployu                 |
 | S-03       | voice-guidance          | Głos prowadzący po polsku                                  | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-04       | offline-map-and-route   | Mapa i trasa offline jako drugi poziom                     | yes                   | Run `/10x-plan offline-map-and-route`; źródło mapy i serwis tras do ustalenia w planie |
 | S-05       | household-members       | Domownicy i kontakty awaryjne                              | yes                   | Run `/10x-plan household-members`                                                      |
 | S-06       | personalized-backpack   | Spersonalizowana checklista plecaka                        | yes                   | Zarchiwizowane 2026-10-03; testy w terenie zaliczone                                   |
 | S-07       | first-run-onboarding    | Usunięte — zastąpione przez S-08                           | —                     | Decyzja 2026-10-04                                                                     |
-| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-06; zastępuje usunięty onboarding S-07 (2026-10-04)                              |
+| S-08       | readiness-screen        | Ekran gotowości z poziomem i quick wins                    | no                    | Po S-06; zastępuje usunięty onboarding S-07 (2026-10-04)                               |
 | S-09       | share-plan              | Przekazanie planu domownikowi                              | no                    | Po S-08; format do ustalenia w planie                                                  |
 | S-10       | auto-shelter-and-route  | Trasa odświeżana w tle i kolejne regiony (po MVP)          | no                    | Po S-04; wybór schronu już w S-04                                                      |
 

@@ -40,10 +40,10 @@ Segment: B2C, gospodarstwa domowe (rodziny, w drugiej kolejności społeczności
    - jak przygotować plecak ewakuacyjny i co w nim jest (checklista),
    - dokąd się ewakuować,
    - jak zaplanować ewakuację dla całej rodziny lub społeczności.
-2. **Household emergency plan.** Członkowie rodziny, kontakty, miejsca spotkań, miejsce zapasowe (backup location), role i podstawowe scenariusze.
+2. **Household emergency plan.** Członkowie rodziny, kontakty, schron jako cel ewakuacji (automatycznie wybrany schron PSP z trasą zapasową albo własny schron), role i podstawowe scenariusze. Miejsce spotkania i miejsce zapasowe usunięto 2026-10-04 (`miejsca-page-cleanup`).
 3. **Dane offline i udostępnianie.** Zebrane dane są przechowywane lokalnie na urządzeniu i można je przekazać innym członkom rodziny.
 4. **Mapa offline i trasa.** Trasa do wskazanego punktu, docelowo do schronu lub bezpiecznego miejsca.
-5. **Preparedness gaps.** System pokazuje, czego brakuje, np. brak backup meeting point, brak offline copy planu, nieprzygotowany plecak.
+5. **Preparedness gaps.** System pokazuje, czego brakuje, np. brak schronu i trasy, brak offline copy planu, nieprzygotowany plecak.
 6. **Execution Mode (tryb działania).** W kryzysie aplikacja przełącza się w prosty tryb krok po kroku: duże komunikaty, voice guidance, wibracje, minimum decyzji. Korzysta z wcześniej zebranych danych, zapisanej mapy i trasy offline oraz wcześniej przygotowanej instrukcji.
 7. **Przycisk uruchamiający tryb alarmu.** Ręczne wejście w Execution Mode. Pełna automatyzacja (np. z alertów) jest na później.
 

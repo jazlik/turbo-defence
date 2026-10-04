@@ -522,28 +522,28 @@ Edytor własnego schronu dostaje mapę: pinezka stoi na środku, użytkownik prz
 
 #### Automated
 
-- [x] 3.1 Unit tests pass (incl. `map-source.test.ts`): `npm test`
-- [x] 3.2 Lint passes: `npm run lint`
-- [x] 3.3 Type check passes: `npx astro check`
-- [x] 3.4 Build passes: `npm run build`
-- [x] 3.5 MapLibre stays out of the static page bundle
-- [x] 3.6 Smoke passes against preview
+- [x] 3.1 Unit tests pass (incl. `map-source.test.ts`): `npm test` — 3f8d314
+- [x] 3.2 Lint passes: `npm run lint` — 3f8d314
+- [x] 3.3 Type check passes: `npx astro check` — 3f8d314
+- [x] 3.4 Build passes: `npm run build` — 3f8d314
+- [x] 3.5 MapLibre stays out of the static page bundle — 3f8d314
+- [x] 3.6 Smoke passes against preview — 3f8d314
 
 #### Manual
 
-- [x] 3.7 iOS Safari online bez paczki: mapa z R2, przesuwanie, zapis pod pinezką, alarm prowadzi
-- [x] 3.8 Android Chrome: to samo + paczka w trybie samolotowym (OPFS)
-- [x] 3.9 Tryb samolotowy bez paczki: współrzędne rozwinięte z powodem, zapis działa
-- [x] 3.10 „Moja pozycja” centruje mapę; odmowa lokalizacji nie psuje edytora
-- [x] 3.11 Alarm z mapą wykonawczą bez regresji (wspólny protokół)
+- [x] 3.7 iOS Safari online bez paczki: mapa z R2, przesuwanie, zapis pod pinezką, alarm prowadzi — 3f8d314
+- [x] 3.8 Android Chrome: to samo + paczka w trybie samolotowym (OPFS) — 3f8d314
+- [x] 3.9 Tryb samolotowy bez paczki: współrzędne rozwinięte z powodem, zapis działa — 3f8d314
+- [x] 3.10 „Moja pozycja” centruje mapę; odmowa lokalizacji nie psuje edytora — 3f8d314
+- [x] 3.11 Alarm z mapą wykonawczą bez regresji (wspólny protokół) — 3f8d314
 
 ### Phase 4: Dokumenty
 
 #### Automated
 
-- [ ] 4.1 No stale references in docs outside superseded decision entries
-- [ ] 4.2 Format passes: `npm run format`
+- [x] 4.1 No stale references in docs outside superseded decision entries
+- [x] 4.2 Format passes: `npm run format`
 
 #### Manual
 
-- [ ] 4.3 PRD spójny: FR-004, FR-013, Business Logic i decyzje bez sprzeczności
+- [x] 4.3 PRD spójny: FR-004, FR-013, Business Logic i decyzje bez sprzeczności
