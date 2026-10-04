@@ -27,6 +27,7 @@ import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { buildSteps, resumeIndex, type EvacuationStep } from "@/lib/evacuation-steps";
+import { cn } from "@/lib/utils";
 import { formatClockTime } from "@/lib/format";
 import { formatDistance } from "@/lib/geo";
 import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
@@ -55,7 +56,7 @@ const MAP_PREFETCH_FALLBACK_MS = 1500;
 const DISTANCE_CAPTIONS: Record<DistanceKind, string> = {
   route: "trasą",
   "to-route": "do trasy",
-  straight: "w linii prostej",
+  straight: "kierunek do celu",
 };
 
 // Ten sam czas co alarm: jeden wyuczony gest dla akcji, których nie da się cofnąć.
@@ -74,7 +75,8 @@ const EMERGENCY_STEP: EvacuationStep = {
   id: "emergency",
   kind: "navigate",
   title: "Idź do najbliższego schronu",
-  instruction: "Prowadzenie awaryjne w linii prostej, bez trasy po drogach. Omijaj przeszkody i trzymaj kierunek.",
+  instruction:
+    "Prowadzenie awaryjne: strzałka wskazuje tylko kierunek celu, bez trasy po drogach. Omijaj przeszkody i trzymaj kierunek.",
 };
 
 type FinderState = "idle" | "searching" | "no-position" | "no-candidates" | "no-data" | "failed";
@@ -252,8 +254,6 @@ export default function GuidanceScreen() {
   }, [mapFailed]);
   const [run, setRun] = useState(session.run);
   const [stepIndex, setStepIndex] = useState(session.stepIndex);
-  // Dwustopniowe wyjście bez potwierdzenia GPS: przytrzymanie, a potem dotknięcie potwierdzenia.
-  const [confirming, setConfirming] = useState(false);
   const [confirmedArrival, setConfirmedArrival] = useState(false);
   // A resumed run needs an explicit notice; a fresh map alarm jumps directly to the shelter without one.
   const [resumePrompt, setResumePrompt] = useState(session.run !== null && session.stepIndex > 0);
@@ -301,14 +301,6 @@ export default function GuidanceScreen() {
     if (coords) saveLastKnownPosition(coords);
   }, [coords]);
 
-  // Podmiana HoldButton na przycisk potwierdzenia odmontowuje element, więc focus spadłby na <body>.
-  // Bez tego drugi etap jest nieosiągalny z klawiatury i switcha inaczej niż tabulatorem od góry strony.
-  const confirmButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (confirming) confirmButtonRef.current?.focus();
-  }, [confirming]);
-
   useEffect(() => {
     if (!headingPermissionRequired()) return;
     const timer = window.setTimeout(() => {
@@ -337,7 +329,6 @@ export default function GuidanceScreen() {
     writeRun(next);
     setRun(next);
     setStepIndex(stepIndex + 1);
-    setConfirming(false);
     setConfirmedArrival(false);
   };
 
@@ -351,7 +342,6 @@ export default function GuidanceScreen() {
   };
 
   const confirmArrival = () => {
-    setConfirming(false);
     if (nextStep !== undefined) goToNextStep();
     else setConfirmedArrival(true);
   };
@@ -492,9 +482,6 @@ export default function GuidanceScreen() {
   // Only a live fix can confirm arrival — a saved position may be the target point itself.
   const arrived = guidance?.arrived ?? false;
   const showArrival = arrived || confirmedArrival;
-  // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
-  // wróciło, przycisk wróciłby już uzbrojony, czyli bez bramki przytrzymania.
-  if (showArrival && confirming) setConfirming(false);
   const guiding =
     !showArrival &&
     distance !== null &&
@@ -630,49 +617,32 @@ export default function GuidanceScreen() {
       onComplete={switchToFallback}
       label="Schron niedostępny — idź do zapasowego"
       icon={TriangleAlert}
-      hintId="hold-hint"
       className="border-destructive text-destructive focus-visible:ring-destructive active:bg-surface-secondary"
     />
   );
 
-  // S-02 manual arrival (indoors, weak GPS) — the same two-stage hold + confirm on the map and the arrow view.
-  const confirmArrivalControl = (
-    <>
-      {!showArrival && (
-        // Stopka nie jest objęta regionem aria-live sekcji: bez tego drugi etap pojawia się bez zapowiedzi.
-        <div role="status" className="w-full">
-          {confirming ? (
-            <Button
-              ref={confirmButtonRef}
-              type="button"
-              variant="secondary"
-              className="min-h-14 w-full text-base font-semibold"
-              onClick={confirmArrival}
-            >
-              <Check strokeWidth={2} aria-hidden="true" />
-              Potwierdź: jestem na miejscu
-            </Button>
-          ) : (
-            <HoldButton
-              holdMs={HOLD_MS}
-              onComplete={() => {
-                setConfirming(true);
-              }}
-              label="Potwierdź dojście"
-              icon={Check}
-              hintId="hold-hint"
-              className="border-input text-foreground focus-visible:ring-ring active:bg-surface-secondary"
-            />
-          )}
-        </div>
-      )}
+  // S-02 manual arrival (indoors, weak GPS): zwykłe dotknięcie. Przytrzymanie jest dla czynności, które zmieniają
+  // przebieg; potwierdzenie dojścia do niego nie należy.
+  const confirmArrivalControl = !showArrival && (
+    <Button
+      type="button"
+      variant="secondary"
+      className="min-h-14 w-full text-base font-semibold"
+      onClick={confirmArrival}
+    >
+      <Check strokeWidth={2} aria-hidden="true" />
+      Potwierdź dojście
+    </Button>
+  );
 
-      {(fallbackAvailable || (!showArrival && !confirming)) && (
-        <p id="hold-hint" className="text-muted-foreground text-sm">
-          Akcje z pierścieniem przytrzymaj przez 2 sekundy.
-        </p>
-      )}
-    </>
+  // Wyjątek od normalnego przebiegu stoi osobno, pod rozwijanym blokiem: nie konkuruje z główną akcją.
+  const targetProblem = fallbackHold && (
+    <details className="border-border w-full border-t pt-2">
+      <summary className="text-muted-foreground flex min-h-11 cursor-pointer items-center justify-center text-sm">
+        Problem z celem?
+      </summary>
+      <div className="pt-2">{fallbackHold}</div>
+    </details>
   );
 
   if (mapAvailable && point.route && guidance && !showArrival) {
@@ -716,8 +686,8 @@ export default function GuidanceScreen() {
                 Więcej opcji
               </summary>
               <div className="flex flex-col items-center gap-3 pt-2">
-                {fallbackHold}
                 {confirmArrivalControl}
+                {fallbackHold}
                 <ExitLink />
               </div>
             </details>
@@ -737,7 +707,7 @@ export default function GuidanceScreen() {
         {point.route && (
           <p className="text-muted-foreground mt-1 flex items-center gap-2 text-base">
             <Route className="size-4" strokeWidth={2} aria-hidden="true" />
-            Trasa z {formatClockTime(Date.parse(point.route.createdAt))}
+            Trasa offline · zapisana {formatClockTime(Date.parse(point.route.createdAt))}
           </p>
         )}
       </header>
@@ -750,7 +720,7 @@ export default function GuidanceScreen() {
             <p className="text-muted-foreground text-lg">
               {nextStep !== undefined
                 ? "Zostań tutaj i czekaj na pozostałych domowników."
-                : "Dotarliście na miejsce. To koniec zaplanowanej drogi."}
+                : "Dotarliście na miejsce. To koniec zaplanowanej drogi, ale nie musi to być koniec sytuacji."}
             </p>
           </>
         )}
@@ -767,15 +737,17 @@ export default function GuidanceScreen() {
             </div>
             <p className="font-operational text-display text-guidance">{formatDistance(distance)}</p>
             <p className="text-muted-foreground text-lg">
-              {guidance ? DISTANCE_CAPTIONS[guidance.distanceKind] : "w linii prostej"}
+              {guidance ? DISTANCE_CAPTIONS[guidance.distanceKind] : DISTANCE_CAPTIONS.straight}
             </p>
-            {emergency && (
-              <p className="text-attention-foreground text-base">
-                Prowadzenie awaryjne w linii prostej — bez wyznaczonej trasy po drogach.
+            {(guidance === null || guidance.distanceKind === "straight") && (
+              <p className={cn("text-base", emergency ? "text-attention-foreground" : "text-muted-foreground")}>
+                {guidance?.mode === "direct" && point.route
+                  ? "Jesteś daleko od zapisanej trasy. "
+                  : emergency
+                    ? "Prowadzenie awaryjne. "
+                    : ""}
+                Nie mamy trasy. Strzałka wskazuje tylko kierunek celu.
               </p>
-            )}
-            {guidance?.mode === "direct" && point.route && (
-              <p className="text-muted-foreground text-base">Jesteś daleko od zapisanej trasy — idź w kierunku celu.</p>
             )}
             {isStale && (
               <p className="text-muted-foreground flex items-center gap-2 text-base">
@@ -820,15 +792,15 @@ export default function GuidanceScreen() {
           ) : (
             <Button type="button" size="lg" className="min-h-14 w-full text-lg font-semibold" onClick={finishRun}>
               <Check strokeWidth={2} aria-hidden="true" />
-              Zakończ tryb alarmu
+              Zakończ prowadzenie
             </Button>
           ))}
 
         {compassButton}
 
-        {fallbackHold}
-
         {confirmArrivalControl}
+
+        {targetProblem}
 
         <VoiceToggle voice={voice} />
         <ExitLink />

@@ -55,6 +55,7 @@ const input = (overrides: Partial<ReadinessInput> = {}): ReadinessInput => ({
   planSource: "stored",
   navigation: createEmptyNavigation(),
   map: null,
+  mapFile: "present",
   sensors: null,
   install: "na",
   shell: "na",
@@ -131,7 +132,7 @@ describe("computeReadiness — levels", () => {
     expect(computeReadiness(input({ plan })).level.id).toBe("ready-to-go");
   });
 
-  it("reaches 72H Ready when everything is done and has no next step", () => {
+  it("reaches the top level when everything is done and has no next step", () => {
     const readiness = computeReadiness(readyInput());
     expect(readiness.level.id).toBe("ready-72h");
     expect(readiness.next).toBeNull();
@@ -286,6 +287,15 @@ describe("computeReadiness — offline map", () => {
 
   it("is done for a ready package that covers the position", () => {
     expect(win(computeReadiness(ready), "map").status).toBe("done");
+  });
+
+  it("is todo, with its own copy, when the file behind a ready flag is gone", () => {
+    const evicted = computeReadiness({ ...ready, mapFile: "missing" });
+    expect(win(evicted, "map").status).toBe("todo");
+    expect(win(evicted, "map").title).toBe("Pobierz mapę ponownie");
+    expect(evicted.level.id).not.toBe("ready-72h");
+    // Until the file check answers, the flag is trusted so the level does not flicker on every load.
+    expect(win(computeReadiness({ ...ready, mapFile: "unknown" }), "map").status).toBe("done");
   });
 
   it("is todo while the package is not ready", () => {

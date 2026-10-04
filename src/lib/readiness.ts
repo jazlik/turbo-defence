@@ -4,7 +4,8 @@ import { packageCovers, regionCovering } from "./map-regions";
 import { SHORTLIST_RADIUS_METERS } from "./shelters";
 import type { InstallState } from "./services/install";
 import type { OfflineShellState } from "./services/offline-shell";
-import { isMapReady, type MapPackageState } from "./services/map-storage";
+import { isMapUsable, mapHealth, type MapFileCheck } from "./map-health";
+import type { MapPackageState } from "./services/map-storage";
 import type { PlanSource } from "./services/plan-storage";
 import { sensorsReady, type SensorCheckState } from "./services/sensor-storage";
 import type { HouseholdPlan, NavigationState } from "@/types";
@@ -34,7 +35,7 @@ export const STAGES: readonly { id: StageId; title: string }[] = [
   { id: "target", title: "Cel alarmu" },
   { id: "family", title: "Rodzina i plecak" },
   { id: "offline", title: "Działanie bez internetu" },
-  { id: "complete", title: "Komplet na 72 godziny" },
+  { id: "complete", title: "Pełny plecak" },
 ];
 
 export interface ReadinessLevel {
@@ -50,20 +51,25 @@ export const LEVELS: readonly ReadinessLevel[] = [
     id: "start",
     index: 0,
     title: "Zaczynamy",
-    description: "Alarm sam wyszuka najbliższy schron — z planem poprowadzi pewniej.",
+    description: "Alarm sam wyszuka najbliższy punkt schronienia. Z planem poprowadzi pewniej.",
   },
-  { id: "basics", index: 1, title: "Podstawy", description: "Alarm ma cel. Brakuje rodziny i plecaka." },
+  {
+    id: "basics",
+    index: 1,
+    title: "Podstawy",
+    description: "Masz już miejsce ewakuacji. Teraz dodaj osoby, z którymi będziesz działać.",
+  },
   {
     id: "ready-to-go",
     index: 2,
     title: "Gotowi do wyjścia",
-    description: "Cel, rodzina i najważniejsze rzeczy w plecaku są gotowe.",
+    description: "Masz cel, osoby i najważniejsze rzeczy w plecaku.",
   },
   {
     id: "ready-72h",
     index: 3,
-    title: "72H Ready",
-    description: "Schron, plecak, mapa i czujniki są przygotowane.",
+    title: "Plan przygotowany",
+    description: "Cel, domownicy, plecak, mapa i telefon są przygotowane.",
   },
 ];
 
@@ -99,6 +105,8 @@ export interface ReadinessInput {
   planSource: PlanSource;
   navigation: NavigationState;
   map: MapPackageState | null;
+  /** Result of checking the package file on disk; `missing` overrides a `ready` flag. */
+  mapFile: MapFileCheck;
   sensors: SensorCheckState | null;
   install: InstallState;
   shell: OfflineShellState;
@@ -140,7 +148,7 @@ interface Evaluation {
 }
 
 function evaluate(input: ReadinessInput): Evaluation {
-  const { plan, navigation, map, sensors, install, shell } = input;
+  const { plan, navigation, map, mapFile, sensors, install, shell } = input;
   const position = plan.lastKnownPosition?.coords ?? null;
   const notices: ReadinessNotice[] = [];
   const quickWins: QuickWin[] = [];
@@ -230,7 +238,7 @@ function evaluate(input: ReadinessInput): Evaluation {
     href: "/offline",
   } as const;
   const regionHere = position === null ? undefined : regionCovering(position);
-  if (isMapReady(map)) {
+  if (isMapUsable(map, mapFile)) {
     if (position === null || packageCovers(map.regionId, position)) {
       quickWins.push({
         ...mapStep,
@@ -267,11 +275,14 @@ function evaluate(input: ReadinessInput): Evaluation {
       reason: "Mapy offline są na razie dostępne tylko dla Małopolski.",
     });
   } else {
+    const evicted = mapHealth(map, mapFile) === "file-missing";
     quickWins.push({
       ...mapStep,
       status: "todo",
-      title: "Pobierz mapę offline",
-      reason: "Mapa regionu na telefonie pokaże trasę i Twoją pozycję bez internetu.",
+      title: evicted ? "Pobierz mapę ponownie" : "Pobierz mapę offline",
+      reason: evicted
+        ? "Telefon usunął pobraną mapę. Pobierz ją ponownie przez Wi-Fi."
+        : "Mapa regionu na telefonie pokaże trasę i Twoją pozycję bez internetu.",
     });
   }
 

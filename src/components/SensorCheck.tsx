@@ -12,13 +12,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import VoiceCheck from "@/components/VoiceCheck";
+import { useMapFile } from "@/components/hooks/useMapFile";
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
 import { formatClockTime } from "@/lib/format";
+import { mapHealth, type MapHealth } from "@/lib/map-health";
 import { openMapFile, readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
-import { writeSensors } from "@/lib/services/sensor-storage";
+import { readSensors, writeSensors } from "@/lib/services/sensor-storage";
 import { cn } from "@/lib/utils";
 
 type SensorResult = "pending" | "working" | "denied" | "unavailable";
@@ -117,8 +119,17 @@ interface StorageReadings {
   persisted: boolean | null;
 }
 
+const MAP_HEALTH_LABEL: Record<MapHealth, string> = {
+  none: "Nie pobrano",
+  downloading: "Pobieranie w toku",
+  failed: "Pobieranie przerwane",
+  ready: "Gotowa",
+  "file-missing": "Telefon usunął plik mapy",
+};
+
 function MapDiagnostics() {
   const [map] = useState(readMapPackage);
+  const health = mapHealth(map, useMapFile(map));
   const [readings, setReadings] = useState<StorageReadings | null>(null);
 
   useEffect(() => {
@@ -149,7 +160,11 @@ function MapDiagnostics() {
         <Reading label="Paczka" value={map ? `${map.regionId} ${map.version}` : "brak"} />
         <Reading
           label="Stan"
-          value={map ? `${map.status} · ${megabytes(map.receivedBytes)} z ${megabytes(map.bytes)}` : "—"}
+          value={
+            health === "downloading" || health === "failed"
+              ? `${MAP_HEALTH_LABEL[health]} · ${megabytes(map?.receivedBytes)} z ${megabytes(map?.bytes)}`
+              : MAP_HEALTH_LABEL[health]
+          }
         />
         <Reading label="Plik na telefonie" value={megabytes(readings?.fileBytes)} />
         <Reading
@@ -158,6 +173,51 @@ function MapDiagnostics() {
         />
         <Reading label="Zajęte / dostępne" value={`${megabytes(readings?.usage)} / ${megabytes(readings?.quota)}`} />
       </dl>
+    </section>
+  );
+}
+
+/** The plain-language state of the offline map and routes; the raw readings stay under "Szczegóły diagnostyczne". */
+function OfflineSummary() {
+  const [map] = useState(readMapPackage);
+  const health = mapHealth(map, useMapFile(map));
+  const [{ primary }] = useState(readNavigation);
+  const rows = [
+    health === "ready"
+      ? { ok: true, text: "Mapa offline jest pobrana", action: null }
+      : health === "file-missing"
+        ? { ok: false, text: "Telefon usunął pobraną mapę", action: "Pobierz mapę ponownie" }
+        : { ok: false, text: "Mapa offline nie jest pobrana", action: "Pobierz mapę" },
+    primary
+      ? { ok: true, text: `Trasa offline zapisana o ${formatClockTime(Date.parse(primary.createdAt))}`, action: null }
+      : { ok: false, text: "Nie przygotowano tras offline", action: "Przygotuj trasy" },
+  ];
+  return (
+    <section
+      aria-labelledby="offline-summary-title"
+      className="border-border bg-surface rounded-lg border p-6 shadow-sm"
+    >
+      <h2 id="offline-summary-title" className="font-heading flex items-center gap-3 text-2xl">
+        <MapIcon className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
+        Mapa i trasy
+      </h2>
+      <ul className="mt-4 space-y-3">
+        {rows.map((row, index) => (
+          <li key={row.text} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {row.ok ? (
+              <CheckCircle2 className="text-safe size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <TriangleAlert className="text-attention-foreground size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+            )}
+            <span className={row.ok ? "text-safe font-medium" : "font-medium"}>{row.text}</span>
+            {row.action && (
+              <a href={index === 0 ? "/offline" : "/miejsca"} className="text-primary text-sm underline">
+                {row.action}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -231,8 +291,14 @@ export default function SensorCheck() {
     };
   }, [locationResult, compassResult]);
 
+  const [checkedAt] = useState(() => readSensors()?.checkedAt ?? null);
+
   return (
     <div className="space-y-6">
+      <p className="text-muted-foreground text-sm">
+        {checkedAt ? `Ostatnie sprawdzenie: ${formatClockTime(Date.parse(checkedAt))}` : "Jeszcze nie sprawdzono"}
+      </p>
+
       <section aria-labelledby="location-title" className="border-border bg-surface rounded-lg border p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <h2 id="location-title" className="font-heading flex items-center gap-3 text-2xl">
@@ -332,8 +398,15 @@ export default function SensorCheck() {
 
       <VoiceCheck />
 
-      <MapDiagnostics />
-      <RouteDiagnostics />
+      <OfflineSummary />
+
+      <details className="border-border rounded-lg border p-4">
+        <summary className="text-muted-foreground min-h-11 cursor-pointer text-sm">Szczegóły diagnostyczne</summary>
+        <div className="mt-4 space-y-6">
+          <MapDiagnostics />
+          <RouteDiagnostics />
+        </div>
+      </details>
     </div>
   );
 }

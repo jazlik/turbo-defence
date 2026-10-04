@@ -138,7 +138,7 @@ export default function ReadinessScreen() {
               ) : (
                 <p className="text-safe mt-2 flex items-start gap-2 text-lg">
                   <CheckCircle2 className="mt-1 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
-                  <span>Wszystko przygotowane. Plan jest gotowy na 72 godziny.</span>
+                  <span>Wszystko przygotowane.</span>
                 </p>
               )}
             </section>

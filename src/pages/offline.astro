@@ -1,7 +1,5 @@
 ---
-import InstallCard from "@/components/InstallCard";
-import OfflineShellCard from "@/components/OfflineShellCard";
-import MapPackageCard from "@/components/MapPackageCard";
+import OfflineScreen from "@/components/OfflineScreen";
 import PageBackLink from "@/components/PageBackLink.astro";
 import Layout from "@/layouts/Layout.astro";
 ---
@@ -14,16 +12,8 @@ import Layout from "@/layouts/Layout.astro";
       <p class="mt-3 text-lg text-muted-foreground">
         Przygotuj teraz to, czego w kryzysie nie pobierzesz: aplikację na urządzeniu i mapę regionu.
       </p>
-      <div class="mt-8 space-y-6">
-        <div>
-          <OfflineShellCard client:only="react" />
-        </div>
-        <div>
-          <InstallCard client:only="react" />
-        </div>
-        <div>
-          <MapPackageCard client:only="react" />
-        </div>
+      <div class="mt-8">
+        <OfflineScreen client:only="react" />
       </div>
     </div>
   </main>

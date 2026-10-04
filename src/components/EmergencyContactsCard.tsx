@@ -272,26 +272,17 @@ export default function EmergencyContactsCard() {
       ) : mode === "choose" ? (
         <div className="border-border mt-6 space-y-3 border-t pt-6">
           <h3 className="font-medium">Dodaj kontakt</h3>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            {pickerSupported && (
-              <Button type="button" size="lg" aria-busy={importing} onClick={() => void pickFromPhone()}>
-                <Smartphone strokeWidth={2} aria-hidden="true" />
-                {importing ? "Otwieram kontakty…" : "Z kontaktów telefonu"}
-              </Button>
-            )}
-            <Button
-              type="button"
-              size="lg"
-              variant={pickerSupported ? "outline" : "default"}
-              onClick={() => {
-                setMode("manual");
-                focusSoon(() => nameRef.current);
-              }}
-            >
-              <PenLine strokeWidth={2} aria-hidden="true" />
-              Wpisz ręcznie
-            </Button>
-          </div>
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => {
+              setMode("manual");
+              focusSoon(() => nameRef.current);
+            }}
+          >
+            <PenLine strokeWidth={2} aria-hidden="true" />
+            Wpisz numer telefonu
+          </Button>
           <input
             ref={fileRef}
             type="file"
@@ -301,26 +292,39 @@ export default function EmergencyContactsCard() {
             aria-hidden="true"
             onChange={(event) => void importFile(event)}
           />
-          <div>
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="-ml-3"
-              aria-busy={importing}
-              onClick={() => fileRef.current?.click()}
-            >
-              <FileUp strokeWidth={2} aria-hidden="true" />
-              Importuj z pliku vCard
-            </Button>
-            <p className="text-muted-foreground text-sm">
-              Kontakty z iPhone&apos;a lub iCloud: na iCloud.com otwórz Kontakty, zaznacz osoby i wybierz eksport vCard,
-              zapisz plik w aplikacji Pliki i wskaż go tutaj.
-              {pickerSupported
-                ? ""
-                : " Wybór bezpośrednio z kontaktów telefonu nie jest dostępny w tej przeglądarce. Możesz też skopiować numer z Kontaktów i wkleić go po wybraniu „Wpisz ręcznie”."}
-            </p>
-          </div>
+          <details>
+            <summary className="text-muted-foreground min-h-11 cursor-pointer py-2 text-sm">
+              Inne sposoby dodania kontaktu
+            </summary>
+            <div className="space-y-2 pt-2">
+              {pickerSupported && (
+                <Button type="button" variant="outline" aria-busy={importing} onClick={() => void pickFromPhone()}>
+                  <Smartphone strokeWidth={2} aria-hidden="true" />
+                  {importing ? "Otwieram kontakty…" : "Z kontaktów telefonu"}
+                </Button>
+              )}
+              <div>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="-ml-3"
+                  aria-busy={importing}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <FileUp strokeWidth={2} aria-hidden="true" />
+                  Importuj z pliku vCard
+                </Button>
+                <p className="text-muted-foreground text-sm">
+                  Kontakty z iPhone&apos;a lub iCloud: na iCloud.com otwórz Kontakty, zaznacz osoby i wybierz eksport
+                  vCard, zapisz plik w aplikacji Pliki i wskaż go tutaj.
+                  {pickerSupported
+                    ? ""
+                    : " Wybór bezpośrednio z kontaktów telefonu nie jest dostępny w tej przeglądarce. Możesz też skopiować numer z Kontaktów i wkleić go po wybraniu „Wpisz numer telefonu”."}
+                </p>
+              </div>
+            </div>
+          </details>
         </div>
       ) : mode === "select" ? (
         <div className="border-border mt-6 space-y-4 border-t pt-6">

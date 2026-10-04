@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useMapFile } from "@/components/hooks/useMapFile";
 import { useOfflineShell } from "@/components/hooks/useOfflineShell";
 import { useMapPackage, type MapPackage } from "@/components/hooks/useMapPackage";
 import { useRouteRefresh, type RouteRefresh } from "@/components/hooks/useRouteRefresh";
@@ -25,6 +26,7 @@ export function useReadiness(): Readiness & { mapSetup: MapPackage; routeSetup: 
   const mapSetup = useMapPackage(true);
   const { state: navigation } = routeSetup;
   const { state: map } = mapSetup;
+  const mapFile = useMapFile(map);
   const shell = useOfflineShell();
   const [, setVersion] = useState(0);
 
@@ -52,5 +54,5 @@ export function useReadiness(): Readiness & { mapSetup: MapPackage; routeSetup: 
   // Read on every render on purpose: the route refresh also writes the last known position into the plan, so the
   // plan must be fresh whenever the route or the map state changes, not only on the events above. A render happens
   // only when one of these changes (or after the counter above is bumped), and the read is a few KB of JSON.
-  return { ...computeReadiness({ ...readStored(), navigation, map, shell }), mapSetup, routeSetup };
+  return { ...computeReadiness({ ...readStored(), navigation, map, mapFile, shell }), mapSetup, routeSetup };
 }

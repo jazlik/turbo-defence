@@ -15,8 +15,6 @@ interface HoldButtonProps {
   icon: LucideIcon;
   /** Kolory podaje wołający — komponent nie zna trybu. */
   className?: string;
-  /** Element z podpowiedzią o geście, podłączany przez `aria-describedby`. */
-  hintId?: string;
 }
 
 /**
@@ -30,7 +28,6 @@ export default function HoldButton({
   holdingLabel = "Trzymaj jeszcze",
   icon: Icon,
   className,
-  hintId,
 }: HoldButtonProps) {
   const { progress, holding, handlers } = useHoldAction(holdMs, onComplete);
   const secondsLeft = Math.ceil(((1 - progress) * holdMs) / 1000);
@@ -38,7 +35,6 @@ export default function HoldButton({
   return (
     <button
       type="button"
-      aria-describedby={hintId}
       {...handlers}
       className={cn(
         "flex min-h-14 w-full touch-none items-center justify-center gap-3 rounded-md border px-4 text-base font-semibold outline-none select-none [-webkit-touch-callout:none]",
@@ -71,7 +67,10 @@ export default function HoldButton({
           <Icon x={14} y={14} width={20} height={20} strokeWidth={2} />
         </g>
       </svg>
-      <span>{holding ? `${holdingLabel} ${secondsLeft} s` : label}</span>
+      <span className="flex flex-col items-start text-left">
+        <span>{holding ? `${holdingLabel} ${secondsLeft} s` : label}</span>
+        {!holding && <span className="text-sm font-normal opacity-80">Przytrzymaj {holdMs / 1000} s</span>}
+      </span>
       {/* A screen-reader double-tap is a click, which the hold ignores; the passthrough gesture is the way in. */}
       <span className="sr-only"> Z czytnikiem ekranu: stuknij dwa razy i przytrzymaj.</span>
     </button>

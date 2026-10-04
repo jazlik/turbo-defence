@@ -151,32 +151,49 @@ export default function BackpackChecklist() {
         </div>
       )}
 
-      <div className="mt-8 space-y-8">
-        {GROUPS.map(({ group, title }) => {
-          const groupItems = items.filter((item) => item.group === group);
-          if (groupItems.length === 0) return null;
-          const headingId = `backpack-${group}`;
-          return (
-            <section key={group} aria-labelledby={headingId}>
-              <h2 id={headingId} className="font-heading text-2xl tracking-[-0.015em]">
-                {title}
-              </h2>
-              <ul className="mt-4 space-y-2">
-                {groupItems.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    state={itemState(item, plan.packedItems)}
-                    onToggle={(checked) => {
-                      toggle(item.id, checked);
-                    }}
-                  />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
+      {(() => {
+        const rows = items.map((item) => ({ item, state: itemState(item, plan.packedItems) }));
+        const todo = rows.filter(({ state }) => state.status !== "packed");
+        const packed = rows.filter(({ state }) => state.status === "packed");
+        const renderRows = (list: typeof rows) =>
+          list.map(({ item, state }) => (
+            <ItemRow
+              key={item.id}
+              item={item}
+              state={state}
+              onToggle={(checked) => {
+                toggle(item.id, checked);
+              }}
+            />
+          ));
+        return (
+          <>
+            <div className="mt-8 space-y-8">
+              <h2 className="font-heading text-2xl tracking-[-0.015em]">Do spakowania ({todo.length})</h2>
+              {todo.length === 0 && <p className="text-safe">Wszystko spakowane.</p>}
+              {GROUPS.map(({ group, title }) => {
+                const groupRows = todo.filter(({ item }) => item.group === group);
+                if (groupRows.length === 0) return null;
+                const headingId = `backpack-${group}`;
+                return (
+                  <section key={group} aria-labelledby={headingId}>
+                    <h3 id={headingId} className="text-muted-foreground text-base font-medium">
+                      {title}
+                    </h3>
+                    <ul className="mt-2 space-y-2">{renderRows(groupRows)}</ul>
+                  </section>
+                );
+              })}
+            </div>
+            {packed.length > 0 && (
+              <details className="border-border mt-8 rounded-lg border p-4">
+                <summary className="min-h-11 cursor-pointer font-medium">Spakowane ({packed.length})</summary>
+                <ul className="mt-4 space-y-2">{renderRows(packed)}</ul>
+              </details>
+            )}
+          </>
+        );
+      })()}
 
       <p className="text-muted-foreground mt-8 text-sm">
         Na podstawie Poradnika bezpieczeństwa (gov.pl). Plecak na 72 godziny.

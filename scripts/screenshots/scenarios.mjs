@@ -85,6 +85,10 @@ const full = plan({
   packedItems: packAll(members),
 });
 
+// Backpack with a third of the list still to pack, so the "Do spakowania" / "Spakowane" split is visible.
+let packedIndex = 0;
+const partial = { ...full, packedItems: packAll(members, () => packedIndex++ % 3 !== 0) };
+
 // Positions (route runs west along lat 50.0647 from 19.945 to 19.93).
 export const POS = {
   onRoute: { latitude: 50.0647, longitude: 19.94, accuracy: 8 },
@@ -109,7 +113,7 @@ export const core = [
     path: "/",
     standalone: true,
     storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.map": mapReady, "wrw.sensors": sensors },
-    ready: "text=72H Ready",
+    ready: "text=Plan przygotowany",
   },
   { name: "home-alarm-hold", path: "/", storage: {}, ready: "text=Uruchom alarm", action: "hold-alarm" },
 
@@ -124,7 +128,7 @@ export const core = [
 
   { name: "miejsca", path: "/miejsca", storage: { "wrw.plan": full, "wrw.navigation": navigation() }, ready: "text=Miejsca" },
   { name: "domownicy", path: "/domownicy", storage: { "wrw.plan": full }, ready: "text=Ola" },
-  { name: "plecak", path: "/plecak", storage: { "wrw.plan": full }, ready: "text=Woda" },
-  { name: "offline", path: "/offline", standalone: true, storage: { "wrw.plan": full, "wrw.map": mapReady }, ready: "text=Mapa" },
+  { name: "plecak", path: "/plecak", storage: { "wrw.plan": partial }, ready: "text=Do spakowania" },
+  { name: "offline", path: "/offline", standalone: true, storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.map": mapReady }, ready: "text=Mapa" },
   { name: "czujniki", path: "/czujniki", storage: { "wrw.plan": full, "wrw.sensors": sensors }, ready: "text=Lokalizacja", pos: POS.onRoute },
 ];

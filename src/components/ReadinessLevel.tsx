@@ -7,14 +7,14 @@ export default function ReadinessLevel({ level }: { level: Level }) {
 
   return (
     <section aria-labelledby="level-title" className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8">
-      <p className="text-muted-foreground text-sm font-medium">Poziom gotowości</p>
+      <p className="text-muted-foreground text-sm font-medium">Stan przygotowania</p>
       <h2 id="level-title" className="font-heading mt-1 text-3xl tracking-[-0.015em]">
         {level.title}
       </h2>
       <p className="text-muted-foreground mt-1">{level.description}</p>
       <div
         role="img"
-        aria-label={`Poziom ${String(level.index + 1)} z ${String(LEVELS.length)}`}
+        aria-label={`Etap ${String(level.index + 1)} z ${String(LEVELS.length)}`}
         className="mt-4 flex gap-2"
       >
         {LEVELS.map((step) => (
@@ -25,7 +25,7 @@ export default function ReadinessLevel({ level }: { level: Level }) {
           />
         ))}
       </div>
-      {following && <p className="text-muted-foreground mt-3 text-sm">Następny poziom: {following.title}</p>}
+      {following && <p className="text-muted-foreground mt-3 text-sm">Następny etap: {following.title}</p>}
     </section>
   );
 }

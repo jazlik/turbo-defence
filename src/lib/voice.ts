@@ -107,7 +107,7 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
 
     case "guiding": {
       const dist = spokenDistance(state.meters);
-      const measured = state.alongRoute ? "trasą" : "w linii prostej";
+      const measured = state.alongRoute ? "trasą" : "do celu, bez trasy";
       if (entry) {
         const staleSuffix = state.live ? "" : " Dane z ostatniej znanej pozycji.";
         return `${state.title}: ${state.label}. ${dist} ${measured}.${staleSuffix}`;

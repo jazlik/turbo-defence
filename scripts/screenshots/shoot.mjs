@@ -26,6 +26,15 @@ for (const scenario of core) {
   await context.addInitScript(
     ({ storage, pos, standalone }) => {
       for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, JSON.stringify(value));
+      // A map flagged ready is only trusted when its OPFS file exists: stand in for the file (size + PMTiles magic).
+      const map = storage["wrw.map"];
+      if (map?.status === "ready") {
+        const file = { size: map.bytes, slice: () => ({ arrayBuffer: async () => new TextEncoder().encode("PMTiles").buffer }) };
+        Object.defineProperty(StorageManager.prototype, "getDirectory", {
+          configurable: true,
+          value: async () => ({ getFileHandle: async () => ({ getFile: async () => file }) }),
+        });
+      }
       if (standalone) Object.defineProperty(navigator, "standalone", { value: true });
       navigator.geolocation.watchPosition = (ok) => {
         if (pos) setTimeout(() => ok({ coords: { ...pos, heading: null, speed: null, altitude: null, altitudeAccuracy: null }, timestamp: Date.now() }), 100);

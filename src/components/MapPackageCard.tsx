@@ -1,15 +1,22 @@
 import { CheckCircle2, Download, Map as MapIcon, Smartphone, TriangleAlert } from "lucide-react";
 
-import { useMapPackage } from "@/components/hooks/useMapPackage";
+import { useMapFile } from "@/components/hooks/useMapFile";
+import type { MapPackage } from "@/components/hooks/useMapPackage";
 import { Button } from "@/components/ui/button";
+import { mapHealth } from "@/lib/map-health";
+import { MAP_REGIONS } from "@/lib/map-regions";
 
 const megabytes = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
 const formatDay = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-export default function MapPackageCard() {
-  const { state, region, covers, supported, needsInstall, error, start } = useMapPackage();
-  const ready = state?.status === "ready";
+export default function MapPackageCard({ mapPackage }: { mapPackage: MapPackage }) {
+  const { state, region: proposed, covers, supported, needsInstall, error, start } = mapPackage;
+  const health = mapHealth(state, useMapFile(state));
+  const ready = health === "ready";
+  const evicted = health === "file-missing";
+  // The downloaded package names its own region; the proposal (from the last position) only drives a new download.
+  const region = (ready ? MAP_REGIONS.find((candidate) => candidate.id === state?.regionId) : undefined) ?? proposed;
   const downloading = state?.status === "downloading";
   const progress = state && state.bytes > 0 ? state.receivedBytes / state.bytes : 0;
 
@@ -48,6 +55,13 @@ export default function MapPackageCard() {
             <span>
               Mapa offline gotowa · {region.name} · dane OpenStreetMap z {formatDay(region.osmDate)}
             </span>
+          </p>
+        )}
+
+        {supported && evicted && (
+          <p className="text-attention-foreground flex items-start gap-2">
+            <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
+            Telefon usunął pobraną mapę. Pobierz ją ponownie.
           </p>
         )}
 
@@ -100,7 +114,11 @@ export default function MapPackageCard() {
             )}
             <Button type="button" size="lg" className="w-full sm:w-auto" onClick={() => void start()}>
               <Download strokeWidth={2} aria-hidden="true" />
-              {state?.status === "failed" ? "Dokończ pobieranie mapy" : "Pobierz mapę"}
+              {state?.status === "failed"
+                ? "Dokończ pobieranie mapy"
+                : evicted
+                  ? "Pobierz mapę ponownie"
+                  : "Pobierz mapę"}
             </Button>
           </div>
         )}

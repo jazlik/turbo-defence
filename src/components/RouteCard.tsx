@@ -23,12 +23,13 @@ function RouteSummary({ route, role }: { route: SavedRoute; role: "primary" | "a
   const { destination } = route;
   return (
     <div>
-      <p className="text-muted-foreground text-sm">{role === "primary" ? "Schron" : "Zapasowy"}</p>
+      <p className="text-muted-foreground text-sm">{role === "primary" ? "Punkt schronienia" : "Zapasowy punkt"}</p>
       <p className="font-medium">{destination.address ?? destination.label}</p>
       <p className="text-muted-foreground text-sm">
         {formatWalk(route)}
-        {destination.availability ? ` · dostępność: ${destination.availability.toLowerCase()}` : ""}
+        {destination.availability ? ` · wg PSP: ${destination.availability.toLowerCase()}` : ""}
       </p>
+      <p className="text-muted-foreground text-xs">Dane PSP. Brak informacji o bieżącej dostępności.</p>
     </div>
   );
 }
