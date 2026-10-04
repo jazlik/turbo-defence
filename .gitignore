@@ -34,3 +34,6 @@ pnpm-debug.log*
 
 # offline map packages (built by scripts/map, uploaded to R2)
 dist-map/
+
+# local AI agent config (kept on disk, not in the repo)
+.claude/
