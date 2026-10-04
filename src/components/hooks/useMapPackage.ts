@@ -12,7 +12,7 @@ import {
   writeMapPackage,
   type MapPackageState,
 } from "@/lib/services/map-storage";
-import { installState } from "@/lib/services/install";
+import { installState, isStandaloneApp } from "@/lib/services/install";
 import { readPlan } from "@/lib/services/plan-storage";
 import type { MapDownloadMessage, MapDownloadRequest } from "@/workers/map-download.worker";
 
@@ -27,13 +27,14 @@ export interface MapPackage {
   start: () => Promise<void>;
 }
 
-export function useMapPackage(): MapPackage {
+export function useMapPackage(autoStart = false): MapPackage {
   const [state, setState] = useState(readMapPackage);
   const [error, setError] = useState<string | null>(null);
   const [{ region, covers }] = useState(() => proposeRegion(readPlan().lastKnownPosition?.coords ?? null));
   const [supported] = useState(mapStorageSupported);
   const [needsInstall] = useState(() => installState() === "todo");
   const worker = useRef<Worker | null>(null);
+  const autoAttempted = useRef(false);
 
   const update = useCallback((next: MapPackageState | null) => {
     writeMapPackage(next);
@@ -113,6 +114,22 @@ export function useMapPackage(): MapPackage {
       worker.current = null;
     };
   }, [start, needsInstall]);
+
+  useEffect(() => {
+    if (!autoStart || !isStandaloneApp() || !supported || needsInstall || covers === false) return;
+    const tryStart = () => {
+      if (autoAttempted.current || !navigator.onLine) return;
+      const current = readMapPackage();
+      if (current?.status === "ready" || current?.status === "downloading" || current?.status === "failed") return;
+      autoAttempted.current = true;
+      void start();
+    };
+    tryStart();
+    window.addEventListener("online", tryStart);
+    return () => {
+      window.removeEventListener("online", tryStart);
+    };
+  }, [autoStart, supported, needsInstall, covers, start]);
 
   return { state, region, covers, supported, needsInstall, error, start };
 }
