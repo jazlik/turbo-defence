@@ -1,9 +1,9 @@
 ---
 change_id: offline-map-and-route
 title: Mapa i trasa offline jako drugi poziom prowadzenia (S-04)
-status: implementing
+status: impl_reviewed
 created: 2026-10-03
-updated: 2026-10-03
+updated: 2026-10-04
 archived_at: null
 ---
 
@@ -78,3 +78,13 @@ Po zakończeniu S-04: lokalny `S04_HANDOVER_LOCAL.md` (nie commitować).
 - Online reroute on /alarm: live fix, online, ≥ 15 s off the route, at most once per 60 s, same destination; offline nothing changes. Adds ~7 KB to the /alarm chunk.
 - Not done (P1 leftovers): map preview in Preparation Mode; package update flow (needs a separate pending record so /alarm keeps the old ready package while the new one downloads).
 
+## Decyzje zespołu po mergu z S-02/S-03 (2026-10-04)
+
+Zastępują wcześniejsze punkty o „primary/secondary view”:
+
+- **Happy path = mapa.** Przy poprawnej SavedRoute i gotowej mapie offline krok „schron” na `/alarm` otwiera od razu nawigacyjny widok mapy (heading-up, bursztynowa trasa w `--guidance`, przebyty odcinek przygaszony). Duża strzałka S-01 to fallback (brak mapy, brak trasy, błąd mapy/storage/WebGL) i widok „więcej opcji”.
+- **Cel kroku „schron”:** automatycznie wybrany schron PSP z trasą A (B po „niedostępne”); ręcznie wskazany schron z planu działa jako zapas, gdy trasy PSP nie ma. Kroki spotkania/zapasowe (S-02) bez zmian.
+- **Alarm bez celu nigdy nie kończy się ślepym ekranem.** „Znajdź najbliższy schron teraz”: online — trasa przez istniejące przygotowanie (bez zapisu stałej zgody na routing), start od kroku schronu; offline lub błąd/timeout routingu — najbliższy punkt PSP z lokalnego snapshotu, prowadzenie awaryjne w linii prostej z jawnym komunikatem. Błąd tylko bez pozycji, bez danych PSP albo bez punktu w 15 km.
+- **Mapa offline a przeglądarka:** na iOS poza zainstalowaną PWA nie oferujemy ani nie wznawiamy pobierania (osobny storage Safari) — instrukcja „Do ekranu początkowego”; alarm działa także w przeglądarce.
+- **Gotowość:** Home pokazuje stan mapy, trasy i lokalizacji; nigdy nie blokuje alarmu.
+- Otwarte (P1): reroute online na `/alarm` po zejściu z trasy — funkcja `rerouteActive` istnieje, niepodpięta po integracji z S-02.
