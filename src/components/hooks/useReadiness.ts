@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { useOfflineShell } from "@/components/hooks/useOfflineShell";
-import { useMapPackage } from "@/components/hooks/useMapPackage";
-import { useRouteRefresh } from "@/components/hooks/useRouteRefresh";
+import { useMapPackage, type MapPackage } from "@/components/hooks/useMapPackage";
+import { useRouteRefresh, type RouteRefresh } from "@/components/hooks/useRouteRefresh";
 import { computeReadiness, type Readiness } from "@/lib/readiness";
 import { installState } from "@/lib/services/install";
 import { readPlanResult } from "@/lib/services/plan-storage";
@@ -20,9 +20,11 @@ const readStored = () => {
  * saved route while the app is open (PRD FR-007) and resuming an interrupted map download. Without these hooks
  * mounted on `/`, taking the cards off the page would silently stop both.
  */
-export function useReadiness(): Readiness {
-  const { state: navigation } = useRouteRefresh();
-  const { state: map } = useMapPackage();
+export function useReadiness(): Readiness & { mapSetup: MapPackage; routeSetup: RouteRefresh } {
+  const routeSetup = useRouteRefresh();
+  const mapSetup = useMapPackage(true);
+  const { state: navigation } = routeSetup;
+  const { state: map } = mapSetup;
   const shell = useOfflineShell();
   const [, setVersion] = useState(0);
 
@@ -50,5 +52,5 @@ export function useReadiness(): Readiness {
   // Read on every render on purpose: the route refresh also writes the last known position into the plan, so the
   // plan must be fresh whenever the route or the map state changes, not only on the events above. A render happens
   // only when one of these changes (or after the counter above is bumped), and the read is a few KB of JSON.
-  return computeReadiness({ ...readStored(), navigation, map, shell });
+  return { ...computeReadiness({ ...readStored(), navigation, map, shell }), mapSetup, routeSetup };
 }

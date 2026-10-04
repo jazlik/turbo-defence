@@ -4,12 +4,16 @@
  */
 export type InstallState = "done" | "todo" | "na";
 
+export function isStandaloneApp(): boolean {
+  return (
+    (navigator as Navigator & { standalone?: boolean }).standalone === true ||
+    matchMedia("(display-mode: standalone)").matches
+  );
+}
+
 export function installState(): InstallState {
   const ios =
     /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   if (!ios) return "na";
-  const standalone =
-    (navigator as Navigator & { standalone?: boolean }).standalone === true ||
-    matchMedia("(display-mode: standalone)").matches;
-  return standalone ? "done" : "todo";
+  return isStandaloneApp() ? "done" : "todo";
 }

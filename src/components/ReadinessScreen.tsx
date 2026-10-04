@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, TriangleAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download, LoaderCircle, Route, TriangleAlert } from "lucide-react";
 
 import AlarmButton from "@/components/AlarmButton";
 import AreaStrip from "@/components/AreaStrip";
@@ -6,6 +6,7 @@ import { useReadiness } from "@/components/hooks/useReadiness";
 import ReadinessLevel from "@/components/ReadinessLevel";
 import { Button } from "@/components/ui/button";
 import type { QuickWin } from "@/lib/readiness";
+import { isStandaloneApp } from "@/lib/services/install";
 
 const stepLabel = (quickWin: QuickWin) =>
   quickWin.progress
@@ -13,7 +14,11 @@ const stepLabel = (quickWin: QuickWin) =>
     : quickWin.title;
 
 export default function ReadinessScreen() {
-  const { level, next, areas, notices } = useReadiness();
+  const { level, next, areas, notices, mapSetup, routeSetup } = useReadiness();
+  const standalone = isStandaloneApp();
+  const mapReady = mapSetup.state?.status === "ready";
+  const mapDownloading = mapSetup.state?.status === "downloading";
+  const showSetup = standalone && (!mapReady || !routeSetup.state.primary);
   // A plan that could not be read says nothing about the household: no level, no invitation to write over it.
   const unreadable = notices.some((notice) => notice.id === "plan-unreadable");
 
@@ -37,6 +42,80 @@ export default function ReadinessScreen() {
 
         {!unreadable && (
           <>
+            {showSetup && (
+              <section
+                aria-labelledby="quick-setup-title"
+                className="border-border bg-surface rounded-lg border p-6 shadow-sm"
+              >
+                <h2 id="quick-setup-title" className="font-heading text-2xl">
+                  Przygotowanie do alarmu
+                </h2>
+                {!mapReady && (
+                  <div className="mt-3 space-y-3" role="status" aria-live="polite">
+                    <p className="text-muted-foreground">
+                      {mapDownloading
+                        ? `Pobieram mapę ${mapSetup.region.name}: ${Math.round((mapSetup.state?.receivedBytes ?? 0) / 1e6)} z ${Math.round((mapSetup.state?.bytes ?? mapSetup.region.bytes) / 1e6)} MB.`
+                        : `Mapa ${mapSetup.region.name} jest potrzebna do prowadzenia offline.`}
+                    </p>
+                    {mapDownloading && (
+                      <progress
+                        className="w-full"
+                        aria-label="Pobieranie mapy"
+                        value={mapSetup.state?.receivedBytes ?? 0}
+                        max={mapSetup.state?.bytes ?? mapSetup.region.bytes}
+                      />
+                    )}
+                    {mapSetup.error && <p className="text-attention-foreground">{mapSetup.error}</p>}
+                    {!mapSetup.supported && (
+                      <p className="text-attention-foreground">
+                        Ten telefon nie zapisze mapy offline. Alarm nadal poprowadzi do celu strzałką.
+                      </p>
+                    )}
+                    {!mapDownloading && mapSetup.supported && !mapSetup.needsInstall && mapSetup.covers !== false && (
+                      <Button type="button" size="lg" className="w-full" onClick={() => void mapSetup.start()}>
+                        <Download strokeWidth={2} aria-hidden="true" />
+                        {mapSetup.state?.status === "failed" ? "Dokończ pobieranie mapy" : "Pobierz mapę"}
+                      </Button>
+                    )}
+                    {mapSetup.covers === false && (
+                      <p className="text-attention-foreground">Mapa offline obejmuje teraz tylko Małopolskę.</p>
+                    )}
+                  </div>
+                )}
+                {mapReady && !routeSetup.state.primary && (
+                  <div className="mt-3 space-y-3" role="status" aria-live="polite">
+                    <p className="text-muted-foreground">
+                      Wybierzemy schron A i B z danych PSP i zapiszemy trasy piesze. Do serwisu tras trafią tylko
+                      współrzędne.
+                    </p>
+                    {routeSetup.refreshing ? (
+                      <p className="text-muted-foreground flex items-center gap-2">
+                        <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> Przygotowuję trasy…
+                      </p>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="lg"
+                        className="w-full"
+                        disabled={!routeSetup.online}
+                        onClick={() => void routeSetup.consentAndRefresh()}
+                      >
+                        <Route strokeWidth={2} aria-hidden="true" />
+                        Przygotuj schron i trasy
+                      </Button>
+                    )}
+                    {!routeSetup.online && (
+                      <p className="text-muted-foreground">Połącz z internetem, aby przygotować trasy.</p>
+                    )}
+                    {routeSetup.state.lastRefresh?.ok === false && (
+                      <p className="text-attention-foreground">
+                        Nie udało się przygotować trasy. Sprawdź lokalizację i spróbuj ponownie.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
             <ReadinessLevel level={level} />
 
             <section

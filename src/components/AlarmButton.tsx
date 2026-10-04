@@ -1,6 +1,7 @@
 import { Siren } from "lucide-react";
 
 import { useHoldAction } from "@/components/hooks/useHoldAction";
+import { headingPermissionRequired, requestHeadingPermission } from "@/components/hooks/useHeading";
 import { cn } from "@/lib/utils";
 
 const HOLD_MS = 2000;
@@ -14,7 +15,14 @@ interface AlarmButtonProps {
 
 export default function AlarmButton({ compact = false }: AlarmButtonProps) {
   const { progress, holding, handlers } = useHoldAction(HOLD_MS, () => {
-    window.location.assign("/alarm");
+    // Request during the completed hold gesture, before navigation discards transient activation.
+    if (headingPermissionRequired()) {
+      void requestHeadingPermission().finally(() => {
+        window.location.assign("/alarm");
+      });
+    } else {
+      window.location.assign("/alarm");
+    }
   });
 
   const secondsLeft = Math.ceil(((1 - progress) * HOLD_MS) / 1000);

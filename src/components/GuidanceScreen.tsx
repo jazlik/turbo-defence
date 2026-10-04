@@ -8,9 +8,7 @@ import {
   History,
   LoaderCircle,
   LocateFixed,
-  Map as MapIcon,
   MapPinOff,
-  Navigation2,
   RotateCcw,
   Route,
   Satellite,
@@ -161,7 +159,6 @@ function FindTargetScreen({
           <LocateFixed className="size-6" strokeWidth={2} aria-hidden="true" />
           Znajdź najbliższy schron teraz
         </Button>
-        <VoiceUnlockButton voice={voice} />
         <Button asChild variant="secondary" className="min-h-14 w-full text-base">
           <a href="/miejsca">Ustaw miejsca w planie</a>
         </Button>
@@ -188,11 +185,19 @@ function VoiceToggle({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) 
       </p>
     );
   }
+  if (voice.status === "blocked") {
+    return (
+      <Button type="button" variant="secondary" className="w-full text-base" onClick={voice.unlock}>
+        <Volume2 className="size-5" strokeWidth={2} aria-hidden="true" />
+        Włącz głos
+      </Button>
+    );
+  }
   return (
     <Button
       type="button"
       variant="secondary"
-      className="w-full text-base"
+      className="min-h-11 px-4 text-sm"
       aria-pressed={voice.enabled}
       onClick={voice.toggle}
     >
@@ -202,23 +207,6 @@ function VoiceToggle({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) 
         <VolumeX className="size-5" strokeWidth={2} aria-hidden="true" />
       )}
       {voice.enabled ? "Głos: włączony" : "Głos: wyłączony"}
-    </Button>
-  );
-}
-
-/** Przycisk odblokowania mowy — przeglądarka startuje syntezę tylko z gestu użytkownika. */
-function VoiceUnlockButton({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) {
-  if (voice.status !== "blocked") return null;
-  return (
-    <Button
-      type="button"
-      size="lg"
-      className="min-h-14 w-full text-lg font-semibold"
-      // Must stay inside the click handler: browsers only start speech from a user gesture.
-      onClick={voice.unlock}
-    >
-      <Volume2 className="size-6" strokeWidth={2} aria-hidden="true" />
-      Włącz głos
     </Button>
   );
 }
@@ -238,7 +226,13 @@ function readSession(navigationOverride?: NavigationState) {
     primary: navigation.primary ? prepareRoute(navigation.primary) : null,
     alternate: navigation.alternate ? prepareRoute(navigation.alternate) : null,
   };
-  return { plan, steps, run, navigation, prepared, mapPackage: readMapPackage(), stepIndex: resumeIndex(steps, run) };
+  const mapPackage = readMapPackage();
+  const shelterIndex = steps.findIndex((candidate) => candidate.id === "shelter");
+  const stepIndex =
+    run === null && navigation.primary !== null && isMapReady(mapPackage) && shelterIndex >= 0
+      ? shelterIndex
+      : resumeIndex(steps, run);
+  return { plan, steps, run, navigation, prepared, mapPackage, stepIndex };
 }
 
 export default function GuidanceScreen() {
@@ -249,25 +243,22 @@ export default function GuidanceScreen() {
   const [finder, setFinder] = useState<FinderState>("idle");
   const steps = emergency ? [EMERGENCY_STEP] : session.steps;
   const mapReady = isMapReady(mapPackage);
-  // Happy path: with a saved route and the offline map, the map is the default view; the big arrow is the
-  // fallback (no map, no route, map or storage error) and stays one tap away.
-  const [preferMap, setPreferMap] = useState(true);
+  // With a saved route and the offline map, navigation opens on the map; the big arrow is a failure fallback.
   const [mapFailed, setMapFailed] = useState(false);
-  // Leaving the map (button or map failure) unmounts the focused control: land focus on the arrow view's heading.
+  // A map failure unmounts the focused control: land focus on the arrow view's heading.
   const arrowHeadingRef = useRef<HTMLHeadingElement>(null);
   const viewSwitches = useRef(0);
   useEffect(() => {
     viewSwitches.current += 1;
-    if (viewSwitches.current > 1 && (!preferMap || mapFailed)) arrowHeadingRef.current?.focus();
-  }, [preferMap, mapFailed]);
+    if (viewSwitches.current > 1 && mapFailed) arrowHeadingRef.current?.focus();
+  }, [mapFailed]);
   const [run, setRun] = useState(session.run);
   const [stepIndex, setStepIndex] = useState(session.stepIndex);
   // Dwustopniowe wyjście bez potwierdzenia GPS: przytrzymanie, a potem dotknięcie potwierdzenia.
   const [confirming, setConfirming] = useState(false);
   const [confirmedArrival, setConfirmedArrival] = useState(false);
-  // Wznowienie w środku sekwencji pomija wcześniejsze kroki — w tym plecak. Nie wolno zrobić tego
-  // po cichu: świeży alarm (brak przebiegu) startuje od zera i tego ekranu nie zobaczy.
-  const [resumePrompt, setResumePrompt] = useState(session.stepIndex > 0);
+  // A resumed run needs an explicit notice; a fresh map alarm jumps directly to the shelter without one.
+  const [resumePrompt, setResumePrompt] = useState(session.run !== null && session.stepIndex > 0);
 
   // `at` zwraca `undefined` poza zakresem — indeksowanie nawiasem kłamałoby o typie przy pustej sekwencji.
   const step = steps.at(stepIndex);
@@ -609,7 +600,6 @@ export default function GuidanceScreen() {
         </section>
 
         <footer className="flex flex-col items-center gap-3">
-          <VoiceUnlockButton voice={voice} />
           <Button type="button" size="lg" className="min-h-14 w-full text-lg font-semibold" onClick={goToNextStep}>
             <Check strokeWidth={2} aria-hidden="true" />
             Zrobione — dalej
@@ -631,7 +621,7 @@ export default function GuidanceScreen() {
     <Button
       type="button"
       variant="secondary"
-      className="w-full text-base"
+      className="min-h-11 px-4 text-sm"
       onClick={() => {
         // Must stay inside the click handler: iOS only grants motion access to a user gesture.
         void requestHeadingPermission();
@@ -693,7 +683,7 @@ export default function GuidanceScreen() {
     </>
   );
 
-  if (preferMap && mapAvailable && point.route && guidance && !showArrival) {
+  if (mapAvailable && point.route && guidance && !showArrival) {
     // The arrow screen's status lines, condensed to one line above the map.
     const mapNotice: MapNotice | null =
       !guiding && locationProblem
@@ -725,21 +715,20 @@ export default function GuidanceScreen() {
         }}
         controls={
           <>
-            <VoiceUnlockButton voice={voice} />
+            <div className="w-full max-w-sm">
+              <VoiceToggle voice={voice} />
+            </div>
             {compassButton}
-            {fallbackHold}
-            {confirmArrivalControl}
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full text-base"
-              onClick={() => {
-                setPreferMap(false);
-              }}
-            >
-              <Navigation2 className="size-5" strokeWidth={2} aria-hidden="true" />
-              Duża strzałka i więcej opcji
-            </Button>
+            <details className="border-border w-full border-t pt-2">
+              <summary className="text-muted-foreground flex min-h-11 cursor-pointer items-center justify-center text-sm">
+                Więcej opcji
+              </summary>
+              <div className="flex flex-col items-center gap-3 pt-2">
+                {fallbackHold}
+                {confirmArrivalControl}
+                <ExitLink />
+              </div>
+            </details>
           </>
         }
       />
@@ -843,23 +832,7 @@ export default function GuidanceScreen() {
             </Button>
           ))}
 
-        <VoiceUnlockButton voice={voice} />
-
         {compassButton}
-
-        {mapAvailable && !showArrival && (
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full text-base"
-            onClick={() => {
-              setPreferMap(true);
-            }}
-          >
-            <MapIcon className="size-5" strokeWidth={2} aria-hidden="true" />
-            Mapa
-          </Button>
-        )}
 
         {fallbackHold}
 
