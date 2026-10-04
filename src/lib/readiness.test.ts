@@ -76,7 +76,6 @@ const keyIds = (members: HouseholdMember[]) =>
 /** Everything done, in Kraków, install not required. */
 function readyInput(overrides: Partial<ReadinessInput> = {}): ReadinessInput {
   const base = withPlan({
-    places: { meeting: place("Plac"), backup: place("Park"), shelter: null },
     lastKnownPosition: { coords: krakow, recordedAt: "2026-10-04T10:00:00.000Z" },
     contacts: [{ id: "k1", name: "Mama", phone: "123456789", relation: "" }],
   });
@@ -97,23 +96,23 @@ const win = (readiness: Readiness, id: QuickWinId) => {
 };
 
 describe("computeReadiness — levels", () => {
-  it("starts with nothing done and points at the meeting place", () => {
+  it("starts with nothing done and points at the shelter", () => {
     const readiness = computeReadiness(input());
     expect(readiness.level.id).toBe("start");
-    expect(readiness.next?.id).toBe("meeting");
+    expect(readiness.next?.id).toBe("shelter");
     expect(readiness.next?.href).toBe("/miejsca");
   });
 
   it("reaches basics as soon as the alarm has a target", () => {
-    const meeting = withPlan({ places: { meeting: place("Plac"), backup: null, shelter: null } });
-    expect(computeReadiness(input({ plan: meeting })).level.id).toBe("basics");
-    const shelter = withPlan({ places: { meeting: null, backup: null, shelter: place("Hala") } });
+    const shelter = withPlan({ shelter: place("Hala") });
     expect(computeReadiness(input({ plan: shelter })).level.id).toBe("basics");
+    const navigation = { ...createEmptyNavigation(), primary: route };
+    expect(computeReadiness(input({ navigation })).level.id).toBe("basics");
   });
 
-  it("needs meeting, shelter, a contact and the key backpack for ready-to-go", () => {
+  it("needs the shelter, a contact and the key backpack for ready-to-go", () => {
     const base = withPlan({
-      places: { meeting: place("Plac"), backup: null, shelter: place("Hala") },
+      shelter: place("Hala"),
       contacts: [{ id: "k1", name: "Mama", phone: "123456789", relation: "" }],
     });
     expect(computeReadiness(input({ plan: base })).level.id).toBe("basics");
@@ -124,7 +123,7 @@ describe("computeReadiness — levels", () => {
 
   it("accepts a member instead of a contact", () => {
     const base = withPlan({
-      places: { meeting: place("Plac"), backup: null, shelter: place("Hala") },
+      shelter: place("Hala"),
       members: [adult("a2")],
     });
     const keys = keyIds(base.members);
@@ -156,7 +155,7 @@ describe("computeReadiness — levels", () => {
 });
 
 describe("computeReadiness — next step order", () => {
-  it("follows target → family → backpack → backup → offline → rest", () => {
+  it("follows target → family → backpack → offline → rest", () => {
     const order: QuickWinId[] = [];
     let current = input({ install: "todo" });
     for (let step = 0; step < 12; step += 1) {
@@ -165,17 +164,7 @@ describe("computeReadiness — next step order", () => {
       order.push(next.id);
       current = advance(current, next.id);
     }
-    expect(order).toEqual([
-      "meeting",
-      "shelter",
-      "household",
-      "backpack-key",
-      "backup",
-      "install",
-      "map",
-      "sensors",
-      "backpack-full",
-    ]);
+    expect(order).toEqual(["shelter", "household", "backpack-key", "install", "map", "sensors", "backpack-full"]);
   });
 
   it("carries backpack progress in the quick win", () => {
@@ -194,10 +183,8 @@ describe("computeReadiness — next step order", () => {
 function advance(current: ReadinessInput, id: QuickWinId): ReadinessInput {
   const { plan } = current;
   switch (id) {
-    case "meeting":
-      return { ...current, plan: { ...plan, places: { ...plan.places, meeting: place("Plac") } } };
     case "shelter":
-      return { ...current, plan: { ...plan, places: { ...plan.places, shelter: place("Hala") } } };
+      return { ...current, plan: { ...plan, shelter: place("Hala") } };
     case "household":
       return {
         ...current,
@@ -207,8 +194,6 @@ function advance(current: ReadinessInput, id: QuickWinId): ReadinessInput {
       const keys = keyIds(plan.members);
       return { ...current, plan: { ...plan, packedItems: packedFor(plan, (itemId) => keys.has(itemId)) } };
     }
-    case "backup":
-      return { ...current, plan: { ...plan, places: { ...plan.places, backup: place("Park") } } };
     case "offline-shell":
       return { ...current, shell: "ready" };
     case "install":
@@ -224,14 +209,14 @@ function advance(current: ReadinessInput, id: QuickWinId): ReadinessInput {
 
 describe("computeReadiness — shelter and route", () => {
   const ready = readyInput();
-  const withoutShelterPoint = { ...ready.plan, places: { ...ready.plan.places, shelter: null } };
+  const withoutShelterPoint = { ...ready.plan, shelter: null };
 
   it("counts a fresh saved route as the shelter", () => {
     expect(win(computeReadiness(ready), "shelter").status).toBe("done");
   });
 
-  it("counts a manual point even without a route", () => {
-    const plan = { ...ready.plan, places: { ...ready.plan.places, shelter: place("Hala") } };
+  it("counts an own shelter even without a route", () => {
+    const plan = { ...ready.plan, shelter: place("Hala") };
     expect(win(computeReadiness({ ...ready, plan, navigation: createEmptyNavigation() }), "shelter").status).toBe(
       "done",
     );
@@ -246,13 +231,14 @@ describe("computeReadiness — shelter and route", () => {
     const shelter = win(readiness, "shelter");
     expect(shelter.status).toBe("todo");
     expect(shelter.title).toBe("Odśwież trasę do schronu");
+    expect(shelter.href).toBe("/miejsca");
     expect(readiness.notices.map((notice) => notice.id)).toContain("route-stale");
   });
 
-  it("keeps the shelter done on a stale route when a manual point exists", () => {
+  it("keeps the shelter done on a stale route when an own shelter exists", () => {
     const plan = {
       ...ready.plan,
-      places: { ...ready.plan.places, shelter: place("Hala") },
+      shelter: place("Hala"),
       lastKnownPosition: { coords: warsaw, recordedAt: "2026-10-04T12:00:00.000Z" },
     };
     const readiness = computeReadiness({ ...ready, plan });
@@ -265,14 +251,15 @@ describe("computeReadiness — shelter and route", () => {
     expect(win(computeReadiness({ ...ready, plan }), "shelter").status).toBe("done");
   });
 
-  it("asks for a manual point when no PSP shelter is in range", () => {
+  it("asks for an own shelter when no PSP shelter is in range", () => {
     const navigation: NavigationState = {
       ...createEmptyNavigation(),
       lastRefresh: { at: "2026-10-04T10:00:00.000Z", ok: false, reason: "no-candidates" },
     };
     const shelter = win(computeReadiness({ ...ready, plan: withoutShelterPoint, navigation }), "shelter");
-    expect(shelter.title).toBe("Wskaż punkt ewakuacji");
+    expect(shelter.title).toBe("Wskaż własny schron");
     expect(shelter.href).toBe("/miejsca");
+    expect(shelter.area).toBe("places");
   });
 
   it("asks for the route when nothing was prepared yet", () => {
@@ -281,7 +268,16 @@ describe("computeReadiness — shelter and route", () => {
       "shelter",
     );
     expect(shelter.title).toBe("Wybierz schron i przygotuj trasę");
-    expect(shelter.href).toBe("/offline");
+    expect(shelter.href).toBe("/miejsca");
+    expect(shelter.area).toBe("places");
+  });
+
+  it("is the only step of the places area, and the offline area does not count it", () => {
+    const readiness = computeReadiness(input({ shell: "ready", install: "done" }));
+    const byArea = (area: string) =>
+      readiness.quickWins.filter((quickWin) => quickWin.area === area).map((quickWin) => quickWin.id);
+    expect(byArea("places")).toEqual(["shelter"]);
+    expect(byArea("offline")).toEqual(["offline-shell", "install", "map"]);
   });
 });
 
@@ -303,8 +299,8 @@ describe("computeReadiness — offline map", () => {
     const readiness = computeReadiness({ ...ready, plan, navigation: createEmptyNavigation(), install: "na" });
     expect(win(readiness, "map").status).toBe("unavailable");
     expect(readiness.notices.map((notice) => notice.id)).toContain("map-no-region");
-    // The shelter point is the manual one here, so the level can still reach the top.
-    const withShelter = { ...plan, places: { ...plan.places, shelter: place("Hala") } };
+    // The own shelter is the target here, so the level can still reach the top.
+    const withShelter = { ...plan, shelter: place("Hala") };
     expect(computeReadiness({ ...ready, plan: withShelter, navigation: createEmptyNavigation() }).level.id).toBe(
       "ready-72h",
     );
@@ -358,9 +354,8 @@ describe("computeReadiness — install and sensors", () => {
 
 describe("computeReadiness — areas and unreadable plan", () => {
   it("marks an area partial while only some of its steps are done", () => {
-    const meeting = withPlan({ places: { meeting: place("Plac"), backup: null, shelter: null } });
-    const places = computeReadiness(input({ plan: meeting })).areas.find((area) => area.id === "places");
-    expect(places?.status).toBe("partial");
+    const offline = computeReadiness(input({ shell: "ready" })).areas.find((area) => area.id === "offline");
+    expect(offline?.status).toBe("partial");
     const family = computeReadiness(input()).areas.find((area) => area.id === "family");
     expect(family?.status).toBe("todo");
   });

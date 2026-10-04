@@ -3,9 +3,6 @@ export interface Coordinates {
   longitude: number;
 }
 
-/** Trzy miejsca planu: punkt zbiórki, jego zamiennik i docelowy punkt ewakuacji (FR-004). */
-export type PlaceKind = "meeting" | "backup" | "shelter";
-
 export interface Place {
   label: string;
   coords: Coordinates;
@@ -46,8 +43,9 @@ export interface PackedItem {
 }
 
 export interface HouseholdPlan {
-  schemaVersion: 4;
-  places: Record<PlaceKind, Place | null>;
+  schemaVersion: 5;
+  /** Własny schron organizatora — cel alarmu, gdy nie ma przygotowanej trasy do schronu PSP (FR-004). */
+  shelter: Place | null;
   lastKnownPosition: LastKnownPosition | null;
   members: HouseholdMember[];
   contacts: EmergencyContact[];

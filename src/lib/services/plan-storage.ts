@@ -9,16 +9,15 @@ import type {
   MemberNeed,
   PackedItem,
   Place,
-  PlaceKind,
 } from "@/types";
 
 const STORAGE_KEY = "wrw.plan";
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 
 export function createEmptyPlan(): HouseholdPlan {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
-    places: { meeting: null, backup: null, shelter: null },
+    shelter: null,
     lastKnownPosition: null,
     members: [],
     contacts: [],
@@ -45,14 +44,14 @@ function parsePlace(value: unknown): Place | null {
   return coords ? { label: value.label, coords } : null;
 }
 
-/** Każde miejsce jest walidowane osobno: uszkodzone nie unieważnia dwóch pozostałych. */
-function parsePlaces(value: unknown): Record<PlaceKind, Place | null> {
+/**
+ * v2–v4 trzymały trzy miejsca. Cel alarmu przeżywa migrację: schron, a gdy go nie było — miejsce
+ * spotkania, potem zapasowe. Etykieta zostaje, bo nadał ją użytkownik. Uszkodzone miejsce jest
+ * pomijane, a kolejne w tej kolejności wchodzi na jego miejsce.
+ */
+function parseLegacyShelter(value: unknown): Place | null {
   const source = isRecord(value) ? value : {};
-  return {
-    meeting: parsePlace(source.meeting),
-    backup: parsePlace(source.backup),
-    shelter: parsePlace(source.shelter),
-  };
+  return parsePlace(source.shelter) ?? parsePlace(source.meeting) ?? parsePlace(source.backup);
 }
 
 function parseLastKnownPosition(value: unknown): LastKnownPosition | null {
@@ -145,7 +144,7 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
     return {
       plan: {
         schemaVersion: CURRENT_SCHEMA_VERSION,
-        places: parsePlaces(value.places),
+        shelter: parsePlace(value.shelter),
         lastKnownPosition,
         members: parseList(value.members, parseMember),
         contacts: parseList(value.contacts, parseContact),
@@ -156,12 +155,28 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
     };
   }
 
+  // v4 miało trzy miejsca (spotkania, zapasowe, schron) — zostaje jeden cel alarmu.
+  if (value.schemaVersion === 4) {
+    return {
+      plan: {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        shelter: parseLegacyShelter(value.places),
+        lastKnownPosition,
+        members: parseList(value.members, parseMember),
+        contacts: parseList(value.contacts, parseContact),
+        packedItems: parsePackedItems(value.packedItems),
+        updatedAt,
+      },
+      source: "migrated",
+    };
+  }
+
   // v3 miało domowników i kontakty, ale nie miało odhaczeń plecaka — dostaje pustą listę.
   if (value.schemaVersion === 3) {
     return {
       plan: {
         schemaVersion: CURRENT_SCHEMA_VERSION,
-        places: parsePlaces(value.places),
+        shelter: parseLegacyShelter(value.places),
         lastKnownPosition,
         members: parseList(value.members, parseMember),
         contacts: parseList(value.contacts, parseContact),
@@ -177,7 +192,7 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
     return {
       plan: {
         schemaVersion: CURRENT_SCHEMA_VERSION,
-        places: parsePlaces(value.places),
+        shelter: parseLegacyShelter(value.places),
         lastKnownPosition,
         members: [],
         contacts: [],
@@ -188,12 +203,12 @@ export function parsePlanWithSource(value: unknown): PlanReadResult {
     };
   }
 
-  // v1 trzymało jedno miejsce — staje się punktem ewakuacji, a dwa pozostałe czekają na uzupełnienie.
+  // v1 trzymało jedno miejsce — staje się własnym schronem.
   if (value.schemaVersion === 1) {
     return {
       plan: {
         schemaVersion: CURRENT_SCHEMA_VERSION,
-        places: { meeting: null, backup: null, shelter: parsePlace(value.evacuationPoint) },
+        shelter: parsePlace(value.evacuationPoint),
         lastKnownPosition,
         members: [],
         contacts: [],
@@ -252,7 +267,7 @@ export function saveLastKnownPosition(coords: Coordinates): HouseholdPlan {
     lastKnownPosition: { coords, recordedAt: new Date().toISOString() },
   };
   // Ten zapis nie jest inicjowany przez użytkownika — leci przy każdym fixie GPS. Nadpisanie
-  // nieczytelnego wpisu pustym planem skasowałoby jedyną kopię miejsc, i to w trakcie ewakuacji.
+  // nieczytelnego wpisu pustym planem skasowałoby jedyną kopię planu, i to w trakcie ewakuacji.
   if (source === "unreadable") return plan;
   writePlan(plan);
   return plan;

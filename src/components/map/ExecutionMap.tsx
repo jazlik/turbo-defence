@@ -1,19 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { addProtocol, Map as MapLibreMap, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
-import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import { FileSource, PMTiles, Protocol } from "pmtiles";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { Map as MapLibreMap, type GeoJSONSource } from "maplibre-gl";
+import { FileSource, PMTiles } from "pmtiles";
 
+import { protocol, readMapPalette } from "@/components/map/pmtiles";
 import { distanceMeters } from "@/lib/geo";
-import { buildMapStyle, PALETTE_TOKENS, type MapPalette } from "@/lib/map-style";
+import { buildMapStyle } from "@/lib/map-style";
 import { prepareRoute, progressOnRoute, remainingGeometry, type PreparedRoute } from "@/lib/route-progress";
 import { openMapFile, type MapPackageState } from "@/lib/services/map-storage";
 import type { Coordinates, Destination, SavedRoute } from "@/types";
-
-// MapLibre 6 resolves its worker from a runtime URL Vite cannot see; hand it the worker Vite bundled.
-setWorkerUrl(maplibreWorkerUrl);
-const protocol = new Protocol();
-addProtocol("pmtiles", protocol.tile);
 
 interface CameraMode {
   zoom: number;
@@ -34,20 +28,6 @@ const MIN_MOVE_METERS = 2;
 const EASE_MS = 250;
 /** The highlighted remainder is re-cut every few metres walked, not on every GPS fix. */
 const REMAINING_STEP_METERS = 5;
-
-export function readMapPalette(): MapPalette {
-  const css = getComputedStyle(document.documentElement);
-  const read = (key: keyof MapPalette) => css.getPropertyValue(PALETTE_TOKENS[key]).trim();
-  return {
-    background: read("background"),
-    surface: read("surface"),
-    road: read("road"),
-    label: read("label"),
-    foreground: read("foreground"),
-    guidance: read("guidance"),
-    safe: read("safe"),
-  };
-}
 
 const pointFeature = (coords: Coordinates, properties: Record<string, unknown> = {}) => ({
   type: "Feature" as const,

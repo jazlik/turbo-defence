@@ -1,19 +1,13 @@
 // Phase 1 spike only (removed in Phase 6): renders the OPFS package with the production style builder.
 import { useEffect, useRef, useState } from "react";
-import { addProtocol, Map as MapLibreMap, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
-import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import { FileSource, PMTiles, Protocol } from "pmtiles";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { Map as MapLibreMap, type GeoJSONSource } from "maplibre-gl";
+import { FileSource, PMTiles } from "pmtiles";
 
 import { useGeolocation } from "@/components/hooks/useGeolocation";
 import { useHeading } from "@/components/hooks/useHeading";
 import { distanceMeters } from "@/lib/geo";
-import { readMapPalette } from "@/components/map/ExecutionMap";
+import { protocol, readMapPalette } from "@/components/map/pmtiles";
 import { buildMapStyle } from "@/lib/map-style";
-
-setWorkerUrl(maplibreWorkerUrl);
-const protocol = new Protocol();
-addProtocol("pmtiles", protocol.tile);
 
 const PLACES = {
   "Kraków Rynek z17": { center: [19.9373, 50.0617] as [number, number], zoom: 17 },

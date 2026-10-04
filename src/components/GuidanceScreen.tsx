@@ -26,7 +26,7 @@ import { useScreenWakeLock } from "@/components/hooks/useScreenWakeLock";
 import { useVoiceGuidance } from "@/components/hooks/useVoiceGuidance";
 import { Button } from "@/components/ui/button";
 import { headingPermissionRequired, requestHeadingPermission, useHeading } from "@/components/hooks/useHeading";
-import { buildSteps, resumeIndex, stepContent, targetPlaceKind, type EvacuationStep } from "@/lib/evacuation-steps";
+import { buildSteps, resumeIndex, type EvacuationStep } from "@/lib/evacuation-steps";
 import { formatClockTime } from "@/lib/format";
 import { formatDistance } from "@/lib/geo";
 import { LOCATION_PROBLEMS } from "@/lib/guidance-copy";
@@ -75,8 +75,6 @@ const EMERGENCY_STEP: EvacuationStep = {
   kind: "navigate",
   title: "Idź do najbliższego schronu",
   instruction: "Prowadzenie awaryjne w linii prostej, bez trasy po drogach. Omijaj przeszkody i trzymaj kierunek.",
-  place: "shelter",
-  fallback: null,
 };
 
 type FinderState = "idle" | "searching" | "no-position" | "no-candidates" | "no-data" | "failed";
@@ -160,7 +158,7 @@ function FindTargetScreen({
           Znajdź najbliższy schron teraz
         </Button>
         <Button asChild variant="secondary" className="min-h-14 w-full text-base">
-          <a href="/miejsca">Ustaw miejsca w planie</a>
+          <a href="/miejsca">Przygotuj miejsce ewakuacji</a>
         </Button>
         <VoiceToggle voice={voice} />
       </div>
@@ -263,16 +261,13 @@ export default function GuidanceScreen() {
   // `at` zwraca `undefined` poza zakresem — indeksowanie nawiasem kłamałoby o typie przy pustej sekwencji.
   const step = steps.at(stepIndex);
   const nextStep = steps.at(stepIndex + 1);
-  const targetKind = step ? targetPlaceKind(step, run) : null;
   const point = emergency
     ? { label: emergency.label, coords: emergency.coords, source: "psp" as const, route: null, role: null }
-    : resolveStepTarget(targetKind, plan, navigation, run?.fallbackActive ?? false);
-  // The shelter step's "niedostępne" switches to the prepared PSP route B (S-04).
-  const shelterFallback =
-    step?.kind === "navigate" &&
-    step.place === "shelter" &&
-    point?.source === "psp" &&
-    shelterAlternateAvailable(navigation);
+    : step?.kind === "navigate"
+      ? resolveStepTarget(plan, navigation, run?.fallbackActive ?? false)
+      : null;
+  // The shelter step's "niedostępne" switches to the prepared PSP route B (S-04) — the only fallback.
+  const shelterFallback = step?.kind === "navigate" && point?.source === "psp" && shelterAlternateAvailable(navigation);
 
   // Alarm mode always tracks position — also before a target exists, so "Znajdź" can use a live fix.
   const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: true });
@@ -347,7 +342,7 @@ export default function GuidanceScreen() {
   };
 
   const switchToFallback = () => {
-    if (step?.kind !== "navigate" || (step.fallback === null && !shelterFallback)) return;
+    if (step?.kind !== "navigate" || !shelterFallback) return;
     // Flaga musi trafić do stanu w tym samym renderze co do localStorage: inaczej strzałka
     // pokazywałaby stary kierunek, czyli w kryzysie wskazywała w złe miejsce.
     const next = runAt(step.id, true);
@@ -376,7 +371,7 @@ export default function GuidanceScreen() {
   const content = step
     ? emergency
       ? { title: EMERGENCY_STEP.title, instruction: EMERGENCY_STEP.instruction }
-      : (shelterFallbackContent(step, point) ?? stepContent(step, run))
+      : (shelterFallbackContent(step, point) ?? { title: step.title, instruction: step.instruction })
     : null;
 
   const locateForSearch = async (): Promise<Coordinates | null> => {
@@ -466,7 +461,7 @@ export default function GuidanceScreen() {
         : null;
   const origin = liveFix ?? staleFix?.coords ?? null;
   const isStale = liveFix === null && staleFix !== null;
-  // One navigation core (S-04): straight bearing for plan places, route following for the PSP shelter.
+  // One navigation core (S-04): straight bearing for the own shelter, route following for the PSP shelter.
   const guidanceKey = `${step?.id ?? ""}:${point?.label ?? ""}:${point?.role ?? ""}`;
   const [modeMemory, setModeMemory] = useState<{ key: string; mode: GuidanceMode | null }>({ key: "", mode: null });
   const previousMode = modeMemory.key === guidanceKey ? modeMemory.mode : null;
@@ -494,7 +489,7 @@ export default function GuidanceScreen() {
   const straightDistance = guidance?.straightDistanceMeters ?? null;
   const locationProblemKind = liveFix === null && (status === "denied" || status === "unavailable") ? status : null;
   const locationProblem = locationProblemKind ? LOCATION_PROBLEMS[locationProblemKind] : null;
-  // Only a live fix can confirm arrival — "Ustaw tutaj" stores the point itself as the last known position.
+  // Only a live fix can confirm arrival — a saved position may be the target point itself.
   const arrived = guidance?.arrived ?? false;
   const showArrival = arrived || confirmedArrival;
   // Doszukane dojście unieważnia uzbrojone potwierdzenie: gdyby fix się zestarzał i prowadzenie
@@ -509,10 +504,7 @@ export default function GuidanceScreen() {
   // Po dojściu zostaje jedna akcja guidance: czerwone „punkt niedostępny” pod nogami celu,
   // na który właśnie doszliśmy, czyta się jak ostrzeżenie o tym miejscu.
   const fallbackAvailable =
-    step?.kind === "navigate" &&
-    !showArrival &&
-    (step.fallback !== null || shelterFallback) &&
-    !(run?.fallbackActive ?? false);
+    step?.kind === "navigate" && !showArrival && shelterFallback && !(run?.fallbackActive ?? false);
 
   // Stan głosu musi powstać przed pierwszym `return`, bo `useVoiceGuidance` jest hookiem.
   // Kolejność warunków odpowiada kolejności ekranów poniżej, żeby głos mówił to, co widać.
@@ -636,7 +628,7 @@ export default function GuidanceScreen() {
     <HoldButton
       holdMs={HOLD_MS}
       onComplete={switchToFallback}
-      label="Punkt niedostępny — idź do zapasowego"
+      label="Schron niedostępny — idź do zapasowego"
       icon={TriangleAlert}
       hintId="hold-hint"
       className="border-destructive text-destructive focus-visible:ring-destructive active:bg-surface-secondary"

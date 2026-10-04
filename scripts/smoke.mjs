@@ -53,6 +53,12 @@ for (const icon of manifest.icons) {
 const offlinePage = await get("/offline");
 if (!(await offlinePage.text()).includes("OfflineShellCard")) fail("/offline is missing the offline shell card");
 
+// Shelter and route live on /miejsca, next to the own shelter (miejsca-page-cleanup).
+const placesHtml = await (await get("/miejsca")).text();
+for (const island of ["RouteCard", "OwnShelterCard"]) {
+  if (!placesHtml.includes(island)) fail(`/miejsca is missing ${island}`);
+}
+
 for (const path of ["/alarm", "/czujniki", "/domownicy", "/plecak", "/miejsca", "/offline"]) {
   const res = await get(path);
   if (!(res.headers.get("content-type") ?? "").includes("text/html")) fail(`${path} is not HTML`);

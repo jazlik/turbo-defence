@@ -60,7 +60,7 @@ export function nextDistanceAnnouncement(lastMark: number | null, meters: number
 
 /**
  * Prowadzenie jest sekwencją kroków (S-02), więc stan głosu nosi tytuł bieżącego kroku, nie tylko
- * nazwę celu: po przełączeniu na miejsce zapasowe i po przejściu na następny krok cel się zmienia,
+ * nazwę celu: po przełączeniu na zapasowy schron i po przejściu na następny krok cel się zmienia,
  * a głos musi to powiedzieć, zamiast dalej czytać odległość do czegoś innego.
  */
 export type GuidanceVoiceState =
@@ -113,11 +113,11 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
         return `${state.title}: ${state.label}. ${dist} ${measured}.${staleSuffix}`;
       }
 
-      // Cel się zmienił: albo wyjście awaryjne na miejsce zapasowe, albo następny krok sekwencji.
+      // Cel się zmienił: albo wyjście awaryjne na zapasowy schron, albo następny krok sekwencji.
       // Oba trzeba powiedzieć, bo strzałka zaczyna wskazywać w inną stronę.
       if (previous.kind === "guiding" && previous.title !== state.title) {
         if (state.fallback && !previous.fallback) {
-          return `Punkt niedostępny. Idź do miejsca zapasowego: ${state.label}. ${dist}.`;
+          return `Schron niedostępny. Idź do zapasowego schronu: ${state.label}. ${dist}.`;
         }
         return `${state.title}: ${state.label}. ${dist}.`;
       }

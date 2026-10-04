@@ -18,21 +18,12 @@ import type { HouseholdPlan, NavigationState } from "@/types";
 export type AreaId = "places" | "family" | "backpack" | "offline" | "sensors";
 export type StageId = "target" | "family" | "offline" | "complete";
 export type QuickWinId =
-  | "meeting"
-  | "shelter"
-  | "household"
-  | "backpack-key"
-  | "backup"
-  | "offline-shell"
-  | "install"
-  | "map"
-  | "sensors"
-  | "backpack-full";
+  "shelter" | "household" | "backpack-key" | "offline-shell" | "install" | "map" | "sensors" | "backpack-full";
 export type QuickWinStatus = "done" | "todo" | "unavailable";
 export type LevelId = "start" | "basics" | "ready-to-go" | "ready-72h";
 
 export const AREAS: readonly { id: AreaId; title: string; href: string }[] = [
-  { id: "places", title: "Miejsca", href: "/miejsca" },
+  { id: "places", title: "Miejsca ewakuacji", href: "/miejsca" },
   { id: "family", title: "Rodzina", href: "/domownicy" },
   { id: "backpack", title: "Plecak", href: "/plecak" },
   { id: "offline", title: "Offline", href: "/offline" },
@@ -72,7 +63,7 @@ export const LEVELS: readonly ReadinessLevel[] = [
     id: "ready-72h",
     index: 3,
     title: "72H Ready",
-    description: "Miejsca, plecak, mapa i czujniki są przygotowane.",
+    description: "Schron, plecak, mapa i czujniki są przygotowane.",
   },
 ];
 
@@ -81,7 +72,7 @@ export interface QuickWin {
   area: AreaId;
   stage: StageId;
   status: QuickWinStatus;
-  /** The action, e.g. "Ustaw miejsce spotkania" — also the label of the main button. */
+  /** The action, e.g. "Wybierz schron i przygotuj trasę" — also the label of the main button. */
   title: string;
   reason: string;
   href: string;
@@ -154,43 +145,33 @@ function evaluate(input: ReadinessInput): Evaluation {
   const notices: ReadinessNotice[] = [];
   const quickWins: QuickWin[] = [];
 
-  quickWins.push({
-    id: "meeting",
-    area: "places",
-    stage: "target",
-    status: status(plan.places.meeting !== null),
-    title: "Ustaw miejsce spotkania",
-    reason: "Tu zbiera się rodzina zaraz po alarmie.",
-    href: "/miejsca",
-  });
-
   // A saved route is fresh while the last known position is within the shortlist radius of its origin.
   const route = navigation.primary;
   const routeFresh =
     route !== null && (position === null || distanceMeters(position, route.origin) <= SHORTLIST_RADIUS_METERS);
   const routeStale = route !== null && !routeFresh;
   const noCandidates = navigation.lastRefresh?.ok === false && navigation.lastRefresh.reason === "no-candidates";
-  const shelterDone = plan.places.shelter !== null || routeFresh;
+  const shelterDone = plan.shelter !== null || routeFresh;
   let shelterCopy = {
     title: "Wybierz schron i przygotuj trasę",
     reason: "Aplikacja wybierze najbliższy punkt schronienia i przygotuje trasę, która zadziała bez internetu.",
-    href: "/offline",
+    href: "/miejsca",
   };
   if (!shelterDone && routeStale) {
     notices.push({ id: "route-stale", text: NOTICE_TEXT["route-stale"] });
     shelterCopy = {
       title: "Odśwież trasę do schronu",
       reason: "Pozycja jest daleko od miejsca, z którego policzono trasę. Odśwież ją, gdy masz internet.",
-      href: "/offline",
+      href: "/miejsca",
     };
   } else if (!shelterDone && noCandidates) {
     shelterCopy = {
-      title: "Wskaż punkt ewakuacji",
-      reason: "W pobliżu nie ma punktu schronienia z danych PSP (na razie Małopolska). Wskaż własny punkt.",
+      title: "Wskaż własny schron",
+      reason: "W pobliżu nie ma punktu schronienia z danych PSP (na razie Małopolska). Wskaż własny schron.",
       href: "/miejsca",
     };
   }
-  quickWins.push({ id: "shelter", area: "offline", stage: "target", status: status(shelterDone), ...shelterCopy });
+  quickWins.push({ id: "shelter", area: "places", stage: "target", status: status(shelterDone), ...shelterCopy });
 
   quickWins.push({
     id: "household",
@@ -214,16 +195,6 @@ function evaluate(input: ReadinessInput): Evaluation {
     reason: "Woda, jedzenie, dokumenty, apteczka i rzeczy potrzebne domownikom.",
     href: "/plecak",
     progress: { done: key.packed, total: key.total },
-  });
-
-  quickWins.push({
-    id: "backup",
-    area: "places",
-    stage: "family",
-    status: status(plan.places.backup !== null),
-    title: "Ustaw miejsce zapasowe",
-    reason: "Zapasowa zbiórka, gdy miejsce spotkania jest niedostępne.",
-    href: "/miejsca",
   });
 
   if (shell !== "na") {
@@ -330,8 +301,8 @@ function evaluate(input: ReadinessInput): Evaluation {
 
 function levelFor(quickWins: readonly QuickWin[]): ReadinessLevel {
   const done = (id: QuickWinId) => quickWins.find((quickWin) => quickWin.id === id)?.status === "done";
-  const basics = done("meeting") || done("shelter");
-  const readyToGo = done("meeting") && done("shelter") && done("household") && done("backpack-key");
+  const basics = done("shelter");
+  const readyToGo = basics && done("household") && done("backpack-key");
   const complete = quickWins.every((quickWin) => quickWin.status !== "todo");
   return LEVELS[complete ? 3 : readyToGo ? 2 : basics ? 1 : 0];
 }

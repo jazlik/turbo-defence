@@ -38,12 +38,12 @@ Państwo samo potwierdza problem i zostawia go nierozwiązanym. Papierowy poradn
 Warstwy, na których nie konkurujemy:
 
 - **Treść** (zasady postępowania, plecak, sygnały, numery SOS). Darmowa, oficjalna, w aplikacjach, które ludzie już mają. Powołujemy się na nią i personalizujemy (FR-003), nie duplikujemy jej.
-- **Mapa schronów.** Buduje ją PSP w GdzieSięUkryć.pl. W MVP punkt wskazuje organizator ręcznie (FR-004, Non-Goals).
+- **Mapa schronów.** Buduje ją PSP w GdzieSięUkryć.pl. W MVP korzystamy z ich zbioru: aplikacja sama wybiera najbliższy schron PSP z trasą, a własny schron organizatora jest wyjściem awaryjnym (FR-004, Non-Goals).
 - **Zasięg i cena.** mObywatel ma ponad 12 mln użytkowników i jest darmowy.
 
 Czym się różnimy:
 
-- **Execution Mode.** Jedyne z tych narzędzi, które przechodzi od „co się stało?” do „co mam teraz zrobić?”. Duża strzałka zamiast mapy (FR-014), głos (FR-015), jedno wyjście awaryjne na miejsce zapasowe (FR-013). GdzieSięUkryć.pl przekierowuje nawigację do Map Google.
+- **Execution Mode.** Jedyne z tych narzędzi, które przechodzi od „co się stało?” do „co mam teraz zrobić?”. Duża strzałka zamiast mapy (FR-014), głos (FR-015), jedno wyjście awaryjne na zapasowy schron (FR-013). GdzieSięUkryć.pl przekierowuje nawigację do Map Google.
 - **Rodzina jako jednostka.** Aplikacje państwowe działają na jedno konto i jedną tożsamość (mObywatel wymaga pełnoletności i mDowodu, #wGotowości logowania Profilem Zaufanym), a problem zaczyna się dopiero wtedy, gdy domownicy są w różnych miejscach (FR-002, FR-010, FR-011).
 - **Offline-first i dane wyłącznie na urządzeniu.** Według wszystkich trzech analiz to element najtrudniejszy do skopiowania przez aplikację rządową. Dlatego są twardymi NFR, nie udogodnieniem.
 - **Plan konkretnego domu zamiast wiedzy ogólnej.** Checklista dopasowana do składu rodziny (FR-003), quick winy zamiast listy braków (FR-008), jakościowy poziom gotowości (FR-009).
@@ -84,7 +84,7 @@ Ryzyka:
 
 ### US-01: Organizator przygotowuje plan, a w kryzysie aplikacja prowadzi go do punktu
 
-- **Given** organizator przeszedł onboarding (domownicy, spersonalizowany plecak, miejsce spotkania, miejsce zapasowe, schron), mapa regionu jest pobrana na urządzenie, a trasa do punktu została przygotowana przy ostatnim dostępie do sieci
+- **Given** organizator przeszedł onboarding (domownicy, spersonalizowany plecak, schron), mapa regionu jest pobrana na urządzenie, a trasa do punktu została przygotowana przy ostatnim dostępie do sieci
 - **When** w kryzysie, bez sieci, przytrzymuje przycisk alarmu
 - **Then** Execution Mode prowadzi go krok po kroku do punktu
 
@@ -94,7 +94,7 @@ Ryzyka:
 - Każdy ekran pokazuje dokładnie jeden następny krok.
 - Głos czyta kroki domyślnie i można go wyłączyć.
 - Bez wibracji. To odstępstwo od `PROJECT.md` 4.1 pkt 6, decyzja zespołu.
-- Przycisk „niedostępne” przełącza prowadzenie na miejsce zapasowe.
+- Przycisk „niedostępne” przełącza prowadzenie na zapasowy schron (trasa B).
 - Całość działa w trybie samolotowym: prowadzenie korzysta z lokalnej mapy, ostatniej przygotowanej trasy i GPS telefonu, bez przeliczania nowej trasy (patrz „Mapa i nawigacja offline w MVP”).
 
 ## Functional Requirements
@@ -104,7 +104,7 @@ Przepływ MVP (źródło: `PROJECT.md`, sekcje 5 i 8; zatwierdzony przez zespó�
 1. Organizator uruchamia aplikację po raz pierwszy, startuje onboarding.
 2. Dodaje domowników i kontakty awaryjne.
 3. Przechodzi checklistę plecaka ewakuacyjnego.
-4. Wskazuje miejsce spotkania, miejsce zapasowe i punkt ewakuacji (schron).
+4. Przygotowuje miejsce ewakuacji: aplikacja wybiera najbliższy schron PSP z trasą, a gdy w pobliżu go nie ma, organizator wskazuje własny schron.
 5. Plan zapisuje się lokalnie, mapa regionu pobiera się na urządzenie, a trasa do punktu jest przygotowywana i odświeżana, gdy jest sieć.
 6. Ekran gotowości pokazuje luki w przygotowaniu.
 7. Organizator udostępnia plan domownikom.
@@ -125,8 +125,8 @@ Decyzje zakresowe:
   > Socrates: Zarzut: „kontakty są bezużyteczne, skoro scenariusz zakłada brak łączności”. Rozstrzygnięcie: zostaje, bo brak łączności to tylko jeden ze scenariuszy.
 - FR-003: Organizator może odhaczać pozycje checklisty plecaka ewakuacyjnego, dopasowanej do składu rodziny (np. dzieci, leki, zwierzęta). Priority: must-have
   > Socrates: Zarzut: „statyczna checklista to papierowa lista w aplikacji i do niczego nie zachęca”. Rozstrzygnięcie: zmodyfikowane, checklista jest personalizowana pod rodzinę.
-- FR-004: Organizator może ręcznie wskazać miejsce spotkania, miejsce zapasowe i punkt ewakuacji (schron). Punkt ewakuacji (schron) wybiera system automatycznie spośród oficjalnych punktów schronienia PSP, według najkrótszego dojścia pieszo, i przygotowuje trasę do niego oraz do punktu zapasowego; ręcznie wskazany punkt działa jako cel zapasowy, gdy w zasięgu nie ma punktu PSP (decyzja S-04, 2026-10-03). Priority: must-have
-  > Socrates: Zarzut: „organizator nie wie, które miejsce jest bezpieczne, więc wybierze źle”. Rozstrzygnięcie: w MVP wybór ręczny, propozycje schronów dopiero po MVP.
+- FR-004: Organizator przygotowuje jeden cel alarmu: schron. System wybiera go automatycznie spośród oficjalnych punktów schronienia PSP, według najkrótszego dojścia pieszo, i przygotowuje trasę do niego (A) oraz do schronu zapasowego (B) (decyzja S-04, 2026-10-03). Awaryjnie, gdy w zasięgu nie ma punktu PSP, organizator wskazuje własny schron na mapie (z domu, bez stania w tym miejscu) albo współrzędnymi. Miejsce spotkania i miejsce zapasowe usunięto (decyzja `miejsca-page-cleanup`, 2026-10-04). Priority: must-have
+  > Socrates: Zarzut: „organizator nie wie, które miejsce jest bezpieczne, więc wybierze źle”. Rozstrzygnięcie: zmodyfikowane — system sam wybiera oficjalny schron PSP (S-04), a ręczne wskazanie zostaje tylko jako wyjście awaryjne, gdy w zasięgu nie ma punktu PSP.
 - FR-005: Organizator może przypisać domownikom role i podstawowe scenariusze. Priority: nice-to-have
   > Socrates: Zarzut: „bez ról dziecko dostaje ten sam plan co dorosły”. Rozstrzygnięcie: zostaje nice-to-have, w MVP jest jeden wspólny plan.
 
@@ -170,8 +170,8 @@ Po MVP: pełne przeliczanie trasy offline. Telefon sam, bez sieci i bez zewnętr
 
 - FR-012: Organizator lub domownik może ręcznie uruchomić Execution Mode przyciskiem alarmu, chronionym przed przypadkowym uruchomieniem (przytrzymanie albo potwierdzenie). Priority: must-have
   > Socrates: Zarzut: „przypadkowe naciśnięcie w kieszeni uruchamia tryb kryzysowy”. Rozstrzygnięcie: zmodyfikowane, start wymaga przytrzymania albo potwierdzenia.
-- FR-013: W Execution Mode użytkownik jest prowadzony krok po kroku, z dużymi komunikatami (bez wibracji). Jedno wyjście awaryjne („niedostępne”) przełącza go na miejsce zapasowe. Priority: must-have
-  > Socrates: Zarzut: „sztywna sekwencja nie pasuje, gdy miejsce spotkania jest niedostępne”. Rozstrzygnięcie: zmodyfikowane, dodane wyjście awaryjne do miejsca zapasowego.
+- FR-013: W Execution Mode użytkownik jest prowadzony krok po kroku, z dużymi komunikatami (bez wibracji). Jedno wyjście awaryjne („niedostępne”) przełącza go na zapasowy schron (trasa B). Priority: must-have
+  > Socrates: Zarzut: „sztywna sekwencja nie pasuje, gdy cel jest niedostępny”. Rozstrzygnięcie: zmodyfikowane, dodane wyjście awaryjne na zapasowy schron (trasa B).
 - FR-014: W Execution Mode użytkownik widzi przede wszystkim dużą strzałkę i odległość do punktu, a mapa z trasą offline (lokalna mapa i ostatnia przygotowana trasa) jest dostępna jako drugi poziom. Pozycja, kierunek i odległość pochodzą z GPS telefonu i działają bez sieci. Priority: must-have
   > Socrates: Zarzut: „w stresie mapa jest za trudna do odczytania”. Rozstrzygnięcie: zmodyfikowane, główny widok to strzałka, mapa jest pod spodem.
 - FR-015: W Execution Mode użytkownik słyszy kolejne kroki głosem. Głos jest domyślnie włączony, ale użytkownik może go wyłączyć. Priority: must-have
@@ -198,9 +198,9 @@ Oba twarde NFR wynikają z zasad projektowych `PROJECT.md` (sekcja 3), z główn
 
 Aplikacja przenosi wszystkie decyzje ewakuacyjne rodziny na czas spokoju, a w kryzysie odtwarza je jako jedyny następny krok do wykonania.
 
-Wejścia, które podaje organizator w spokojnym czasie: skład rodziny i jej potrzeby (np. dzieci, leki, zwierzęta), kontakty, miejsce spotkania, miejsce zapasowe i punkt ewakuacji. Na tej podstawie aplikacja podejmuje cztery decyzje: dobiera checklistę plecaka i plan do rodziny (rekomendacja), wybiera następny quick win, który najbardziej podnosi gotowość (priorytetyzacja), przypisuje rodzinie jakościowy poziom gotowości, np. „72H Ready” (ocena), i zamienia plan w sekwencję kroków ewakuacji (workflow).
+Wejścia, które podaje organizator w spokojnym czasie: skład rodziny i jej potrzeby (np. dzieci, leki, zwierzęta), kontakty i schron (automatycznie wybrany schron PSP albo własny schron). Na tej podstawie aplikacja podejmuje cztery decyzje: dobiera checklistę plecaka i plan do rodziny (rekomendacja), wybiera następny quick win, który najbardziej podnosi gotowość (priorytetyzacja), przypisuje rodzinie jakościowy poziom gotowości, np. „72H Ready” (ocena), i zamienia plan w sekwencję kroków ewakuacji (workflow).
 
-W kryzysie użytkownik nie podejmuje decyzji. Widzi i słyszy tylko jeden następny krok. Jedyne dopuszczone odstępstwo to przejście „niedostępne”, które przełącza prowadzenie na miejsce zapasowe ustalone wcześniej.
+W kryzysie użytkownik nie podejmuje decyzji. Widzi i słyszy tylko jeden następny krok. Jedyne dopuszczone odstępstwo to przejście „niedostępne”, które przełącza prowadzenie na zapasowy schron (trasa B) przygotowany wcześniej.
 
 ## Access Control
 
@@ -232,15 +232,24 @@ Rozstrzygnięte 2026-10-03:
 - **Prowadzenie w S-01 (`guided-to-point-offline`).** Odległość do punktu w MVP jest liczona w linii prostej i tak podpisana w interfejsie; trasa przychodzi dopiero w S-04. Próg dojścia („Jesteś na miejscu”) to 25 m. Tryb demo z symulowaną pozycją został odrzucony — demo na zewnątrz, na realnych czujnikach.
 - **Mapa i nawigacja offline w MVP.** Mapa regionu na urządzeniu, trasa odświeżana z bieżącej lokalizacji, dopóki jest sieć, a po jej utracie prowadzenie po ostatniej trasie z GPS. Bez przeliczania trasy offline. Patrz FR-007 i „Mapa i nawigacja offline w MVP”.
 - **Offline i prywatność poza NFR.** Zespół wcześniej nie uznał ich za twarde wymagania MVP, co kłóciło się z `PROJECT.md` (sekcja 3), z głównym kryterium sukcesu, z kryterium akceptacji US-01 i z profilem lokalnym bez serwera. Decyzja: oba wracają jako twarde NFR. Patrz Non-Functional Requirements i Competitive Positioning.
-- **Zasięg wyjścia awaryjnego „niedostępne” (S-02, `step-flow-and-fallback`).** Przejście „niedostępne” jest dostępne wyłącznie na kroku miejsca spotkania i tylko wtedy, gdy miejsce zapasowe jest ustawione. Przełącza cel prowadzenia na miejsce zapasowe, po czym sekwencja biegnie dalej do punktu ewakuacji. Nie ma powrotu z miejsca zapasowego ani cofania kroku — zasada „minimum decyzji w kryzysie”. Patrz FR-013 i Business Logic.
-- **Zapis i wznawianie przebiegu ewakuacji (S-02).** Przebieg (bieżący krok i flaga aktywnego miejsca zapasowego) jest zapisywany lokalnie, osobno od planu, żeby ubicie aplikacji w marszu nie cofało użytkownika na początek. Wznawiany jest tylko wtedy, gdy jest świeższy niż 6 godzin; starszy startuje od pierwszego kroku. Wznowienie nie jest ciche — użytkownik wybiera „Kontynuuj” albo „Zacznij od początku”, żeby przypadkowy wcześniejszy alarm nie pominął kroku z plecakiem.
-- **Sekwencja kroków jest wyliczana, nie edytowana (S-02).** Kroki ewakuacji wynikają z planu (plecak → miejsce spotkania → punkt ewakuacji); użytkownik ich nie dodaje, nie usuwa i nie zmienia kolejności. Akcje, których nie da się cofnąć — przełączenie na miejsce zapasowe oraz przejście dalej bez potwierdzenia dojścia przez GPS — są chronione przytrzymaniem przycisku (2 s), wzorem przycisku alarmu.
+- **Zasięg wyjścia awaryjnego „niedostępne” (S-02, `step-flow-and-fallback`).** **[Zastąpione 2026-10-04 w części dotyczącej miejsc — patrz `miejsca-page-cleanup` niżej.]** Przejście „niedostępne” jest dostępne wyłącznie na kroku miejsca spotkania i tylko wtedy, gdy miejsce zapasowe jest ustawione. Przełącza cel prowadzenia na miejsce zapasowe, po czym sekwencja biegnie dalej do punktu ewakuacji. Nie ma powrotu z miejsca zapasowego ani cofania kroku — zasada „minimum decyzji w kryzysie”. Patrz FR-013 i Business Logic.
+- **Zapis i wznawianie przebiegu ewakuacji (S-02).** **[Zastąpione 2026-10-04 w części dotyczącej miejsc — patrz `miejsca-page-cleanup` niżej.]** Przebieg (bieżący krok i flaga aktywnego miejsca zapasowego) jest zapisywany lokalnie, osobno od planu, żeby ubicie aplikacji w marszu nie cofało użytkownika na początek. Wznawiany jest tylko wtedy, gdy jest świeższy niż 6 godzin; starszy startuje od pierwszego kroku. Wznowienie nie jest ciche — użytkownik wybiera „Kontynuuj” albo „Zacznij od początku”, żeby przypadkowy wcześniejszy alarm nie pominął kroku z plecakiem.
+- **Sekwencja kroków jest wyliczana, nie edytowana (S-02).** **[Zastąpione 2026-10-04 w części dotyczącej miejsc — patrz `miejsca-page-cleanup` niżej.]** Kroki ewakuacji wynikają z planu (plecak → miejsce spotkania → punkt ewakuacji); użytkownik ich nie dodaje, nie usuwa i nie zmienia kolejności. Akcje, których nie da się cofnąć — przełączenie na miejsce zapasowe oraz przejście dalej bez potwierdzenia dojścia przez GPS — są chronione przytrzymaniem przycisku (2 s), wzorem przycisku alarmu.
 
 Rozstrzygnięte 2026-10-04 (S-08, `readiness-screen`):
 
 - **Strona główna jest ekranem gotowości; onboarding (S-07) odpada.** Pierwsze uruchomienie to stan początkowy tego ekranu: poziom „Zaczynamy” i jeden następny krok. FR-001 (interaktywny onboarding) jest realizowane przez quick winy, nie przez osobny kreator. Alarm jest przyklejony do dołu ekranu i dostępny zawsze.
-- **Poziomy gotowości (Open Question 1).** Poziom jest stanem bieżącym wyliczanym z planu, a nie zdobywanym kamieniem milowym, więc może spaść. Cztery poziomy: „Zaczynamy” → „Podstawy” (jest miejsce spotkania albo schron) → „Gotowi do wyjścia” (miejsce spotkania, schron, kontakt lub domownik, plecak z pozycjami kluczowymi) → „72H Ready” (wszystkie kroki, w tym miejsce zapasowe, tryb offline, mapa, czujniki i cały plecak). Bez procentów.
-- **Kolejność quick winów:** miejsce spotkania → schron i trasa → kontakt lub domownik → plecak kluczowy → miejsce zapasowe → tryb offline → instalacja (tylko iOS) → mapa offline → czujniki → reszta plecaka. Domownicy są przed plecakiem, żeby plecak nie dezaktualizował się po dodaniu dziecka.
+- **Poziomy gotowości (Open Question 1).** **[Zastąpione 2026-10-04 w części dotyczącej miejsc — patrz `miejsca-page-cleanup` niżej.]** Poziom jest stanem bieżącym wyliczanym z planu, a nie zdobywanym kamieniem milowym, więc może spaść. Cztery poziomy: „Zaczynamy” → „Podstawy” (jest miejsce spotkania albo schron) → „Gotowi do wyjścia” (miejsce spotkania, schron, kontakt lub domownik, plecak z pozycjami kluczowymi) → „72H Ready” (wszystkie kroki, w tym miejsce zapasowe, tryb offline, mapa, czujniki i cały plecak). Bez procentów.
+- **Kolejność quick winów:** **[Zastąpione 2026-10-04 w części dotyczącej miejsc — patrz `miejsca-page-cleanup` niżej.]** miejsce spotkania → schron i trasa → kontakt lub domownik → plecak kluczowy → miejsce zapasowe → tryb offline → instalacja (tylko iOS) → mapa offline → czujniki → reszta plecaka. Domownicy są przed plecakiem, żeby plecak nie dezaktualizował się po dodaniu dziecka.
 - **Pozycje kluczowe plecaka:** woda, jedzenie, dokumenty, apteczka, karma dla zwierząt i wszystkie pozycje wynikające z potrzeb domowników. Lista jest decyzją produktową do potwierdzenia w poradniku GOV.
 - **Mapa offline a region.** Krok jest zrobiony, gdy pobrana paczka obejmuje ostatnią znaną pozycję. Poza paczką krok wraca jako niezrobiony, a ekran pokazuje baner (nie powiadomienie push, bo nie ma serwera). Gdy żaden region nie obejmuje pozycji (dziś poza Małopolską), krok jest „niedostępny” i nie blokuje poziomu. Trasa starsza niż promień wyboru schronu (15 km) od ostatniej pozycji jest nieaktualna i wraca jako quick win „Odśwież trasę do schronu”.
 - **Tryb offline (service worker) jest częścią gotowości.** Bez aktywnego service workera aplikacja nie otworzy się bez internetu, więc krok „Włącz tryb offline” blokuje poziom „72H Ready”.
+
+Rozstrzygnięte 2026-10-04 (`miejsca-page-cleanup`):
+
+- **Jeden cel alarmu: schron.** Miejsce spotkania i miejsce zapasowe znikają z planu, z alarmu, z głosu i z gotowości. Uzasadnienie: użytkownik nie odróżniał „punktu ewakuacji” od „miejsca spotkania”, a pierwsze ustawianie odbywa się z domu, gdzie „Ustaw tutaj” nie miało sensu. Świadomy koszt: rodzina rozdzielona w chwili alarmu nie ma ustalonego punktu zbiórki poza schronem. Zastępuje część decyzji S-02 i „Poziomy gotowości” dotyczącą miejsc.
+- **„Niedostępne” przełącza na zapasowy schron.** Na kroku schronu przejście prowadzi trasą B do zapasowego schronu PSP. Bez trasy B przycisku nie ma. Flaga w zapisanym przebiegu oznacza teraz aktywną trasę B.
+- **Sekwencja kroków:** plecak → schron. Cel kroku schronu: trasa A, po „niedostępne” trasa B, a bez przygotowanej trasy własny schron w linii prostej.
+- **Własny schron wskazuje się na mapie.** Pinezka na środku, użytkownik przesuwa mapę. Online mapa czyta paczkę regionu z R2 fragmentami (HTTP Range), z pobraną paczką — z urządzenia. Bez mapy (offline bez paczki, poza regionem) zostają współrzędne.
+- **Poziomy gotowości:** „Podstawy” = schron (własny albo świeża trasa PSP). „Gotowi do wyjścia” = schron, kontakt lub domownik i plecak z pozycjami kluczowymi. „72H Ready” = wszystkie kroki.
+- **Kolejność quick winów:** schron i trasa → kontakt lub domownik → plecak kluczowy → tryb offline → instalacja (tylko iOS) → mapa offline → czujniki → reszta plecaka.

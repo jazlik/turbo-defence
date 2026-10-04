@@ -7,6 +7,9 @@ import { readNavigation, writeNavigation } from "@/lib/services/navigation-stora
 import { saveLastKnownPosition } from "@/lib/services/plan-storage";
 import type { NavigationState } from "@/types";
 
+/** Fired after every navigation write, so other islands on the page (the own shelter card) can react. */
+export const NAVIGATION_CHANGED_EVENT = "wrw:navigation-changed";
+
 const fetchJson = async (url: string): Promise<unknown> => (await fetch(url)).json();
 
 /** Without the Permissions API (iOS < 16) the earlier consent, given by a gesture, stands in for "granted" (review F8). */
@@ -37,44 +40,49 @@ export function useRouteRefresh(): RouteRefresh {
   const [online, setOnline] = useState(() => navigator.onLine);
   const busy = useRef(false);
 
-  const run = useCallback(async (force: boolean) => {
-    if (busy.current || !navigator.onLine) return;
-    busy.current = true;
-    setRefreshing(true);
-    try {
-      const current = readNavigation();
-      const position = await requestCurrentPosition();
-      if (!position.ok) {
-        const next: NavigationState = {
-          ...current,
-          lastRefresh: { at: new Date().toISOString(), ok: false, reason: "no-position" },
-        };
-        writeNavigation(next);
-        setState(next);
-        return;
-      }
-      saveLastKnownPosition(position.fix.coords);
-      if (!force && !needsRefresh(current, position.fix.coords, Date.now())) return;
-      const next = await refreshRoutes({
-        previous: current,
-        origin: position.fix.coords,
-        router: walkingRouter,
-        shelters: await loadShelters(fetchJson),
-      });
-      writeNavigation(next);
-      setState(next);
-    } finally {
-      busy.current = false;
-      setRefreshing(false);
-    }
-  }, []);
-
-  const consentAndRefresh = useCallback(async () => {
-    const next = { ...readNavigation(), routingConsent: true };
+  const commit = useCallback((next: NavigationState) => {
     writeNavigation(next);
     setState(next);
+    window.dispatchEvent(new Event(NAVIGATION_CHANGED_EVENT));
+  }, []);
+
+  const run = useCallback(
+    async (force: boolean) => {
+      if (busy.current || !navigator.onLine) return;
+      busy.current = true;
+      setRefreshing(true);
+      try {
+        const current = readNavigation();
+        const position = await requestCurrentPosition();
+        if (!position.ok) {
+          const next: NavigationState = {
+            ...current,
+            lastRefresh: { at: new Date().toISOString(), ok: false, reason: "no-position" },
+          };
+          commit(next);
+          return;
+        }
+        saveLastKnownPosition(position.fix.coords);
+        if (!force && !needsRefresh(current, position.fix.coords, Date.now())) return;
+        const next = await refreshRoutes({
+          previous: current,
+          origin: position.fix.coords,
+          router: walkingRouter,
+          shelters: await loadShelters(fetchJson),
+        });
+        commit(next);
+      } finally {
+        busy.current = false;
+        setRefreshing(false);
+      }
+    },
+    [commit],
+  );
+
+  const consentAndRefresh = useCallback(async () => {
+    commit({ ...readNavigation(), routingConsent: true });
     await run(true);
-  }, [run]);
+  }, [commit, run]);
 
   useEffect(() => {
     if (!state.routingConsent) return;
