@@ -12,7 +12,7 @@ import {
   writeMapPackage,
   type MapPackageState,
 } from "@/lib/services/map-storage";
-import { installState } from "@/lib/services/install";
+import { installState, isStandaloneApp } from "@/lib/services/install";
 import { readPlan } from "@/lib/services/plan-storage";
 import type { MapDownloadMessage, MapDownloadRequest } from "@/workers/map-download.worker";
 
@@ -27,13 +27,14 @@ export interface MapPackage {
   start: () => Promise<void>;
 }
 
-export function useMapPackage(): MapPackage {
+export function useMapPackage(autoStart = false): MapPackage {
   const [state, setState] = useState(readMapPackage);
   const [error, setError] = useState<string | null>(null);
   const [{ region, covers }] = useState(() => proposeRegion(readPlan().lastKnownPosition?.coords ?? null));
   const [supported] = useState(mapStorageSupported);
   const [needsInstall] = useState(() => installState() === "todo");
   const worker = useRef<Worker | null>(null);
+  const autoAttempted = useRef(false);
 
   const update = useCallback((next: MapPackageState | null) => {
     writeMapPackage(next);
@@ -41,7 +42,8 @@ export function useMapPackage(): MapPackage {
   }, []);
 
   const start = useCallback(async () => {
-    if (!supported || worker.current) return;
+    // On iOS outside the installed app the file would land in Safari's storage, invisible to the app.
+    if (!supported || needsInstall || worker.current) return;
     const estimate = await navigator.storage.estimate().catch(() => null);
     // State updates only after the first await: start() also runs from the resume effect.
     setError(null);
@@ -96,12 +98,12 @@ export function useMapPackage(): MapPackage {
       etag: current.etag,
     };
     next.postMessage(request);
-  }, [region, supported, update]);
+  }, [region, supported, needsInstall, update]);
 
   useEffect(() => {
     // Consent was given earlier: an interrupted download continues on its own when the app opens again.
     const resume =
-      readMapPackage()?.status === "downloading"
+      !needsInstall && readMapPackage()?.status === "downloading"
         ? window.setTimeout(() => {
             void start();
           }, 0)
@@ -111,7 +113,23 @@ export function useMapPackage(): MapPackage {
       worker.current?.terminate();
       worker.current = null;
     };
-  }, [start]);
+  }, [start, needsInstall]);
+
+  useEffect(() => {
+    if (!autoStart || !isStandaloneApp() || !supported || needsInstall || covers === false) return;
+    const tryStart = () => {
+      if (autoAttempted.current || !navigator.onLine) return;
+      const current = readMapPackage();
+      if (current?.status === "ready" || current?.status === "downloading" || current?.status === "failed") return;
+      autoAttempted.current = true;
+      void start();
+    };
+    tryStart();
+    window.addEventListener("online", tryStart);
+    return () => {
+      window.removeEventListener("online", tryStart);
+    };
+  }, [autoStart, supported, needsInstall, covers, start]);
 
   return { state, region, covers, supported, needsInstall, error, start };
 }

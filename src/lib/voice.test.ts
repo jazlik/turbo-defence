@@ -166,9 +166,9 @@ describe("phraseFor", () => {
     expect(phraseFor(next, guidingAt(300, true))).toContain("Utracono sygnał GPS");
   });
 
-  it("tells the user to prepare a shelter when there are no steps", () => {
+  it("points to finding the nearest shelter when there are no steps", () => {
     const text = phraseFor({ kind: "noSteps" }, null);
-    expect(text).toContain("Nie wskazano schronu");
+    expect(text).toContain("Znajdź najbliższy schron teraz");
     expect(text).not.toMatch(/spotkani|zapasow/);
   });
 

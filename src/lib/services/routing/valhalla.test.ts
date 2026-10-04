@@ -71,6 +71,27 @@ describe("withFallback", () => {
     expect(combined.id).toBe("valhalla");
   });
 
+  it("keeps using the router that answered, instead of retrying the dead one every call", async () => {
+    let osrmCalls = 0;
+    const osrm: WalkingRouter = {
+      ...router("osrm", true),
+      matrix: () => {
+        osrmCalls += 1;
+        return Promise.reject(new RoutingError("down"));
+      },
+      route: () => {
+        osrmCalls += 1;
+        return Promise.reject(new RoutingError("down"));
+      },
+    };
+    const combined = withFallback([osrm, router("valhalla", false)]);
+    await combined.matrix(rynek, [kazimierz]);
+    await combined.route(rynek, kazimierz);
+    await combined.route(rynek, kazimierz);
+    expect(osrmCalls).toBe(1);
+    expect(combined.id).toBe("valhalla");
+  });
+
   it("fails only when every router fails", async () => {
     const combined = withFallback([router("osrm", true), router("valhalla", true)]);
     await expect(combined.route(rynek, kazimierz)).rejects.toBeInstanceOf(RoutingError);

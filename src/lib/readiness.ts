@@ -46,7 +46,12 @@ export interface ReadinessLevel {
 }
 
 export const LEVELS: readonly ReadinessLevel[] = [
-  { id: "start", index: 0, title: "Zaczynamy", description: "Alarm nie ma jeszcze dokąd prowadzić." },
+  {
+    id: "start",
+    index: 0,
+    title: "Zaczynamy",
+    description: "Alarm sam wyszuka najbliższy schron — z planem poprowadzi pewniej.",
+  },
   { id: "basics", index: 1, title: "Podstawy", description: "Alarm ma cel. Brakuje rodziny i plecaka." },
   {
     id: "ready-to-go",

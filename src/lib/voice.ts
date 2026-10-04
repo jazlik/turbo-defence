@@ -87,7 +87,7 @@ export function phraseFor(state: GuidanceVoiceState, previous: GuidanceVoiceStat
 
   switch (state.kind) {
     case "noSteps":
-      return "Nie wskazano schronu. Wróć do planu i przygotuj miejsce ewakuacji.";
+      return "Nie ma przygotowanego celu. Dotknij przycisku: Znajdź najbliższy schron teraz.";
 
     case "resume":
       return `Wracasz do przerwanej ewakuacji. Zatrzymaliście się na kroku: ${state.title}. Wybierz, czy kontynuować, czy zacząć od początku.`;
