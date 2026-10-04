@@ -149,3 +149,10 @@ Automated evidence: `npm ci`, `astro sync`, `eslint .` PASS; `vitest` 212/212 (1
 - **Detail**: During the review FOSSGIS OSRM stopped answering (75 s timeouts) while Valhalla answered in 0.1 s. `withFallback` tried OSRM first on the matrix and on both routes, paying a 10 s timeout each time, so the online emergency search exceeded its 15 s limit and degraded to straight-line guidance (live: 18 s, direct) although a working router was available.
 - **Fix**: Sticky fallback — the router that answered after a failure is tried first on later calls; test added.
 - **Decision**: FIXED — live re-check with OSRM down: route prepared in 12.4 s via Valhalla, including route B.
+
+## Integration with main (S-08 readiness screen, iOS hold fix) — 2026-10-04
+
+- Home is now the S-08 readiness screen; our `ReadinessStatus` (duplicate of it) and `src/lib/platform.ts` (duplicate of `installState`) were removed. Map/route cards live on `/offline` as in main.
+- S-08 start-level copy changed to match "no dead-end alarm": "Alarm sam wyszuka najbliższy schron — z planem poprowadzi pewniej."
+- "Ustaw miejsca w planie" on the alarm's find screen now links to `/miejsca` (places moved off Home in S-08).
+- Re-validated after merge: eslint, vitest 260/260, astro check 0/0/0, build + SW (83 files), smoke OK; browser: `/`, `/offline`, `/alarm` find screen, S-02 backpack step → map view with amber route and "Potwierdź dojście".

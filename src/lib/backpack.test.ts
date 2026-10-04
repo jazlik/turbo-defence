@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildBackpack,
   formatAmount,
+  isKeyItem,
   itemState,
   peopleCount,
   prunePacked,
   summarizeBackpack,
+  summarizeKeyItems,
   togglePacked,
   type BackpackItem,
 } from "./backpack";
@@ -173,5 +175,42 @@ describe("summarizeBackpack", () => {
       { itemId: "food", quantity: 12 },
     ]);
     expect(summary).toEqual({ packed: 2, total: items.length });
+  });
+});
+
+describe("key items", () => {
+  const keyIds = (items: BackpackItem[]) => items.filter(isKeyItem).map((item) => item.id);
+
+  it("marks water, food, documents and first aid for everyone", () => {
+    expect(keyIds(buildBackpack([]))).toEqual(["water", "food", "documents", "first-aid"]);
+  });
+
+  it("adds pet food and every need of the household", () => {
+    const members = [member("p1", "Burek", "pet"), member("a2", "Ania", "adult", [{ kind: "medication" }])];
+    const ids = keyIds(buildBackpack(members));
+    expect(ids).toContain("pet-food");
+    expect(ids).toContain("need-medication");
+    expect(ids).not.toContain("pet-bowl");
+  });
+
+  it("treats a custom need as key", () => {
+    const members = [member("a2", "Ania", "adult", [{ kind: "custom", label: "Inhalator" }])];
+    expect(keyIds(buildBackpack(members)).some((id) => id.startsWith("custom:"))).toBe(true);
+  });
+
+  it("counts only key items in the key summary", () => {
+    const items = buildBackpack([]);
+    const packed = [
+      { itemId: "water", quantity: 9 },
+      { itemId: "flashlight", quantity: null },
+    ];
+    expect(summarizeKeyItems(items, packed)).toEqual({ packed: 1, total: 4 });
+    expect(summarizeBackpack(items, packed).packed).toBe(2);
+  });
+
+  it("does not count an outdated key tick as packed", () => {
+    const items = buildBackpack([member("c1", "Ola", "child")]);
+    const packed = [{ itemId: "water", quantity: 9 }];
+    expect(summarizeKeyItems(items, packed).packed).toBe(0);
   });
 });

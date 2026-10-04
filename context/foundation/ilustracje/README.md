@@ -10,11 +10,11 @@ Zasady stylu są w [`JEZYK_WIZUALNY.md`](../../../JEZYK_WIZUALNY.md) §12 — tu
 | --- | ----------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------- | -------------- |
 | 1   | `public/ilustracje/poradnik/domownicy.webp`     | domownicy i kontakty (S-05)                 | rodzina z babcią w drzwiach domu                            | drzwi          |
 | 2   | `public/ilustracje/poradnik/plecak.webp`        | plecak (S-06)                               | dorosły z dzieckiem pakują plecak                           | plecak         |
-| 3   | `public/ilustracje/poradnik/miejsca.webp`       | miejsca: spotkania, zapasowe, schron (S-07) | rodzina przy ławce, w tle miejsce zapasowe na końcu ścieżki | ławka          |
+| 3   | `public/ilustracje/poradnik/miejsca.webp`       | miejsca: spotkania, zapasowe, schron (S-08) | rodzina przy ławce, w tle miejsce zapasowe na końcu ścieżki | ławka          |
 | 4   | `public/ilustracje/poradnik/udostepnienie.webp` | udostępnienie planu (S-09)                  | dorosły pokazuje plan na telefonie babci                    | telefon        |
 | 5   | `public/ilustracje/poradnik/prowadzenie.webp`   | prowadzenie offline (S-01, S-04)            | dorosły idzie ścieżką z telefonem w stronę schronienia      | —              |
 
-Pliki: WebP, szerokość ≤ 960 px, przezroczyste tło, 100–150 KiB. Ilustracje nie są jeszcze użyte na żadnym ekranie — wejdą z onboardingiem (S-07). Rozszerzenie `webp` nie jest w globie precache (`scripts/generate-sw.mjs`); jeśli onboarding ma pokazywać ilustracje offline, trzeba je tam dodać razem z ekranem.
+Pliki: WebP, szerokość ≤ 960 px, przezroczyste tło, 100–150 KiB. Ilustracje nie są jeszcze użyte na żadnym ekranie — wejdą z onboardingiem (S-08). Rozszerzenie `webp` nie jest w globie precache (`scripts/generate-sw.mjs`); jeśli onboarding ma pokazywać ilustracje offline, trzeba je tam dodać razem z ekranem.
 
 ## Pochodzenie
 

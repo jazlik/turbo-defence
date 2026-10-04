@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { proposeRegion, type MapRegion } from "@/lib/map-regions";
-import { needsHomeScreenInstall } from "@/lib/platform";
 import {
   downloadStateFor,
   mapStorageSupported,
@@ -13,6 +12,7 @@ import {
   writeMapPackage,
   type MapPackageState,
 } from "@/lib/services/map-storage";
+import { installState } from "@/lib/services/install";
 import { readPlan } from "@/lib/services/plan-storage";
 import type { MapDownloadMessage, MapDownloadRequest } from "@/workers/map-download.worker";
 
@@ -32,7 +32,7 @@ export function useMapPackage(): MapPackage {
   const [error, setError] = useState<string | null>(null);
   const [{ region, covers }] = useState(() => proposeRegion(readPlan().lastKnownPosition?.coords ?? null));
   const [supported] = useState(mapStorageSupported);
-  const [needsInstall] = useState(needsHomeScreenInstall);
+  const [needsInstall] = useState(() => installState() === "todo");
   const worker = useRef<Worker | null>(null);
 
   const update = useCallback((next: MapPackageState | null) => {

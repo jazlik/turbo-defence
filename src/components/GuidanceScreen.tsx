@@ -163,7 +163,7 @@ function FindTargetScreen({
         </Button>
         <VoiceUnlockButton voice={voice} />
         <Button asChild variant="secondary" className="min-h-14 w-full text-base">
-          <a href="/">Ustaw miejsca w planie</a>
+          <a href="/miejsca">Ustaw miejsca w planie</a>
         </Button>
         <VoiceToggle voice={voice} />
       </div>

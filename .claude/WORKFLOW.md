@@ -38,7 +38,7 @@ F-01 offline-app-shell
         ├─ S-04 offline-map-and-route       │
         └─ S-05 household-members           ┘
               └─ S-06 personalized-backpack
-S-04 + S-06 → S-07 first-run-onboarding → S-08 readiness-screen → S-09 share-plan
+S-06 → S-08 readiness-screen (S-07 usunięte) → S-09 share-plan
 ```
 
 | Change ID | Zależy od | Można robić równolegle z |
@@ -50,12 +50,11 @@ S-04 + S-06 → S-07 first-run-onboarding → S-08 readiness-screen → S-09 sha
 | `offline-map-and-route` (S-04) | S-01 | S-02, S-03, S-05, S-06 |
 | `household-members` (S-05) | S-01 | S-02, S-03, S-04 |
 | `personalized-backpack` (S-06) | S-05 | S-02, S-03, S-04 |
-| `first-run-onboarding` (S-07) | S-04, S-06 | — |
-| `readiness-screen` (S-08) | S-07 | — |
+| `readiness-screen` (S-08) | S-06 | S-04 |
 | `share-plan` (S-09) | S-08 | — |
 
 Wniosek: po zmergowaniu S-01 mamy do 4 niezależnych change'ów naraz (S-02, S-03, S-04, S-05; S-06 dołącza po S-05). Dwa strumienie:
-**A** (prowadzenie: S-02/S-03/S-04) i **B** (plan: S-05 → S-06 → S-07 → S-08 → S-09; S-07 czeka też na S-04).
+**A** (prowadzenie: S-02/S-03/S-04) i **B** (plan: S-05 → S-06 → S-08 → S-09).
 
 ## Równoległa praca
 
