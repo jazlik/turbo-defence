@@ -8,9 +8,9 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 
 - **Okładka:** po prawej pole `#E3E7E9` z dużą ilustracją „rodzina w drzwiach”, ucięta dolną krawędzią; z drzwi wychodzi przerywana ścieżka w stali — motyw „od planu do punktu”, który wraca na slajdach 5 i 6.
 - **Rozwiązanie (5):** ilustracje poradnika zamiast ikon (rodzina w drzwiach, udostępnienie, plecak, prowadzenie), w kartach tylko tytuły; opisy funkcji przeniesione do notatek prelegenta. Pod kartami przerywana „droga” łącząca 4 funkcje.
-- **Informacja ≠ gotowość (4):** większa postać pod stosem (2,85″).
+- **Informacja ≠ gotowość (4):** większa postać pod stosem (2,85″); zamiast pełnego bursztynowego pola pod „[17 mln] poradników.” jest zakreślacz `#C89A43` tylko pod dolną połową „[17 mln]” (bursztyn = jedna kluczowa fraza).
 - **Dwa tryby (6):** zrzuty offline bez ramki, ucięte dolną krawędzią; nad nimi ścieżka — stalowa po jasnej stronie, bursztynowa (guidance) po ciemnej.
-- **Czym się różnimy (7):** ikony powiększone z 0,43″ do 0,64″.
+- **Czym się różnimy (7):** ikony powiększone z 0,43″ do 0,64″; bursztynowy pasek „Działa już teraz…” zastąpiony linią statusu (zielona kropka `#347157`, tekst w `#202427`/`#646B70`) i kodem QR do aplikacji z podpisem „Otwórz na telefonie” (`assets/qr-aplikacja.png`, adres `https://w-razie-w.jzogala.workers.dev`).
 - **Dalsze kroki (8):** 4 ilustracje (wybór: rodzina c2, wspólny plan c1, oficjalne dane c2, scenariusze c1), w kartach tylko tytuły, opisy w notatkach prelegenta; ścieżka z kart dochodzi do supergrafiki „punkt docelowy”.
 - **Aneks (9):** ikony + źródło 77%.
 
