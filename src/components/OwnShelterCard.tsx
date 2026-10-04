@@ -1,14 +1,20 @@
-import { useEffect, useId, useState, type SyntheticEvent } from "react";
-import { CheckCircle2, ChevronRight, LocateFixed, MapPin, TriangleAlert } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useId, useState, type SyntheticEvent } from "react";
+import { CheckCircle2, ChevronRight, LocateFixed, MapPin, MapPinOff, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { NAVIGATION_CHANGED_EVENT } from "@/components/hooks/useRouteRefresh";
 import { requestCurrentPosition, type GeolocationStatus } from "@/components/hooks/useGeolocation";
+import MapErrorBoundary from "@/components/map/MapErrorBoundary";
 import { parseCoordinates } from "@/lib/geo";
+import { pickMapSource, type MapSource } from "@/lib/map-source";
+import { readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
 import { readPlan, saveLastKnownPosition, writePlan } from "@/lib/services/plan-storage";
 import { cn } from "@/lib/utils";
 import type { Coordinates, HouseholdPlan, NavigationState } from "@/types";
+
+// MapLibre (~250 kB gz) is fetched only when the editor opens, never with the page.
+const PlacePickerMap = lazy(() => import("@/components/map/PlacePickerMap"));
 
 const DEFAULT_LABEL = "Własny schron";
 
@@ -23,6 +29,29 @@ const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
 // Cicha awaria zapisu jest gorsza niż brak zapisu: użytkownik odchodzi przekonany, że plan jest na urządzeniu.
 const STORAGE_ERROR =
   "Nie udało się zapisać na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny w ustawieniach przeglądarki i spróbuj ponownie.";
+
+const MAP_UNAVAILABLE: Record<"offline-no-package" | "outside-region" | "error", string> = {
+  "offline-no-package": "Mapa jest dostępna online albo po pobraniu paczki na stronie Offline. Wpisz współrzędne.",
+  "outside-region": "Mapa obejmuje na razie Małopolskę. Wpisz współrzędne.",
+  error: "Nie udało się wczytać mapy. Wpisz współrzędne.",
+};
+type MapUnavailableReason = keyof typeof MAP_UNAVAILABLE;
+
+const mapPlaceholder = (
+  <div className="border-border bg-surface-secondary text-muted-foreground flex h-72 items-center justify-center rounded-md border text-sm">
+    Ładuję mapę…
+  </div>
+);
+
+/** Policzone przy każdym otwarciu edytora: paczka mogła się pobrać, a sieć zniknąć, od ostatniego razu. */
+function currentMapSource(): MapSource {
+  const plan = readPlan();
+  return pickMapSource({
+    mapPackage: readMapPackage(),
+    online: navigator.onLine,
+    center: plan.shelter?.coords ?? plan.lastKnownPosition?.coords ?? null,
+  });
+}
 
 type Feedback = { kind: "saved" | "error"; text: string } | null;
 type Mode = "idle" | "editing" | "confirm-delete";
@@ -46,10 +75,14 @@ export default function OwnShelterCard() {
   );
   const [label, setLabel] = useState(plan.shelter?.label ?? "");
   const [candidate, setCandidate] = useState<Coordinates | null>(plan.shelter?.coords ?? null);
-  const [coordinatesOpen, setCoordinatesOpen] = useState(false);
+  const [mapSource, setMapSource] = useState<MapSource | null>(() => (mode === "editing" ? currentMapSource() : null));
+  // Bez mapy jedyną drogą z domu są współrzędne — wtedy są rozwinięte od razu.
+  const [coordinatesOpen, setCoordinatesOpen] = useState(() => mapSource?.kind === "none");
   const [coordinatesInput, setCoordinatesInput] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
+  const [mapFocus, setMapFocus] = useState<Coordinates | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const ids = { title: useId(), label: useId(), labelHint: useId(), coordinates: useId(), coordinatesError: useId() };
 
@@ -58,7 +91,13 @@ export default function OwnShelterCard() {
     const onNavigation = () => {
       const next = readNavigation();
       setNavigation(next);
-      if (readPlan().shelter === null && noCandidates(next)) setMode("editing");
+      if (readPlan().shelter === null && noCandidates(next)) {
+        const source = currentMapSource();
+        setMapSource(source);
+        setMapFailed(false);
+        if (source.kind === "none") setCoordinatesOpen(true);
+        setMode("editing");
+      }
     };
     window.addEventListener(NAVIGATION_CHANGED_EVENT, onNavigation);
     return () => {
@@ -68,12 +107,29 @@ export default function OwnShelterCard() {
 
   const shelter = plan.shelter;
 
+  const mapUnavailable: MapUnavailableReason | null =
+    mapSource === null ? null : mapSource.kind === "none" ? mapSource.reason : mapFailed ? "error" : null;
+
+  const onMapError = useCallback(() => {
+    setMapFailed(true);
+    setCoordinatesOpen(true);
+  }, []);
+
+  const onMapCenter = useCallback((coords: Coordinates) => {
+    setCandidate(coords);
+  }, []);
+
   const openEditor = () => {
     setLabel(shelter?.label ?? "");
     setCandidate(shelter?.coords ?? null);
     setCoordinatesInput("");
     setInputError(null);
     setFeedback(null);
+    const source = currentMapSource();
+    setMapSource(source);
+    setMapFailed(false);
+    setMapFocus(null);
+    setCoordinatesOpen(source.kind === "none");
     setMode("editing");
   };
 
@@ -99,6 +155,7 @@ export default function OwnShelterCard() {
     // To jest prawdziwa pozycja użytkownika, więc odświeża też ostatnią znaną pozycję.
     saveLastKnownPosition(result.fix.coords);
     setCandidate(result.fix.coords);
+    setMapFocus(result.fix.coords);
     setInputError(null);
   };
 
@@ -114,12 +171,17 @@ export default function OwnShelterCard() {
       return;
     }
     setInputError(null);
+    // Przy działającej mapie wpis tylko ją centruje; zapis zawsze idzie przez „Zapisz schron”.
     setCandidate(parsed.coords);
+    setMapFocus(parsed.coords);
   };
 
   const save = () => {
     if (candidate === null) {
-      setFeedback({ kind: "error", text: "Najpierw wskaż punkt: użyj swojej pozycji albo wpisz współrzędne." });
+      setFeedback({
+        kind: "error",
+        text: "Najpierw wskaż punkt: przesuń mapę, użyj swojej pozycji albo wpisz współrzędne.",
+      });
       return;
     }
     if (!commit({ label: label.trim() || DEFAULT_LABEL, coords: candidate })) {
@@ -220,8 +282,31 @@ export default function OwnShelterCard() {
         <div className="mt-6 space-y-6">
           <div className="space-y-3">
             <p className="text-sm font-medium">Punkt</p>
+            {mapSource && mapSource.kind !== "none" && !mapFailed && (
+              <MapErrorBoundary fallback={null} onError={onMapError}>
+                <Suspense fallback={mapPlaceholder}>
+                  <PlacePickerMap
+                    source={mapSource}
+                    initialCenter={mapSource.center}
+                    focus={mapFocus}
+                    onCenterChange={onMapCenter}
+                    onError={onMapError}
+                  />
+                </Suspense>
+              </MapErrorBoundary>
+            )}
+            {mapUnavailable && (
+              <p className="text-muted-foreground flex items-start gap-2 text-sm">
+                <MapPinOff className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+                {MAP_UNAVAILABLE[mapUnavailable]}
+              </p>
+            )}
             <p className={candidate ? "font-operational" : "text-muted-foreground"}>
-              {candidate ? formatCoordinates(candidate) : "Nie wskazano"}
+              {candidate
+                ? formatCoordinates(candidate)
+                : mapUnavailable
+                  ? "Nie wskazano"
+                  : "Przesuń mapę, aby ustawić punkt pod pinezką"}
             </p>
             <Button
               type="button"

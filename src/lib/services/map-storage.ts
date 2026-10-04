@@ -93,7 +93,7 @@ export function mapStorageSupported(): boolean {
   );
 }
 
-export async function openMapFile(state: MapPackageState): Promise<File | null> {
+export async function openMapFile(state: Pick<MapPackageState, "fileName">): Promise<File | null> {
   try {
     const root = await navigator.storage.getDirectory();
     return await (await root.getFileHandle(state.fileName)).getFile();

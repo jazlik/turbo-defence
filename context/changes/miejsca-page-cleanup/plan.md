@@ -504,38 +504,38 @@ Edytor własnego schronu dostaje mapę: pinezka stoi na środku, użytkownik prz
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm test`
-- [x] 2.2 Lint passes: `npm run lint`
-- [x] 2.3 Type check passes: `npx astro check`
-- [x] 2.4 Build passes: `npm run build`
-- [x] 2.5 Smoke passes against preview
+- [x] 2.1 Unit tests pass: `npm test` — 86e3de3
+- [x] 2.2 Lint passes: `npm run lint` — 86e3de3
+- [x] 2.3 Type check passes: `npx astro check` — 86e3de3
+- [x] 2.4 Build passes: `npm run build` — 86e3de3
+- [x] 2.5 Smoke passes against preview — 86e3de3
 
 #### Manual
 
-- [x] 2.6 Pusty profil: jedna dominująca akcja, własny schron zwinięty
-- [x] 2.7 `no-candidates`: sekcja własnego schronu rozwinięta od razu
-- [x] 2.8 Zapis z nazwą, zmiana samej nazwy, odświeżenie — oba zachowane
-- [x] 2.9 360 px bez poziomego przewijania; pasek obszarów mieści „Miejsca ewakuacji”
-- [x] 2.10 `/offline` bez karty trasy; quick win schronu prowadzi na `/miejsca`
+- [x] 2.6 Pusty profil: jedna dominująca akcja, własny schron zwinięty — 86e3de3
+- [x] 2.7 `no-candidates`: sekcja własnego schronu rozwinięta od razu — 86e3de3
+- [x] 2.8 Zapis z nazwą, zmiana samej nazwy, odświeżenie — oba zachowane — 86e3de3
+- [x] 2.9 360 px bez poziomego przewijania; pasek obszarów mieści „Miejsca ewakuacji” — 86e3de3
+- [x] 2.10 `/offline` bez karty trasy; quick win schronu prowadzi na `/miejsca` — 86e3de3
 
 ### Phase 3: Mapa z pinezką
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass (incl. `map-source.test.ts`): `npm test`
-- [ ] 3.2 Lint passes: `npm run lint`
-- [ ] 3.3 Type check passes: `npx astro check`
-- [ ] 3.4 Build passes: `npm run build`
-- [ ] 3.5 MapLibre stays out of the static page bundle
-- [ ] 3.6 Smoke passes against preview
+- [x] 3.1 Unit tests pass (incl. `map-source.test.ts`): `npm test`
+- [x] 3.2 Lint passes: `npm run lint`
+- [x] 3.3 Type check passes: `npx astro check`
+- [x] 3.4 Build passes: `npm run build`
+- [x] 3.5 MapLibre stays out of the static page bundle
+- [x] 3.6 Smoke passes against preview
 
 #### Manual
 
-- [ ] 3.7 iOS Safari online bez paczki: mapa z R2, przesuwanie, zapis pod pinezką, alarm prowadzi
-- [ ] 3.8 Android Chrome: to samo + paczka w trybie samolotowym (OPFS)
-- [ ] 3.9 Tryb samolotowy bez paczki: współrzędne rozwinięte z powodem, zapis działa
-- [ ] 3.10 „Moja pozycja” centruje mapę; odmowa lokalizacji nie psuje edytora
-- [ ] 3.11 Alarm z mapą wykonawczą bez regresji (wspólny protokół)
+- [x] 3.7 iOS Safari online bez paczki: mapa z R2, przesuwanie, zapis pod pinezką, alarm prowadzi
+- [x] 3.8 Android Chrome: to samo + paczka w trybie samolotowym (OPFS)
+- [x] 3.9 Tryb samolotowy bez paczki: współrzędne rozwinięte z powodem, zapis działa
+- [x] 3.10 „Moja pozycja” centruje mapę; odmowa lokalizacji nie psuje edytora
+- [x] 3.11 Alarm z mapą wykonawczą bez regresji (wspólny protokół)
 
 ### Phase 4: Dokumenty
 

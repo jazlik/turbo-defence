@@ -1,7 +1,8 @@
-import { Component, lazy, Suspense, useState, type ReactNode } from "react";
+import { lazy, Suspense, useState } from "react";
 import { ArrowLeft, MapPinOff, Navigation2, Compass } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
+import MapErrorBoundary from "@/components/map/MapErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { formatDistance } from "@/lib/geo";
 import type { Guidance } from "@/lib/navigation";
@@ -32,19 +33,6 @@ function writeNorthUp(northUp: boolean): void {
 /** Started after the first /alarm render, so opening the map later is instant and never delays the first step. */
 export function prefetchExecutionMap(): void {
   void import("@/components/map/ExecutionMap");
-}
-
-/** A failing map module must never take the arrow screen down with it. */
-class MapErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
 }
 
 interface MapOverlayProps {
