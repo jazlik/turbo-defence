@@ -22,7 +22,7 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 
 ## Zrzuty ekranu (slajd 6)
 
-`zrzuty/przygotowanie-1-plan.png`, `przygotowanie-2-plecak.png`, `kryzys-1-krok.png`, `kryzys-2-prowadzenie.png` — build z `main` (2026-10-03), `astro preview`, Playwright 390×844 @2x, przykładowy plan rodziny 4 osób w Krakowie zapisany w `wrw.plan`, symulowana pozycja GPS i marsz (kierunek liczony z ruchu). Ekrany trybu awaryjnego robione **w trybie offline** (§20). Komunikat „Głos niedostępny” wynika z przeglądarki bez syntezy mowy — na telefonie głos działa; jeśli przeszkadza, zrzut trzeba zrobić na telefonie.
+`zrzuty/przygotowanie-1-miejsca.png`, `przygotowanie-2-plecak.png`, `kryzys-1-krok.png`, `kryzys-2-prowadzenie.png` — build z `main`, `astro preview`, Playwright 390×844 @2x, przykładowa rodzina 4 osób w Krakowie, symulowany GPS i marsz. **Wszystkie robione w trybie offline** (aplikacja załadowana z service workera), pasek statusu z trybem samolotowym. Bez ramki urządzenia, zaokrąglenie 28 px w pliku 780 px (= 14 px), w decku duże i ucięte dolną krawędzią slajdu (§20). Bez czerwonego przycisku alarmu — czerwień tylko na ekranie kryzysu. Komunikat „Głos niedostępny” wynika z przeglądarki bez syntezy mowy.
 
 ## Zadanie dla Codexa — ilustracja slajdu 4
 

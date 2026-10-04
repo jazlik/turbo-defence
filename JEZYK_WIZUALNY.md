@@ -447,7 +447,8 @@ Wyjątek: zadanie jawnie prosi o eksplorację zupełnie nowego kierunku. Taki ma
 - **GUIDELINE:** Zrzuty ekranu i demo pokazują stan offline lub brak danych (§13), bo regulamin oczekuje działania przy ograniczonych zasobach i niedostępnych usługach.
 - **GUIDELINE:** Mockupy w prezentacji muszą odpowiadać temu, co działa w demie. Nie pokazuj ekranów, których nie ma w prototypie, bez oznaczenia „koncepcja".
 - **GUIDELINE:** Ilustracje na slajdach wyłącznie w stylu „kontur” z §12: funkcje produktu pokazują karty poradnika, nowa scena powstaje tylko tam, gdzie slajd pokazuje problem (np. nadmiar informacji zamiast planu). Małe znaki funkcji to ikony Lucide, nie osobne ilustracje.
-- **GUIDELINE:** Wyróżnienie liczby lub hasła na slajdzie robi stal albo pogrubienie tekstu. Bursztyn i czerwień zachowują znaczenie z §7 (uwaga, prowadzenie, zagrożenie) także w prezentacji.
+- **GUIDELINE:** Bursztyn `#C89A43` na slajdzie wyłącznie jako marker jednej kluczowej frazy lub liczby (np. „17 mln poradników”). Czerwień tylko na zrzucie ekranu z realnym zagrożeniem. Ciemne tło (`#0B1117`) oznacza kryzys i pojawia się tylko na ciemnej połowie slajdu „Jeden produkt, dwa tryby”.
+- **GUIDELINE:** Zrzuty ekranu na slajdach: bez ramki urządzenia, zaokrąglenie 14 px (28 px na 1920×1080), duże i ucięte dolną krawędzią slajdu, najwyżej 2 telefony na stronę; tryb offline widoczny na zrzucie (tryb samolotowy w pasku statusu).
 
 ### Pochodzenie materiałów
 
