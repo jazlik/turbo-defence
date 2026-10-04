@@ -45,6 +45,13 @@ describe("parsePlan", () => {
     expect(parsePlan(validPlan)).toEqual(validPlan);
   });
 
+  it("round-trips a v5 plan through its stored JSON form", () => {
+    // `writePlan` stores `JSON.stringify(plan)` and `readPlan` parses it back with `parsePlanWithSource`.
+    const result = parsePlanWithSource(JSON.parse(JSON.stringify(validPlan)));
+    expect(result.source).toBe("stored");
+    expect(result.plan).toEqual(validPlan);
+  });
+
   it("returns an empty plan for a non-object or an unknown schema version", () => {
     for (const value of [null, "plan", 42, { ...validPlan, schemaVersion: 6 }, { ...validPlan, schemaVersion: "5" }]) {
       const plan = parsePlan(value);
@@ -118,6 +125,19 @@ describe("parsePlan migration to one alarm target", () => {
     const result = parsePlanWithSource({ ...rest, schemaVersion: 3 });
     expect(result.source).toBe("migrated");
     expect(result.plan).toEqual({ ...validPlan, shelter: meeting, packedItems: [] });
+  });
+
+  it("promotes the v3 backup place, and migrates a v3 plan without places to no shelter", () => {
+    const v3 = (places: unknown) => {
+      const { packedItems: _packed, ...rest } = v4(places);
+      return { ...rest, schemaVersion: 3 };
+    };
+    expect(parsePlan(v3({ meeting: null, backup, shelter: null })).shelter).toEqual(backup);
+    expect(parsePlan(v3({ meeting: null, backup: null, shelter: null })).shelter).toBeNull();
+  });
+
+  it("promotes the v2 meeting place when there was no shelter", () => {
+    expect(parsePlan({ schemaVersion: 2, places: { meeting, backup, shelter: null } }).shelter).toEqual(meeting);
   });
 
   it("migrates a v2 plan keeping the target and the position, with empty people lists", () => {

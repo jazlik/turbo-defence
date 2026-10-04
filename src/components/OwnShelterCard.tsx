@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useId, useState, type SyntheticEvent } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type SyntheticEvent } from "react";
 import { CheckCircle2, ChevronRight, LocateFixed, MapPin, MapPinOff, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { parseCoordinates } from "@/lib/geo";
 import { pickMapSource, type MapSource } from "@/lib/map-source";
 import { readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
-import { readPlan, saveLastKnownPosition, writePlan } from "@/lib/services/plan-storage";
+import { readPlan, readPlanResult, saveLastKnownPosition, writePlan } from "@/lib/services/plan-storage";
 import { cn } from "@/lib/utils";
 import type { Coordinates, HouseholdPlan, NavigationState } from "@/types";
 
@@ -29,6 +29,10 @@ const LOCATION_ERRORS: Partial<Record<GeolocationStatus, string>> = {
 // Cicha awaria zapisu jest gorsza niż brak zapisu: użytkownik odchodzi przekonany, że plan jest na urządzeniu.
 const STORAGE_ERROR =
   "Nie udało się zapisać na tym urządzeniu. Wyłącz tryb prywatny albo odblokuj dane witryny w ustawieniach przeglądarki i spróbuj ponownie.";
+
+/** Zapisany plan może pochodzić z nowszej wersji aplikacji: zapis schronu nie może go zastąpić pustym. */
+const UNREADABLE_PLAN =
+  "Nie udało się odczytać planu zapisanego na tym urządzeniu, więc schron nie został zapisany. Zaktualizuj aplikację i spróbuj ponownie.";
 
 const MAP_UNAVAILABLE: Record<"offline-no-package" | "outside-region" | "error", string> = {
   "offline-no-package": "Mapa jest dostępna online albo po pobraniu paczki na stronie Offline. Wpisz współrzędne.",
@@ -86,12 +90,17 @@ export default function OwnShelterCard() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const ids = { title: useId(), label: useId(), labelHint: useId(), coordinates: useId(), coordinatesError: useId() };
 
+  // Kolejne odświeżenia z tym samym wynikiem nie mogą ponownie otwierać edytora zamkniętego przez „Anuluj”.
+  const wasNoCandidates = useRef(noCandidates(navigation));
+
   // Karta trasy jest osobną wyspą: wynik jej odświeżenia („brak schronu PSP”) przychodzi zdarzeniem.
   useEffect(() => {
     const onNavigation = () => {
       const next = readNavigation();
       setNavigation(next);
-      if (readPlan().shelter === null && noCandidates(next)) {
+      const entered = noCandidates(next) && !wasNoCandidates.current;
+      wasNoCandidates.current = noCandidates(next);
+      if (entered && readPlan().shelter === null) {
         const source = currentMapSource();
         setMapSource(source);
         setMapFailed(false);
@@ -106,6 +115,23 @@ export default function OwnShelterCard() {
   }, []);
 
   const shelter = plan.shelter;
+
+  // Przełączenie trybu odmontowuje naciśnięty przycisk; fokus przechodzi na cel nowego trybu,
+  // ale tylko gdy faktycznie spadł na <body> — samo otwarcie po wyniku trasy nie kradnie fokusu.
+  const modeFocusTarget = useRef<HTMLElement | null>(null);
+  const setModeFocusTarget = useCallback((element: HTMLElement | null) => {
+    modeFocusTarget.current = element;
+  }, []);
+  const firstMode = useRef(true);
+  useEffect(() => {
+    if (firstMode.current) {
+      firstMode.current = false;
+      return;
+    }
+    if (document.activeElement === null || document.activeElement === document.body) {
+      modeFocusTarget.current?.focus();
+    }
+  }, [mode]);
 
   const mapUnavailable: MapUnavailableReason | null =
     mapSource === null ? null : mapSource.kind === "none" ? mapSource.reason : mapFailed ? "error" : null;
@@ -133,13 +159,16 @@ export default function OwnShelterCard() {
     setMode("editing");
   };
 
-  /** `false`, gdy urządzenie odmówiło zapisu — wołający nie może wtedy potwierdzić zapisania. */
-  const commit = (nextShelter: HouseholdPlan["shelter"]): boolean => {
+  /** Tekst błędu, gdy zapisu nie było — wołający nie może wtedy potwierdzić zapisania; `null` po udanym zapisie. */
+  const commit = (nextShelter: HouseholdPlan["shelter"]): string | null => {
     // Inne wyspy zapisują ten sam klucz: czytaj tuż przed zapisem, inaczej nadpiszesz ich zmiany.
-    const next: HouseholdPlan = { ...readPlan(), shelter: nextShelter };
-    const saved = writePlan(next);
+    const { plan: fresh, source } = readPlanResult();
+    if (source === "unreadable") return UNREADABLE_PLAN;
+    const next: HouseholdPlan = { ...fresh, shelter: nextShelter };
+    if (!writePlan(next)) return STORAGE_ERROR;
+    // Stan karty zmienia się dopiero po udanym zapisie, żeby nie pokazać schronu, którego nie ma w pamięci.
     setPlan(next);
-    return saved;
+    return null;
   };
 
   const locateMe = async () => {
@@ -184,8 +213,9 @@ export default function OwnShelterCard() {
       });
       return;
     }
-    if (!commit({ label: label.trim() || DEFAULT_LABEL, coords: candidate })) {
-      setFeedback({ kind: "error", text: STORAGE_ERROR });
+    const error = commit({ label: label.trim() || DEFAULT_LABEL, coords: candidate });
+    if (error !== null) {
+      setFeedback({ kind: "error", text: error });
       return;
     }
     setMode("idle");
@@ -193,8 +223,9 @@ export default function OwnShelterCard() {
   };
 
   const remove = () => {
-    if (!commit(null)) {
-      setFeedback({ kind: "error", text: STORAGE_ERROR });
+    const error = commit(null);
+    if (error !== null) {
+      setFeedback({ kind: "error", text: error });
       return;
     }
     setMode("idle");
@@ -233,7 +264,7 @@ export default function OwnShelterCard() {
       {mode === "idle" &&
         (shelter ? (
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button type="button" variant="outline" onClick={openEditor}>
+            <Button ref={setModeFocusTarget} type="button" variant="outline" onClick={openEditor}>
               Zmień
             </Button>
             <Button
@@ -248,7 +279,14 @@ export default function OwnShelterCard() {
             </Button>
           </div>
         ) : (
-          <Button type="button" variant="outline" size="lg" className="mt-6 w-full sm:w-auto" onClick={openEditor}>
+          <Button
+            ref={setModeFocusTarget}
+            type="button"
+            variant="outline"
+            size="lg"
+            className="mt-6 w-full sm:w-auto"
+            onClick={openEditor}
+          >
             <MapPin strokeWidth={2} aria-hidden="true" />
             Wskaż własny schron
           </Button>
@@ -256,13 +294,13 @@ export default function OwnShelterCard() {
 
       {mode === "confirm-delete" && (
         <div className="mt-6 space-y-4">
-          <p className="text-sm">
+          <p role="alert" className="text-sm">
             {navigation.primary
               ? "Alarm poprowadzi wtedy tylko do schronu PSP z przygotowanej trasy."
               : "Bez przygotowanej trasy do schronu PSP alarm nie będzie miał dokąd prowadzić."}
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button type="button" variant="destructive" onClick={remove}>
+            <Button ref={setModeFocusTarget} type="button" variant="destructive" onClick={remove}>
               Na pewno usuń
             </Button>
             <Button
@@ -281,7 +319,9 @@ export default function OwnShelterCard() {
       {mode === "editing" && (
         <div className="mt-6 space-y-6">
           <div className="space-y-3">
-            <p className="text-sm font-medium">Punkt</p>
+            <p ref={setModeFocusTarget} tabIndex={-1} className="text-sm font-medium outline-none">
+              Punkt
+            </p>
             {mapSource && mapSource.kind !== "none" && !mapFailed && (
               <MapErrorBoundary fallback={null} onError={onMapError}>
                 <Suspense fallback={mapPlaceholder}>
@@ -313,6 +353,7 @@ export default function OwnShelterCard() {
               variant="outline"
               className="w-full sm:w-auto"
               aria-busy={locating}
+              disabled={locating}
               onClick={() => void locateMe()}
             >
               <LocateFixed strokeWidth={2} aria-hidden="true" />

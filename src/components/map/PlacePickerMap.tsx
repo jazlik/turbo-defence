@@ -77,18 +77,22 @@ export default function PlacePickerMap({ source, initialCenter, focus, onCenterC
         });
         map.touchZoomRotate.disableRotation();
         map.keyboard.disableRotation();
-        let loaded = false;
-        map.on("load", () => {
-          loaded = true;
-        });
-        // Before "load" an error means the style or the package is unusable; later ones are single tiles.
-        map.on("error", () => {
-          if (!loaded) callbacks.current.onError();
-        });
-        map.on("moveend", () => {
+        const reportCenter = () => {
           const { lat, lng } = map.getCenter();
           callbacks.current.onCenterChange({ latitude: lat, longitude: lng });
+        };
+        let loaded = false;
+        // The pin already stands on the start point once the map shows, so that point counts as picked.
+        map.on("load", () => {
+          loaded = true;
+          reportCenter();
         });
+        // Before "load" an error means the style or the package is unusable. A single failed tile (the event
+        // carries `tile`, e.g. one flaky Range request) is not a reason to drop a working map.
+        map.on("error", (event) => {
+          if (!loaded && !("tile" in event)) callbacks.current.onError();
+        });
+        map.on("moveend", reportCenter);
         mapRef.current = map;
       })
       .catch(() => {

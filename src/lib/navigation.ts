@@ -34,7 +34,7 @@ export interface Guidance {
   rotation: number | null;
   /** Straight line to the destination — S-01 arrival and stale-data rules use it. */
   straightDistanceMeters: number | null;
-  /** Only a live fix can confirm arrival: "Ustaw tutaj" stores the point itself as the last known position. */
+  /** Only a live fix can confirm arrival: the last known position may be hours old. */
   arrived: boolean;
 }
 

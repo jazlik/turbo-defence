@@ -8,7 +8,7 @@ export type SensorOutcome = "working" | "denied" | "unavailable";
 
 /**
  * Device state, like `wrw.voice`: whether this phone's location and compass were checked on /czujniki.
- * It cannot be derived from the plan — `lastKnownPosition` also changes on every "Ustaw tutaj".
+ * It cannot be derived from the plan — `lastKnownPosition` also changes on every "Moja pozycja" and route refresh.
  */
 export interface SensorCheckState {
   schemaVersion: 1;

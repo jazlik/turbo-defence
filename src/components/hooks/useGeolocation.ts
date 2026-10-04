@@ -32,7 +32,7 @@ const statusFromError = (error: GeolocationPositionError): GeolocationStatus =>
 
 export type CurrentPositionResult = { ok: true; fix: GeolocationFix } | { ok: false; status: GeolocationStatus };
 
-/** One-shot fix for user-initiated actions such as "Ustaw tutaj". Never rejects. */
+/** One-shot fix for user-initiated actions such as "Moja pozycja". Never rejects. */
 export function requestCurrentPosition(): Promise<CurrentPositionResult> {
   return new Promise((resolve) => {
     if (!isSupported()) {

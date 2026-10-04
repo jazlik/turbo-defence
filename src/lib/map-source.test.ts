@@ -24,6 +24,15 @@ describe("pickMapSource", () => {
     });
   });
 
+  it("opens a downloaded package at its middle when the start point lies outside it", () => {
+    const [west, south, east, north] = malopolska.bounds;
+    expect(pickMapSource({ mapPackage: readyPackage, online: true, center: warsaw })).toEqual({
+      kind: "local",
+      fileName: regionFileName(malopolska),
+      center: { latitude: (south + north) / 2, longitude: (west + east) / 2 },
+    });
+  });
+
   it("does not use an unfinished package", () => {
     const downloading = downloadStateFor(malopolska, null);
     expect(pickMapSource({ mapPackage: downloading, online: false, center: krakow })).toEqual({

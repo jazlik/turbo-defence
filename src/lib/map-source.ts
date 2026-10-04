@@ -1,4 +1,4 @@
-import { MAP_REGIONS, regionCovering, type MapRegion } from "@/lib/map-regions";
+import { MAP_REGIONS, packageCovers, regionCovering, type MapRegion } from "@/lib/map-regions";
 import { isMapReady, type MapPackageState } from "@/lib/services/map-storage";
 import type { Coordinates } from "@/types";
 
@@ -29,7 +29,9 @@ export function pickMapSource({
 }): MapSource {
   if (isMapReady(mapPackage)) {
     const region = MAP_REGIONS.find((candidate) => candidate.id === mapPackage.regionId) ?? MAP_REGIONS[0];
-    return { kind: "local", fileName: mapPackage.fileName, center: center ?? regionCenter(region) };
+    // A start point outside the package would open on blank tiles; the package's own middle is usable.
+    const inside = center !== null && packageCovers(region.id, center);
+    return { kind: "local", fileName: mapPackage.fileName, center: inside ? center : regionCenter(region) };
   }
   if (!online) return { kind: "none", reason: "offline-no-package" };
   const region = center ? regionCovering(center) : MAP_REGIONS[0];
