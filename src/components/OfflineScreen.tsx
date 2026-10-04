@@ -59,14 +59,16 @@ export default function OfflineScreen() {
   return (
     <div className="space-y-6">
       <OfflineChecklist checks={checks} />
-      <div>
-        <OfflineShellCard />
-      </div>
-      <div>
-        <InstallCard />
-      </div>
-      <div>
-        <MapPackageCard mapPackage={mapPackage} />
+      <div className="border-border bg-surface divide-border divide-y rounded-lg border shadow-sm">
+        <div className="p-6 sm:p-8">
+          <MapPackageCard mapPackage={mapPackage} embedded />
+        </div>
+        <div className="p-6 empty:hidden sm:p-8">
+          <InstallCard embedded />
+        </div>
+        <div className="p-6 sm:p-8">
+          <OfflineShellCard embedded />
+        </div>
       </div>
     </div>
   );

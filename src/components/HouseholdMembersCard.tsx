@@ -33,6 +33,8 @@ export default function HouseholdMembersCard() {
   const [members, setMembers] = useState<HouseholdMember[]>(() => readPlan().members);
   const [form, setForm] = useState<MemberInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
+  // The form is its own view: the list stays calm, and only one thing asks for attention at a time.
+  const [formOpen, setFormOpen] = useState(false);
   const [errors, setErrors] = useState<MemberErrors>({});
   const [feedback, setFeedback] = useState<RecordFeedback>(null);
   const [customDraft, setCustomDraft] = useState("");
@@ -59,6 +61,13 @@ export default function HouseholdMembersCard() {
     setErrors({});
     setCustomDraft("");
     setNeedError(undefined);
+    setFormOpen(false);
+  };
+
+  const openAdd = () => {
+    setFeedback(null);
+    setFormOpen(true);
+    focusSoon(() => nameRef.current);
   };
 
   const addDraftNeed = (): MemberInput | null => {
@@ -94,13 +103,14 @@ export default function HouseholdMembersCard() {
     } else {
       if (!persist(addMember(current, result.value))) return;
       setFeedback({ text: `Dodano: ${result.value.name}.` });
-      focusSoon(() => nameRef.current);
+      focusSoon(() => document.getElementById("member-add"));
     }
     resetForm();
   };
 
   const startEdit = (member: HouseholdMember) => {
     setEditingId(member.id);
+    setFormOpen(true);
     setForm({ name: member.name, category: member.category, needs: member.needs });
     setCustomDraft("");
     setNeedError(undefined);
@@ -112,7 +122,7 @@ export default function HouseholdMembersCard() {
   const cancelEdit = () => {
     const id = editingId;
     resetForm();
-    focusSoon(() => document.getElementById(`member-edit-${id ?? ""}`));
+    focusSoon(() => document.getElementById(id ? `member-edit-${id}` : "member-add"));
   };
 
   const remove = (member: HouseholdMember) => {
@@ -123,7 +133,6 @@ export default function HouseholdMembersCard() {
   };
 
   const atLimit = members.length >= MAX_RECORDS;
-  const showForm = editingId !== null || !atLimit;
 
   return (
     <section
@@ -152,20 +161,14 @@ export default function HouseholdMembersCard() {
         </div>
       </div>
 
-      {members.length === 0 ? (
+      {formOpen ? null : members.length === 0 ? (
         <p className="text-muted-foreground mt-6">Domowników: nie dodano</p>
       ) : (
-        <ul className="mt-6 space-y-3">
+        <ul className="divide-border mt-6 divide-y">
           {members.map((member) => {
             const Icon = CATEGORIES.find((item) => item.value === member.category)?.Icon ?? UserRound;
             return (
-              <li
-                key={member.id}
-                className={cn(
-                  "border-border flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center",
-                  editingId === member.id && "border-primary bg-core-steel-soft",
-                )}
-              >
+              <li key={member.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <Icon className="text-core-steel-deep mt-0.5 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
                   <div className="min-w-0">
@@ -191,7 +194,7 @@ export default function HouseholdMembersCard() {
                   <Button
                     id={`member-edit-${member.id}`}
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     aria-label={`Edytuj: ${member.name}`}
                     onClick={() => {
@@ -203,7 +206,7 @@ export default function HouseholdMembersCard() {
                   </Button>
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="ghost-destructive"
                     size="sm"
                     aria-label={`Usuń: ${member.name}`}
                     onClick={() => {
@@ -220,8 +223,8 @@ export default function HouseholdMembersCard() {
         </ul>
       )}
 
-      {showForm ? (
-        <form onSubmit={submit} noValidate className="border-border mt-6 space-y-4 border-t pt-6">
+      {formOpen ? (
+        <form onSubmit={submit} noValidate className="mt-6 space-y-4">
           <h3 className="font-medium">{editingId ? "Edytuj domownika" : "Dodaj domownika"}</h3>
           <TextField
             id={ids.name}
@@ -327,18 +330,28 @@ export default function HouseholdMembersCard() {
               <Save strokeWidth={2} aria-hidden="true" />
               {editingId ? "Zapisz zmiany" : "Dodaj domownika"}
             </Button>
-            {editingId && (
-              <Button type="button" size="lg" variant="outline" onClick={cancelEdit}>
-                <X strokeWidth={2} aria-hidden="true" />
-                Anuluj
-              </Button>
-            )}
+            <Button type="button" size="lg" variant="ghost" onClick={cancelEdit}>
+              <X strokeWidth={2} aria-hidden="true" />
+              Anuluj
+            </Button>
           </div>
         </form>
-      ) : (
+      ) : atLimit ? (
         <p className="text-muted-foreground border-border mt-6 border-t pt-6 text-sm">
           Osiągnięto limit {MAX_RECORDS} domowników. Usuń kogoś, żeby dodać nową osobę.
         </p>
+      ) : (
+        <Button
+          id="member-add"
+          type="button"
+          size="lg"
+          variant={members.length === 0 ? "default" : "outline"}
+          className="mt-6 w-full sm:w-auto"
+          onClick={openAdd}
+        >
+          <Plus strokeWidth={2} aria-hidden="true" />
+          Dodaj domownika
+        </Button>
       )}
 
       <StatusLine feedback={feedback} />

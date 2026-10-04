@@ -300,7 +300,7 @@ export default function OwnShelterCard() {
               : "Bez przygotowanej trasy do schronu PSP alarm nie będzie miał dokąd prowadzić."}
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button ref={setModeFocusTarget} type="button" variant="destructive" onClick={remove}>
+            <Button ref={setModeFocusTarget} type="button" variant="ghost-destructive" onClick={remove}>
               Na pewno usuń
             </Button>
             <Button

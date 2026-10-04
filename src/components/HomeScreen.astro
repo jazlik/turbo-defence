@@ -5,7 +5,7 @@ import ReadinessScreen from "@/components/ReadinessScreen";
 
 <div class="min-h-screen bg-background px-4 text-foreground sm:px-8">
   <div class="mx-auto flex min-h-screen max-w-2xl flex-col">
-    <header class="flex items-center justify-between gap-4 border-b border-border py-4">
+    <header class="sticky top-0 z-20 flex h-[4.5rem] items-center justify-between gap-4 border-b border-border bg-background">
       <a
         href="/"
         class="flex min-h-11 shrink-0 items-center gap-3 whitespace-nowrap rounded-md text-base font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -26,7 +26,7 @@ import ReadinessScreen from "@/components/ReadinessScreen";
       </div>
     </header>
 
-    <main class="flex-1 space-y-6 py-8 sm:py-12">
+    <main class="flex-1 space-y-6 pb-8 sm:pb-12">
       <div>
         <ReadinessScreen client:only="react" />
       </div>

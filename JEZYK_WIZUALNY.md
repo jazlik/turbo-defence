@@ -397,8 +397,8 @@ Wyjątek: zadanie jawnie prosi o eksplorację zupełnie nowego kierunku. Taki ma
 ### Ekran gotowości
 
 - neutralne tło Preparation Mode,
-- jasna powierzchnia grupująca plan rodziny,
-- stalowy pasek postępu lub CTA,
+- blok następnego kroku jako jedyna wyróżniona powierzchnia (`shadow.md`): tytuł działania, jedna krótka linia powodu i jeden stalowy CTA z czasownikiem; bez osobnego paska ani karty poziomu gotowości,
+- lista planu jako jedna grupa z separatorami: ikona, nazwa, jednowierszowy opis stanu i status z ikoną,
 - zielony status „gotowe” wraz z ikoną i tekstem,
 - bursztynowa uwaga „uzupełnij trasę zapasową” z czytelną etykietą.
 

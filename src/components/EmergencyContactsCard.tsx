@@ -211,13 +211,13 @@ export default function EmergencyContactsCard() {
       {contacts.length === 0 ? (
         <p className="text-muted-foreground mt-6">Kontaktów: nie dodano</p>
       ) : (
-        <ul className="mt-6 space-y-3">
+        <ul className="divide-border mt-6 divide-y">
           {contacts.map((contact) => (
             <li
               key={contact.id}
               className={cn(
-                "border-border flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center",
-                editingId === contact.id && "border-primary bg-core-steel-soft",
+                "flex flex-col gap-2 py-3 sm:flex-row sm:items-center",
+                editingId === contact.id && "bg-core-steel-soft -mx-3 rounded-md px-3",
               )}
             >
               <div className="min-w-0 flex-1">
@@ -237,7 +237,7 @@ export default function EmergencyContactsCard() {
                 <Button
                   id={`contact-edit-${contact.id}`}
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   aria-label={`Edytuj: ${contact.name}`}
                   onClick={() => {
@@ -249,7 +249,7 @@ export default function EmergencyContactsCard() {
                 </Button>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="ghost-destructive"
                   size="sm"
                   aria-label={`Usuń: ${contact.name}`}
                   onClick={() => {

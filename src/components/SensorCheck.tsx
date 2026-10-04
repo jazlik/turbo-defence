@@ -193,11 +193,8 @@ function OfflineSummary() {
       : { ok: false, text: "Nie przygotowano tras offline", action: "Przygotuj trasy" },
   ];
   return (
-    <section
-      aria-labelledby="offline-summary-title"
-      className="border-border bg-surface rounded-lg border p-6 shadow-sm"
-    >
-      <h2 id="offline-summary-title" className="font-heading flex items-center gap-3 text-2xl">
+    <section aria-labelledby="offline-summary-title">
+      <h2 id="offline-summary-title" className="font-heading flex items-center gap-3 text-xl">
         <MapIcon className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
         Mapa i trasy
       </h2>
@@ -299,95 +296,97 @@ export default function SensorCheck() {
         {checkedAt ? `Ostatnie sprawdzenie: ${formatClockTime(Date.parse(checkedAt))}` : "Jeszcze nie sprawdzono"}
       </p>
 
-      <section aria-labelledby="location-title" className="border-border bg-surface rounded-lg border p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="location-title" className="font-heading flex items-center gap-3 text-2xl">
-            <LocateFixed className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
-            Lokalizacja
-          </h2>
-          <div aria-live="polite">{locationResult && <ResultBadge result={locationResult} />}</div>
-        </div>
+      <div className="border-border bg-surface divide-border divide-y rounded-lg border shadow-sm">
+        <section aria-labelledby="location-title" className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <h2 id="location-title" className="font-heading flex items-center gap-3 text-2xl">
+              <LocateFixed className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
+              Lokalizacja
+            </h2>
+            <div aria-live="polite">{locationResult && <ResultBadge result={locationResult} />}</div>
+          </div>
 
-        {!locationRequested && (
-          <>
-            <p className="text-muted-foreground mt-2">
-              Telefon zapyta o zgodę. Najlepiej sprawdzać pod otwartym niebem.
+          {!locationRequested && (
+            <>
+              <p className="text-muted-foreground mt-2">
+                Telefon zapyta o zgodę. Najlepiej sprawdzać pod otwartym niebem.
+              </p>
+              <Button
+                type="button"
+                size="lg"
+                className="mt-4 w-full sm:w-auto"
+                onClick={() => {
+                  setLocationRequested(true);
+                }}
+              >
+                Sprawdź lokalizację
+              </Button>
+            </>
+          )}
+
+          {locationResult === "denied" && (
+            <p className="text-muted-foreground mt-4">
+              Przeglądarka nie ma zgody na lokalizację. Otwórz ustawienia strony w przeglądarce (ikona obok adresu),
+              zezwól na lokalizację i odśwież tę stronę.
             </p>
-            <Button
-              type="button"
-              size="lg"
-              className="mt-4 w-full sm:w-auto"
-              onClick={() => {
-                setLocationRequested(true);
-              }}
-            >
-              Sprawdź lokalizację
-            </Button>
-          </>
-        )}
-
-        {locationResult === "denied" && (
-          <p className="text-muted-foreground mt-4">
-            Przeglądarka nie ma zgody na lokalizację. Otwórz ustawienia strony w przeglądarce (ikona obok adresu),
-            zezwól na lokalizację i odśwież tę stronę.
-          </p>
-        )}
-        {locationResult === "unavailable" && (
-          <p className="text-muted-foreground mt-4">
-            Telefon nie podaje pozycji. Sprawdź, czy usługi lokalizacji są włączone w ustawieniach systemu, i spróbuj
-            pod otwartym niebem.
-          </p>
-        )}
-
-        {coords && (
-          <dl className="mt-6 grid grid-cols-2 gap-4">
-            <Reading label="Szerokość" value={coords.latitude.toFixed(5)} />
-            <Reading label="Długość" value={coords.longitude.toFixed(5)} />
-            <Reading label="Dokładność" value={`±${Math.round(accuracyMeters ?? 0)} m`} />
-            <Reading label="Zapisano jako ostatnią pozycję" value="Tak" />
-          </dl>
-        )}
-      </section>
-
-      <section aria-labelledby="compass-title" className="border-border bg-surface rounded-lg border p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="compass-title" className="font-heading flex items-center gap-3 text-2xl">
-            <Compass className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
-            Kompas
-          </h2>
-          <div aria-live="polite">{compassResult && <ResultBadge result={compassResult} />}</div>
-        </div>
-
-        {compassPermission === null && source !== "compass" && (
-          <>
-            <p className="text-muted-foreground mt-2">
-              Kompas obraca strzałkę prowadzenia. Na iPhonie telefon zapyta o dostęp do ruchu i orientacji.
+          )}
+          {locationResult === "unavailable" && (
+            <p className="text-muted-foreground mt-4">
+              Telefon nie podaje pozycji. Sprawdź, czy usługi lokalizacji są włączone w ustawieniach systemu, i spróbuj
+              pod otwartym niebem.
             </p>
-            <Button type="button" size="lg" className="mt-4 w-full sm:w-auto" onClick={() => void checkCompass()}>
-              Sprawdź kompas
-            </Button>
-          </>
-        )}
+          )}
 
-        {compassResult === "denied" && (
-          <p className="text-muted-foreground mt-4">
-            Brak zgody na dostęp do ruchu i orientacji. Na iPhonie zamknij i otwórz aplikację, a potem dotknij „Sprawdź
-            kompas” ponownie. Bez kompasu strzałka ustawi się dopiero po kilku krokach marszu.
-          </p>
-        )}
-        {compassResult === "unavailable" && (
-          <p className="text-muted-foreground mt-4">
-            Ta przeglądarka nie podaje kierunku północy. Strzałka będzie liczona z kierunku marszu, po kilku krokach.
-          </p>
-        )}
+          {coords && (
+            <dl className="mt-6 grid grid-cols-2 gap-4">
+              <Reading label="Szerokość" value={coords.latitude.toFixed(5)} />
+              <Reading label="Długość" value={coords.longitude.toFixed(5)} />
+              <Reading label="Dokładność" value={`±${Math.round(accuracyMeters ?? 0)} m`} />
+              <Reading label="Zapisano jako ostatnią pozycję" value="Tak" />
+            </dl>
+          )}
+        </section>
 
-        {heading !== null && (
-          <dl className="mt-6 grid grid-cols-2 gap-4">
-            <Reading label="Kurs" value={`${Math.round(heading) % 360}°`} />
-            <Reading label="Źródło kursu" value={source === "compass" ? "Kompas" : "Kierunek marszu"} />
-          </dl>
-        )}
-      </section>
+        <section aria-labelledby="compass-title" className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <h2 id="compass-title" className="font-heading flex items-center gap-3 text-2xl">
+              <Compass className="text-core-steel-deep size-6" strokeWidth={2} aria-hidden="true" />
+              Kompas
+            </h2>
+            <div aria-live="polite">{compassResult && <ResultBadge result={compassResult} />}</div>
+          </div>
+
+          {compassPermission === null && source !== "compass" && (
+            <>
+              <p className="text-muted-foreground mt-2">
+                Kompas obraca strzałkę prowadzenia. Na iPhonie telefon zapyta o dostęp do ruchu i orientacji.
+              </p>
+              <Button type="button" size="lg" className="mt-4 w-full sm:w-auto" onClick={() => void checkCompass()}>
+                Sprawdź kompas
+              </Button>
+            </>
+          )}
+
+          {compassResult === "denied" && (
+            <p className="text-muted-foreground mt-4">
+              Brak zgody na dostęp do ruchu i orientacji. Na iPhonie zamknij i otwórz aplikację, a potem dotknij
+              „Sprawdź kompas” ponownie. Bez kompasu strzałka ustawi się dopiero po kilku krokach marszu.
+            </p>
+          )}
+          {compassResult === "unavailable" && (
+            <p className="text-muted-foreground mt-4">
+              Ta przeglądarka nie podaje kierunku północy. Strzałka będzie liczona z kierunku marszu, po kilku krokach.
+            </p>
+          )}
+
+          {heading !== null && (
+            <dl className="mt-6 grid grid-cols-2 gap-4">
+              <Reading label="Kurs" value={`${Math.round(heading) % 360}°`} />
+              <Reading label="Źródło kursu" value={source === "compass" ? "Kompas" : "Kierunek marszu"} />
+            </dl>
+          )}
+        </section>
+      </div>
 
       {saveFailed && (
         <p role="status" className="text-attention-foreground flex items-start gap-2 text-sm">

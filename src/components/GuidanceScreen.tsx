@@ -196,8 +196,8 @@ function VoiceToggle({ voice }: { voice: ReturnType<typeof useVoiceGuidance> }) 
   return (
     <Button
       type="button"
-      variant="secondary"
-      className="min-h-11 px-4 text-sm"
+      variant="ghost"
+      className="text-muted-foreground min-h-11 px-3 text-sm"
       aria-pressed={voice.enabled}
       onClick={voice.toggle}
     >
@@ -627,7 +627,7 @@ export default function GuidanceScreen() {
     <Button
       type="button"
       variant="secondary"
-      className="min-h-14 w-full text-base font-semibold"
+      className="min-h-12 w-full text-base font-medium"
       onClick={confirmArrival}
     >
       <Check strokeWidth={2} aria-hidden="true" />
@@ -698,7 +698,7 @@ export default function GuidanceScreen() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
+    <main className="flex min-h-screen flex-col gap-4 px-4 py-6">
       <header>
         <p className="text-guidance text-lg font-semibold">{content.title}</p>
         <h1 ref={arrowHeadingRef} tabIndex={-1} className="font-heading mt-1 text-3xl break-words outline-none">
@@ -712,7 +712,7 @@ export default function GuidanceScreen() {
         )}
       </header>
 
-      <section aria-live="polite" className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+      <section aria-live="polite" className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         {showArrival && (
           <>
             <CheckCircle2 className="text-safe size-24" strokeWidth={2} aria-hidden="true" />

@@ -402,3 +402,44 @@ describe("computeReadiness — offline shell", () => {
     expect(computeReadiness(readyInput({ shell: "pending" })).notices).toEqual([]);
   });
 });
+
+describe("computeReadiness — catalog copy and area details", () => {
+  const area = (readiness: Readiness, id: string) => {
+    const found = readiness.areas.find((candidate) => candidate.id === id);
+    if (!found) throw new Error(`no area ${id}`);
+    return found;
+  };
+
+  it("gives every quick win a short button label next to its headline", () => {
+    const readiness = computeReadiness(readyInput({ shell: "pending", install: "todo" }));
+    for (const quickWin of readiness.quickWins) {
+      expect(quickWin.action.length).toBeGreaterThan(0);
+      expect(quickWin.action.length).toBeLessThanOrEqual(24);
+    }
+    expect(win(computeReadiness(input()), "household").action).toBe("Dodaj osoby");
+  });
+
+  it("describes what is there per area, in Polish plurals", () => {
+    const plan = withPlan({ members: [adult("Ola"), adult("Marek")], contacts: [] });
+    const readiness = computeReadiness(input({ plan }));
+    expect(area(readiness, "family").detail).toBe("2 domowników · 0 kontaktów");
+    expect(area(readiness, "backpack").detail).toMatch(/^0 z \d+ spakowane$/);
+    expect(area(readiness, "places").detail).toBe("Nie wybrano schronu");
+    expect(area(readiness, "sensors").detail).toBe("Nie sprawdzono");
+    const one = computeReadiness(
+      input({
+        plan: withPlan({ members: [adult("Ola")], contacts: [{ id: "k", name: "M", phone: "1", relation: "" }] }),
+      }),
+    );
+    expect(area(one, "family").detail).toBe("1 domownik · 1 kontakt");
+  });
+
+  it("names the saved shelter and only claims a map that is on the phone", () => {
+    const ready = computeReadiness(readyInput());
+    expect(area(ready, "places").detail).toBe("Schron");
+    expect(area(ready, "offline").detail).toBe("mapa pobrana · trasa zapisana");
+    expect(area(ready, "sensors").detail).toBe("Lokalizacja i kompas działają");
+    const evicted = computeReadiness(readyInput({ mapFile: "missing" }));
+    expect(area(evicted, "offline").detail).toBe("brak mapy · trasa zapisana");
+  });
+});

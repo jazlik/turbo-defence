@@ -3,6 +3,7 @@ import { CheckCircle2, Download, Map as MapIcon, Smartphone, TriangleAlert } fro
 import { useMapFile } from "@/components/hooks/useMapFile";
 import type { MapPackage } from "@/components/hooks/useMapPackage";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { mapHealth } from "@/lib/map-health";
 import { MAP_REGIONS } from "@/lib/map-regions";
 
@@ -10,7 +11,13 @@ const megabytes = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
 const formatDay = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-export default function MapPackageCard({ mapPackage }: { mapPackage: MapPackage }) {
+export default function MapPackageCard({
+  mapPackage,
+  embedded = false,
+}: {
+  mapPackage: MapPackage;
+  embedded?: boolean;
+}) {
   const { state, region: proposed, covers, supported, needsInstall, error, start } = mapPackage;
   const health = mapHealth(state, useMapFile(state));
   const ready = health === "ready";
@@ -23,7 +30,7 @@ export default function MapPackageCard({ mapPackage }: { mapPackage: MapPackage 
   return (
     <section
       aria-labelledby="map-card-title"
-      className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
+      className={cn(!embedded && "border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8")}
     >
       <div className="flex items-start gap-4">
         <div

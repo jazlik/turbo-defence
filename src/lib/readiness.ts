@@ -78,8 +78,10 @@ export interface QuickWin {
   area: AreaId;
   stage: StageId;
   status: QuickWinStatus;
-  /** The action, e.g. "Wybierz schron i przygotuj trasę" — also the label of the main button. */
+  /** What to do, e.g. "Wybierz schron i przygotuj trasę" — the headline of the next-step block. */
   title: string;
+  /** The label of the main button: a short verb phrase, e.g. "Dodaj osoby". */
+  action: string;
   reason: string;
   href: string;
   progress?: { done: number; total: number };
@@ -90,6 +92,8 @@ export interface AreaStatus {
   title: string;
   href: string;
   status: "done" | "partial" | "todo";
+  /** One line of what is there, e.g. "2 domowników · 1 kontakt". */
+  detail: string;
 }
 
 export type NoticeId =
@@ -162,20 +166,23 @@ function evaluate(input: ReadinessInput): Evaluation {
   const shelterDone = plan.shelter !== null || routeFresh;
   let shelterCopy = {
     title: "Wybierz schron i przygotuj trasę",
-    reason: "Aplikacja wybierze najbliższy punkt schronienia i przygotuje trasę, która zadziała bez internetu.",
+    action: "Przygotuj trasy",
+    reason: "Najbliższy punkt schronienia i trasa, która zadziała bez internetu.",
     href: "/miejsca",
   };
   if (!shelterDone && routeStale) {
     notices.push({ id: "route-stale", text: NOTICE_TEXT["route-stale"] });
     shelterCopy = {
       title: "Odśwież trasę do schronu",
-      reason: "Pozycja jest daleko od miejsca, z którego policzono trasę. Odśwież ją, gdy masz internet.",
+      action: "Odśwież trasę",
+      reason: "Jesteś daleko od miejsca, z którego policzono trasę. Odśwież ją z internetem.",
       href: "/miejsca",
     };
   } else if (!shelterDone && noCandidates) {
     shelterCopy = {
       title: "Wskaż własny schron",
-      reason: "W pobliżu nie ma punktu schronienia z danych PSP (na razie Małopolska). Wskaż własny schron.",
+      action: "Wskaż schron",
+      reason: "W pobliżu nie ma punktu z danych PSP (na razie Małopolska). Wskaż własny.",
       href: "/miejsca",
     };
   }
@@ -187,7 +194,8 @@ function evaluate(input: ReadinessInput): Evaluation {
     stage: "family",
     status: status(plan.members.length > 0 || plan.contacts.length > 0),
     title: "Dodaj kontakt awaryjny lub domownika",
-    reason: "Osoby, które ewakuują się z Tobą, i kontakt na wypadek kryzysu. Od nich zależy zawartość plecaka.",
+    action: "Dodaj osoby",
+    reason: "Od domowników zależy zawartość plecaka. Kontakt przyda się w kryzysie.",
     href: "/domownicy",
   });
 
@@ -200,7 +208,8 @@ function evaluate(input: ReadinessInput): Evaluation {
     stage: "family",
     status: status(key.packed === key.total),
     title: "Spakuj rzeczy kluczowe",
-    reason: "Woda, jedzenie, dokumenty, apteczka i rzeczy potrzebne domownikom.",
+    action: "Spakuj plecak",
+    reason: "Woda, jedzenie, dokumenty, apteczka.",
     href: "/plecak",
     progress: { done: key.packed, total: key.total },
   });
@@ -214,6 +223,7 @@ function evaluate(input: ReadinessInput): Evaluation {
       stage: "offline",
       status: status(shell === "ready"),
       title: "Włącz tryb offline",
+      action: "Włącz tryb offline",
       reason: SHELL_REASON[shell],
       href: "/offline",
     });
@@ -226,7 +236,8 @@ function evaluate(input: ReadinessInput): Evaluation {
       stage: "offline",
       status: status(install === "done"),
       title: "Dodaj aplikację do ekranu początkowego",
-      reason: "Na iPhonie mapa pobrana w przeglądarce nie jest widoczna w aplikacji z ekranu początkowego.",
+      action: "Dodaj do ekranu",
+      reason: "Na iPhonie mapa działa tylko w aplikacji z ekranu początkowego.",
       href: "/offline",
     });
   }
@@ -244,7 +255,8 @@ function evaluate(input: ReadinessInput): Evaluation {
         ...mapStep,
         status: "done",
         title: "Pobierz mapę offline",
-        reason: "Mapa regionu na telefonie pokaże trasę i Twoją pozycję bez internetu.",
+        action: "Pobierz mapę",
+        reason: "Pokaże trasę i Twoją pozycję bez internetu.",
       });
     } else if (regionHere) {
       notices.push({
@@ -255,7 +267,8 @@ function evaluate(input: ReadinessInput): Evaluation {
         ...mapStep,
         status: "todo",
         title: `Pobierz mapę: ${regionHere.name}`,
-        reason: "Twoja pozycja leży poza pobraną mapą. Pobierz ją przez Wi-Fi.",
+        action: "Pobierz mapę",
+        reason: "Twoja pozycja jest poza pobraną mapą. Pobierz ją przez Wi-Fi.",
       });
     } else {
       notices.push({ id: "map-no-region", text: NOTICE_TEXT["map-no-region"] });
@@ -263,7 +276,8 @@ function evaluate(input: ReadinessInput): Evaluation {
         ...mapStep,
         status: "unavailable",
         title: "Pobierz mapę offline",
-        reason: "Mapy offline są na razie dostępne tylko dla Małopolski.",
+        action: "Pobierz mapę",
+        reason: "Mapy offline są na razie tylko dla Małopolski.",
       });
     }
   } else if (position !== null && !regionHere) {
@@ -272,7 +286,8 @@ function evaluate(input: ReadinessInput): Evaluation {
       ...mapStep,
       status: "unavailable",
       title: "Pobierz mapę offline",
-      reason: "Mapy offline są na razie dostępne tylko dla Małopolski.",
+      action: "Pobierz mapę",
+      reason: "Mapy offline są na razie tylko dla Małopolski.",
     });
   } else {
     const evicted = mapHealth(map, mapFile) === "file-missing";
@@ -280,9 +295,10 @@ function evaluate(input: ReadinessInput): Evaluation {
       ...mapStep,
       status: "todo",
       title: evicted ? "Pobierz mapę ponownie" : "Pobierz mapę offline",
+      action: evicted ? "Pobierz ponownie" : "Pobierz mapę",
       reason: evicted
         ? "Telefon usunął pobraną mapę. Pobierz ją ponownie przez Wi-Fi."
-        : "Mapa regionu na telefonie pokaże trasę i Twoją pozycję bez internetu.",
+        : "Pokaże trasę i Twoją pozycję bez internetu.",
     });
   }
 
@@ -292,7 +308,8 @@ function evaluate(input: ReadinessInput): Evaluation {
     stage: "offline",
     status: status(sensors !== null && sensorsReady(sensors)),
     title: "Sprawdź lokalizację i kompas",
-    reason: "Zgodę na lokalizację i kompas daj teraz, nie w kryzysie.",
+    action: "Sprawdź czujniki",
+    reason: "Zgody na lokalizację i kompas daj teraz, nie w kryzysie.",
     href: "/czujniki",
   });
 
@@ -302,7 +319,8 @@ function evaluate(input: ReadinessInput): Evaluation {
     stage: "complete",
     status: status(all.packed === all.total),
     title: "Dopakuj resztę plecaka",
-    reason: "Reszta listy na 72 godziny, dobrana do Twojej rodziny.",
+    action: "Dopakuj plecak",
+    reason: "Reszta listy na 72 godziny, dobrana do rodziny.",
     href: "/plecak",
     progress: { done: all.packed - key.packed, total: all.total - key.total },
   });
@@ -318,12 +336,52 @@ function levelFor(quickWins: readonly QuickWin[]): ReadinessLevel {
   return LEVELS[complete ? 3 : readyToGo ? 2 : basics ? 1 : 0];
 }
 
-function areasFor(quickWins: readonly QuickWin[]): AreaStatus[] {
+const plural = (count: number, one: string, few: string, many: string) =>
+  `${String(count)} ${count === 1 ? one : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20) ? few : many}`;
+
+/** One line per area, from the same inputs as the quick wins — never a claim the quick wins do not back. */
+function detailFor(area: AreaId, quickWins: readonly QuickWin[], input: ReadinessInput): string {
+  const { plan, navigation, sensors, mapFile, map } = input;
+  const win = (id: QuickWinId) => quickWins.find((quickWin) => quickWin.id === id);
+  switch (area) {
+    case "places": {
+      const target = navigation.primary?.destination;
+      if (target) return target.address ?? target.label;
+      return plan.shelter ? plan.shelter.label : "Nie wybrano schronu";
+    }
+    case "family": {
+      const people = plural(plan.members.length, "domownik", "domowników", "domowników");
+      const contacts = plural(plan.contacts.length, "kontakt", "kontakty", "kontaktów");
+      return `${people} · ${contacts}`;
+    }
+    case "backpack": {
+      const summary = summarizeBackpack(buildBackpack(plan.members), plan.packedItems);
+      return `${String(summary.packed)} z ${String(summary.total)} spakowane`;
+    }
+    case "offline": {
+      const parts = [
+        isMapUsable(map, mapFile) ? "mapa pobrana" : "brak mapy",
+        navigation.primary ? "trasa zapisana" : "brak trasy",
+      ];
+      return win("offline-shell")?.status === "todo"
+        ? `${parts.join(" · ")} · tryb offline wyłączony`
+        : parts.join(" · ");
+    }
+    case "sensors":
+      return sensors === null
+        ? "Nie sprawdzono"
+        : sensorsReady(sensors)
+          ? "Lokalizacja i kompas działają"
+          : "Wymaga uwagi";
+  }
+}
+
+function areasFor(quickWins: readonly QuickWin[], input: ReadinessInput): AreaStatus[] {
   return AREAS.map((area) => {
     const counted = quickWins.filter((quickWin) => quickWin.area === area.id && quickWin.status !== "unavailable");
     const done = counted.filter((quickWin) => quickWin.status === "done").length;
     const state = done === counted.length ? "done" : done === 0 ? "todo" : "partial";
-    return { ...area, status: state };
+    return { ...area, status: state, detail: detailFor(area.id, quickWins, input) };
   });
 }
 
@@ -344,7 +402,7 @@ export function computeReadiness(input: ReadinessInput): Readiness {
     level: levelFor(quickWins),
     quickWins,
     next: quickWins.find((quickWin) => quickWin.status === "todo") ?? null,
-    areas: areasFor(quickWins),
+    areas: areasFor(quickWins, input),
     notices,
   };
 }

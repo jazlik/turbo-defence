@@ -98,22 +98,22 @@ export const POS = {
 
 /** `ready` is a selector that appears once the island has mounted. */
 export const core = [
-  { name: "home-start", path: "/", storage: {}, ready: "text=Zaczynamy" },
-  { name: "home-basics", path: "/", storage: { "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER } }) }, ready: "text=Podstawy" },
+  { name: "home-start", path: "/", storage: {}, ready: "text=Twój plan" },
+  { name: "home-basics", path: "/", storage: { "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER } }) }, ready: "text=Twój plan" },
   {
     name: "home-ready-to-go",
     path: "/",
     storage: {
       "wrw.plan": plan({ shelter: { label: "Moja szkoła", coords: SHELTER }, members, contacts, packedItems: packAll(members, isKeyItem) }),
     },
-    ready: "text=Gotowi do wyjścia",
+    ready: "text=Twój plan",
   },
   {
     name: "home-ready-72h",
     path: "/",
     standalone: true,
     storage: { "wrw.plan": full, "wrw.navigation": navigation(), "wrw.map": mapReady, "wrw.sensors": sensors },
-    ready: "text=Plan przygotowany",
+    ready: "text=Twój plan",
   },
   { name: "home-alarm-hold", path: "/", storage: {}, ready: "text=Uruchom alarm", action: "hold-alarm" },
 

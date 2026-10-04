@@ -1,14 +1,16 @@
 import { CheckCircle2, LoaderCircle, TriangleAlert, WifiOff } from "lucide-react";
 
 import { useOfflineShell } from "@/components/hooks/useOfflineShell";
+import { cn } from "@/lib/utils";
 
-export default function OfflineShellCard() {
+/** `embedded`: a block inside a shared card (no frame of its own). */
+export default function OfflineShellCard({ embedded = false }: { embedded?: boolean }) {
   const state = useOfflineShell();
 
   return (
     <section
       aria-labelledby="shell-card-title"
-      className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
+      className={cn(!embedded && "border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8")}
     >
       <div className="flex items-start gap-4">
         <div

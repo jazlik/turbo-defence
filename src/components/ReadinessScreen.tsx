@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { QuickWin } from "@/lib/readiness";
 import { isStandaloneApp } from "@/lib/services/install";
 
-const stepLabel = (quickWin: QuickWin) =>
+const stepTitle = (quickWin: QuickWin) =>
   quickWin.progress
     ? `${quickWin.title} (${String(quickWin.progress.done)} z ${String(quickWin.progress.total)})`
     : quickWin.title;
@@ -25,7 +25,7 @@ export default function ReadinessScreen() {
   return (
     <>
       <div className="space-y-6">
-        {/* Karta poziomu jest widocznym tytułem ekranu; nagłówek zostaje dla czytników i struktury strony. */}
+        {/* Ekran nie ma widocznego tytułu: nagłówek zostaje dla czytników i struktury strony. */}
         <h1 className="sr-only">Gotowość do ewakuacji</h1>
 
         <div role="status" aria-live="polite" className="space-y-3 empty:hidden">
@@ -42,6 +42,8 @@ export default function ReadinessScreen() {
 
         {!unreadable && (
           <>
+            <ReadinessLevel level={level} />
+
             {showSetup && (
               <section
                 aria-labelledby="quick-setup-title"
@@ -116,32 +118,34 @@ export default function ReadinessScreen() {
                 )}
               </section>
             )}
-            <ReadinessLevel level={level} />
-
-            <section
-              aria-labelledby="next-title"
-              className="border-border bg-surface rounded-lg border p-6 shadow-sm sm:p-8"
-            >
-              <h2 id="next-title" className="text-muted-foreground text-sm font-medium">
-                Następny krok
-              </h2>
-              {next ? (
-                <>
-                  <p className="mt-2 text-lg">{next.reason}</p>
-                  <Button asChild size="lg" className="mt-4 w-full sm:w-auto">
-                    <a href={next.href}>
-                      {stepLabel(next)}
-                      <ArrowRight strokeWidth={2} aria-hidden="true" />
-                    </a>
-                  </Button>
-                </>
-              ) : (
-                <p className="text-safe mt-2 flex items-start gap-2 text-lg">
+            {next ? (
+              <section
+                aria-labelledby="next-title"
+                className="border-border bg-surface rounded-lg border p-6 shadow-md"
+              >
+                <p className="text-muted-foreground text-sm font-medium">Następny krok</p>
+                <h2 id="next-title" className="font-heading mt-1 text-xl tracking-[-0.015em]">
+                  {stepTitle(next)}
+                </h2>
+                <p className="text-muted-foreground mt-2">{next.reason}</p>
+                <Button asChild size="lg" className="mt-4 w-full sm:w-auto">
+                  <a href={next.href}>
+                    {next.action}
+                    <ArrowRight strokeWidth={2} aria-hidden="true" />
+                  </a>
+                </Button>
+              </section>
+            ) : (
+              <section aria-labelledby="next-title">
+                <h2 id="next-title" className="sr-only">
+                  Następny krok
+                </h2>
+                <p className="text-safe flex items-start gap-2 text-lg">
                   <CheckCircle2 className="mt-1 size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
                   <span>Wszystko przygotowane.</span>
                 </p>
-              )}
-            </section>
+              </section>
+            )}
 
             <AreaStrip areas={areas} />
 
