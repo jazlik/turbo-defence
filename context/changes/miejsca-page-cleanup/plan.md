@@ -489,34 +489,34 @@ Edytor własnego schronu dostaje mapę: pinezka stoi na środku, użytkownik prz
 
 #### Automated
 
-- [x] 1.1 Unit tests pass: `npm test`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Type check passes: `npx astro check`
-- [x] 1.4 Build passes: `npm run build`
-- [x] 1.5 No remaining references to the old model outside migration branches
+- [x] 1.1 Unit tests pass: `npm test` — eb7d66a
+- [x] 1.2 Lint passes: `npm run lint` — eb7d66a
+- [x] 1.3 Type check passes: `npx astro check` — eb7d66a
+- [x] 1.4 Build passes: `npm run build` — eb7d66a
+- [x] 1.5 No remaining references to the old model outside migration branches — eb7d66a
 
 #### Manual
 
-- [x] 1.6 Plan v4 (spotkanie + schron) po aktualizacji: alarm plecak → schron, brak quick winów spotkania/zapasowego
-- [x] 1.7 Plan v4 z samym spotkaniem: własny schron o tej samej nazwie i współrzędnych, alarm do niego prowadzi
+- [x] 1.6 Plan v4 (spotkanie + schron) po aktualizacji: alarm plecak → schron, brak quick winów spotkania/zapasowego — eb7d66a
+- [x] 1.7 Plan v4 z samym spotkaniem: własny schron o tej samej nazwie i współrzędnych, alarm do niego prowadzi — eb7d66a
 
 ### Phase 2: Strona „Miejsca ewakuacji”
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm test`
-- [ ] 2.2 Lint passes: `npm run lint`
-- [ ] 2.3 Type check passes: `npx astro check`
-- [ ] 2.4 Build passes: `npm run build`
-- [ ] 2.5 Smoke passes against preview
+- [x] 2.1 Unit tests pass: `npm test`
+- [x] 2.2 Lint passes: `npm run lint`
+- [x] 2.3 Type check passes: `npx astro check`
+- [x] 2.4 Build passes: `npm run build`
+- [x] 2.5 Smoke passes against preview
 
 #### Manual
 
-- [ ] 2.6 Pusty profil: jedna dominująca akcja, własny schron zwinięty
-- [ ] 2.7 `no-candidates`: sekcja własnego schronu rozwinięta od razu
-- [ ] 2.8 Zapis z nazwą, zmiana samej nazwy, odświeżenie — oba zachowane
-- [ ] 2.9 360 px bez poziomego przewijania; pasek obszarów mieści „Miejsca ewakuacji”
-- [ ] 2.10 `/offline` bez karty trasy; quick win schronu prowadzi na `/miejsca`
+- [x] 2.6 Pusty profil: jedna dominująca akcja, własny schron zwinięty
+- [x] 2.7 `no-candidates`: sekcja własnego schronu rozwinięta od razu
+- [x] 2.8 Zapis z nazwą, zmiana samej nazwy, odświeżenie — oba zachowane
+- [x] 2.9 360 px bez poziomego przewijania; pasek obszarów mieści „Miejsca ewakuacji”
+- [x] 2.10 `/offline` bez karty trasy; quick win schronu prowadzi na `/miejsca`
 
 ### Phase 3: Mapa z pinezką
 
