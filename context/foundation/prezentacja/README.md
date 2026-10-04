@@ -13,6 +13,14 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 - **Czym się różnimy (7), Dalsze kroki (8):** ikony powiększone z 0,43″ do 0,64″. Slajd 8 czeka na 4 ilustracje (zadanie niżej) — wtedy dostanie układ jak slajd 5.
 - **Aneks (9):** ikony + źródło 77%.
 
+- **Akcenty (2026-10-04):**
+  - **tekstura „mapa offline”** — stylizowane ulice w `#E3E7E9`/`#D9DDE0` na tle `#F1F2F3`, za treścią na okładce, rozwiązaniu i aneksie (`assets/tekstura-mapa.png`, 2400×1350, bez gradientów);
+  - **znaczniki na drodze** (slajd 5) — kółka z ikonami dom, rodzina, plecak, nawigacja zamiast gołych kropek;
+  - **supergrafika „punkt docelowy”** (slajd 8) — duże koło `#E3E7E9` z pierścieniem i punktem w stali, ucięte rogiem slajdu; ścieżka z kart dochodzi do celu;
+  - **kickery „KROK n · …”** nad tytułami slajdów 2–8 (11 pt, stal, rozstrzelone wersaliki) — nawiązanie do „jednego kroku na ekranie” w aplikacji;
+  - **Morph 5 → 6** — „droga” spod funkcji przesuwa się nad ekrany (działa w PowerPoincie; w Google Slides zamienia się na zwykłe przejście).
+- **Assety osobno** do ręcznej pracy w PowerPoincie / Google Slides: `assets/` (tekstura, biały znak logo), `assets/ikony/` (wszystkie ikony Lucide użyte w decku, PNG 256 px, `#2F3E45`).
+
 Podgląd każdego slajdu: `podglad/slajd-1.png` … `slajd-9.png` — prawdziwy render PPTX (LibreOffice Impress z fontem Commissioner 400/500/600/700). Puste nadal: wycinki (2–4), nazwa zespołu i imiona.
 
 ## Zadanie dla Codexa — 4 ilustracje na „Dalsze kroki” (slajd 8)
