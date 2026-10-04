@@ -42,17 +42,22 @@ export async function findEmergencyTarget({
   if (!nearest) return { kind: "none", reason: "no-candidates" };
 
   if (online) {
-    // The tap on "Znajdź" is the consent to send coordinates to the routing service.
-    const prepared = refreshRoutes({ previous: { ...previous, routingConsent: true }, origin, router, shelters, now });
+    // The tap on "Znajdź" covers this one routing request only: standing consent (background refresh from Home)
+    // stays whatever the user chose in setup.
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const timedOut = new Promise<null>((resolve) => {
-      timer = setTimeout(() => {
-        resolve(null);
-      }, timeoutMs);
-    });
-    const navigation = await Promise.race([prepared, timedOut]);
-    clearTimeout(timer);
-    if (navigation?.primary) return { kind: "route", navigation };
+    try {
+      const timedOut = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+          resolve(null);
+        }, timeoutMs);
+      });
+      const navigation = await Promise.race([refreshRoutes({ previous, origin, router, shelters, now }), timedOut]);
+      if (navigation?.primary) return { kind: "route", navigation };
+    } catch {
+      // Any failure while routing — not only RoutingError — must still leave the user with a direction.
+    } finally {
+      clearTimeout(timer);
+    }
   }
   return { kind: "direct", destination: toDestination(nearest) };
 }

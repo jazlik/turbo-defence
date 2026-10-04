@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useState, type ReactNode } from "react";
+import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { Compass, Navigation2 } from "lucide-react";
 
 import DirectionArrow from "@/components/DirectionArrow";
@@ -91,6 +91,12 @@ export default function MapOverlay({
   onUnavailable,
 }: MapOverlayProps) {
   const [northUp, setNorthUp] = useState(readNorthUp);
+  // Switching views unmounts the focused button; land focus on the step title so keyboard/screen-reader users
+  // are not dropped onto <body>.
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
 
   return (
     <main aria-label="Prowadzenie na mapie" className="bg-background fixed inset-0 z-50 flex flex-col">
@@ -98,8 +104,10 @@ export default function MapOverlay({
         <div className="size-14 shrink-0">
           {guidance.rotation !== null && <DirectionArrow rotationDegrees={guidance.rotation} dimmed={isStale} />}
         </div>
-        <div className="min-w-0 flex-1" aria-live="polite">
-          <p className="text-guidance truncate text-base font-semibold">{title}</p>
+        <div className="min-w-0 flex-1">
+          <h1 ref={titleRef} tabIndex={-1} className="text-guidance truncate text-base font-semibold outline-none">
+            {title}
+          </h1>
           <p className="font-operational text-guidance text-3xl">
             {guidance.distanceMeters === null ? "—" : formatDistance(guidance.distanceMeters)}
           </p>
@@ -128,16 +136,20 @@ export default function MapOverlay({
           </Button>
         )}
       </header>
-      {notice && (
-        <p
-          role="status"
-          className={
-            notice.emphasis ? "font-heading text-guidance px-4 pb-2 text-xl" : "text-muted-foreground px-4 pb-2 text-sm"
-          }
-        >
-          {notice.text}
-        </p>
-      )}
+      {/* Always mounted, so the first notice is announced; the distance itself stays out of live regions. */}
+      <div role="status" aria-live="polite" className="empty:hidden">
+        {notice && (
+          <p
+            className={
+              notice.emphasis
+                ? "font-heading text-guidance px-4 pb-2 text-xl"
+                : "text-muted-foreground px-4 pb-2 text-sm"
+            }
+          >
+            {notice.text}
+          </p>
+        )}
+      </div>
       {heading === null && (
         <p className="text-muted-foreground px-4 pb-2 text-sm">Kierunek nieznany — mapa z północą u góry.</p>
       )}

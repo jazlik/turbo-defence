@@ -101,36 +101,43 @@ export default function ExecutionMap({
 
   useEffect(() => {
     let cancelled = false;
-    void openMapFile(mapPackage).then((file) => {
-      if (cancelled || !container.current) return;
-      if (!file) {
-        onErrorRef.current();
-        return;
-      }
-      protocol.add(new PMTiles(new FileSource(file)));
-      const start = position ?? destination.coords;
-      const mode = !northUp && heading !== null ? NAVIGATION_CAMERA : NORTH_UP_CAMERA;
-      const map = new MapLibreMap({
-        container: container.current,
-        style: buildMapStyle(file.name, readMapPalette()),
-        center: [start.longitude, start.latitude],
-        zoom: mode.zoom,
-        pitch: mode.pitch,
-        maxPitch: MAX_PITCH,
-        bearing: mode === NAVIGATION_CAMERA ? (heading ?? 0) : 0,
-        dragRotate: false,
-        pitchWithRotate: false,
-        touchPitch: false,
-        attributionControl: { compact: true },
-      });
-      // Heading drives rotation; a stray two-finger twist must not fight it.
-      map.touchZoomRotate.disableRotation();
-      map.keyboard.disableRotation();
-      map.on("load", () => {
-        setLoaded(true);
-      });
-      mapRef.current = map;
-    });
+    // Any start-up failure (missing file, no WebGL, bad package) hands guidance back to the arrow view.
+    const fail = () => {
+      if (!cancelled) onErrorRef.current();
+    };
+    void openMapFile(mapPackage)
+      .then((file) => {
+        if (cancelled || !container.current) return;
+        if (!file) {
+          fail();
+          return;
+        }
+        protocol.add(new PMTiles(new FileSource(file)));
+        const start = position ?? destination.coords;
+        const mode = !northUp && heading !== null ? NAVIGATION_CAMERA : NORTH_UP_CAMERA;
+        const map = new MapLibreMap({
+          container: container.current,
+          style: buildMapStyle(file.name, readMapPalette()),
+          center: [start.longitude, start.latitude],
+          zoom: mode.zoom,
+          pitch: mode.pitch,
+          maxPitch: MAX_PITCH,
+          bearing: mode === NAVIGATION_CAMERA ? (heading ?? 0) : 0,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+          attributionControl: { compact: true },
+        });
+        // Heading drives rotation; a stray two-finger twist must not fight it.
+        map.touchZoomRotate.disableRotation();
+        map.keyboard.disableRotation();
+        map.on("load", () => {
+          setLoaded(true);
+        });
+        map.on("webglcontextlost", fail);
+        mapRef.current = map;
+      })
+      .catch(fail);
     return () => {
       cancelled = true;
       mapRef.current?.remove();

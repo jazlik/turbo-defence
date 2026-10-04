@@ -29,12 +29,12 @@ const router = (overrides: Partial<WalkingRouter> = {}): WalkingRouter => ({
 const base = { previous: createEmptyNavigation(), origin, shelters };
 
 describe("findEmergencyTarget", () => {
-  it("online: prepares and returns a route to the nearest PSP shelter, with routing consent recorded", async () => {
+  it("online: prepares and returns a route to the nearest PSP shelter without granting standing consent", async () => {
     const outcome = await findEmergencyTarget({ ...base, online: true, router: router() });
     expect(outcome.kind).toBe("route");
     if (outcome.kind !== "route") return;
     expect(outcome.navigation.primary?.destination.id).toBe("A");
-    expect(outcome.navigation.routingConsent).toBe(true);
+    expect(outcome.navigation.routingConsent).toBe(false);
   });
 
   it("offline: nearest PSP point for straight-line guidance, without calling the router", async () => {
@@ -53,6 +53,15 @@ describe("findEmergencyTarget", () => {
       ...base,
       online: true,
       router: router({ matrix: () => Promise.reject(new RoutingError("down")) }),
+    });
+    expect(outcome.kind).toBe("direct");
+  });
+
+  it("online but routing throws an unexpected error: still falls back to straight-line guidance", async () => {
+    const outcome = await findEmergencyTarget({
+      ...base,
+      online: true,
+      router: router({ matrix: () => Promise.reject(new TypeError("boom")) }),
     });
     expect(outcome.kind).toBe("direct");
   });

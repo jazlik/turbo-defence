@@ -43,7 +43,7 @@ import { resolveStepTarget, shelterAlternateAvailable, shelterFallbackContent } 
 import { readPlan, saveLastKnownPosition } from "@/lib/services/plan-storage";
 import { clearRun, readRun, writeRun } from "@/lib/services/run-storage";
 import type { GuidanceVoiceState } from "@/lib/voice";
-import type { Coordinates, Destination, EvacuationRun } from "@/types";
+import type { Coordinates, Destination, EvacuationRun, NavigationState } from "@/types";
 
 // iOS forgets the motion permission between PWA launches; after this much compass silence offer to re-enable it.
 const COMPASS_SILENCE_MS = 1000;
@@ -81,9 +81,16 @@ const EMERGENCY_STEP: EvacuationStep = {
   fallback: null,
 };
 
-type FinderState = "idle" | "searching" | "no-position" | "no-candidates";
+type FinderState = "idle" | "searching" | "no-position" | "no-candidates" | "no-data" | "failed";
 
-const fetchJson = async (url: string): Promise<unknown> => (await fetch(url)).json();
+/** A position wait in a crisis is bounded: past this, use the latest watched fix or the saved position. */
+const FIND_POSITION_TIMEOUT_MS = 10_000;
+
+const fetchJson = async (url: string): Promise<unknown> => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+  return response.json();
+};
 
 /**
  * Never a dead end in alarm mode: without a prepared target the screen offers to find the nearest PSP shelter now
@@ -123,6 +130,17 @@ function FindTargetScreen({
           {state === "no-position" && (
             <p className="text-attention-foreground">
               Nie znam Twojej pozycji. Wyjdź pod otwarte niebo, sprawdź zgodę na lokalizację i spróbuj ponownie.
+            </p>
+          )}
+          {state === "no-data" && (
+            <p className="text-attention-foreground">
+              Nie udało się wczytać punktów schronienia z pamięci telefonu. Spróbuj ponownie albo wskaż miejsce w
+              planie.
+            </p>
+          )}
+          {state === "failed" && (
+            <p className="text-attention-foreground">
+              Nie udało się ustalić celu. Spróbuj ponownie albo wskaż miejsce w planie.
             </p>
           )}
           {state === "no-candidates" && (
@@ -209,10 +227,10 @@ function VoiceUnlockButton({ voice }: { voice: ReturnType<typeof useVoiceGuidanc
  * Jeden synchroniczny odczyt planu i przebiegu. Musi dołączyć do pierwszego przebiegu renderowania:
  * `useEffect` pokazałby na moment krok pierwszy, a potem przeskoczył na wznowiony.
  */
-function readSession() {
+function readSession(navigationOverride?: NavigationState) {
   const plan = readPlan();
   // S-04: a saved PSP route gives the shelter step a target even without a manually set shelter.
-  const navigation = readNavigation();
+  const navigation = navigationOverride ?? readNavigation();
   const steps = buildSteps(plan, { shelterRoute: navigation.primary !== null });
   const run = readRun();
   // Turf lines are built once per visit, not on every GPS fix.
@@ -235,6 +253,13 @@ export default function GuidanceScreen() {
   // fallback (no map, no route, map or storage error) and stays one tap away.
   const [preferMap, setPreferMap] = useState(true);
   const [mapFailed, setMapFailed] = useState(false);
+  // Leaving the map (button or map failure) unmounts the focused control: land focus on the arrow view's heading.
+  const arrowHeadingRef = useRef<HTMLHeadingElement>(null);
+  const viewSwitches = useRef(0);
+  useEffect(() => {
+    viewSwitches.current += 1;
+    if (viewSwitches.current > 1 && (!preferMap || mapFailed)) arrowHeadingRef.current?.focus();
+  }, [preferMap, mapFailed]);
   const [run, setRun] = useState(session.run);
   const [stepIndex, setStepIndex] = useState(session.stepIndex);
   // Dwustopniowe wyjście bez potwierdzenia GPS: przytrzymanie, a potem dotknięcie potwierdzenia.
@@ -260,6 +285,11 @@ export default function GuidanceScreen() {
 
   // Alarm mode always tracks position — also before a target exists, so "Znajdź" can use a live fix.
   const { coords, accuracyMeters, fixedAt, status } = useGeolocation({ watch: true });
+  // "Znajdź" reads the newest watched fix at the moment it needs one, not the one from the tap's render.
+  const latestFix = useRef<{ coords: Coordinates; fixedAt: number } | null>(null);
+  useEffect(() => {
+    if (coords !== null && fixedAt !== null) latestFix.current = { coords, fixedAt };
+  }, [coords, fixedAt]);
   const { heading, source } = useHeading(coords, accuracyMeters);
   const [compassSilent, setCompassSilent] = useState(false);
   const now = useNow(5_000);
@@ -358,52 +388,80 @@ export default function GuidanceScreen() {
       : (shelterFallbackContent(step, point) ?? stepContent(step, run))
     : null;
 
+  const locateForSearch = async (): Promise<Coordinates | null> => {
+    const watched = latestFix.current;
+    if (watched && Date.now() - watched.fixedAt < FIX_STALE_MS) return watched.coords;
+    const oneShot = await Promise.race([
+      requestCurrentPosition().then((result) => (result.ok ? result.fix.coords : null)),
+      new Promise<null>((resolve) => {
+        setTimeout(() => {
+          resolve(null);
+        }, FIND_POSITION_TIMEOUT_MS);
+      }),
+    ]);
+    return oneShot ?? latestFix.current?.coords ?? readPlan().lastKnownPosition?.coords ?? null;
+  };
+
   const findTarget = async () => {
     setFinder("searching");
-    const fresh = coords !== null && fixedAt !== null && Date.now() - fixedAt < FIX_STALE_MS ? coords : null;
-    const position: Coordinates | null =
-      fresh ??
-      (await requestCurrentPosition().then((result) => (result.ok ? result.fix.coords : null))) ??
-      plan.lastKnownPosition?.coords ??
-      null;
-    if (!position) {
-      setFinder("no-position");
-      return;
+    try {
+      const position = await locateForSearch();
+      if (!position) {
+        setFinder("no-position");
+        return;
+      }
+      // Same as every live fix: guidance starts from this position until the watcher delivers a newer one.
+      saveLastKnownPosition(position);
+      const shelters = await loadShelters(fetchJson).catch(() => null);
+      if (!shelters || shelters.length === 0) {
+        setFinder("no-data");
+        return;
+      }
+      const outcome = await findEmergencyTarget({
+        previous: navigation,
+        origin: position,
+        shelters,
+        online: navigator.onLine,
+        router: walkingRouter,
+      });
+      if (outcome.kind === "none") {
+        setFinder("no-candidates");
+        return;
+      }
+      clearRun();
+      setRun(null);
+      setResumePrompt(false);
+      if (outcome.kind === "direct") {
+        setSession(readSession());
+        setEmergency(outcome.destination);
+        setStepIndex(0);
+      } else {
+        // Route prepared: from here it is the normal prepared path, started straight at the shelter step. The
+        // session is built from the route in memory, so guidance starts even if storage refuses the write.
+        writeNavigation(outcome.navigation);
+        const next = readSession(outcome.navigation);
+        const shelterIndex = Math.max(
+          0,
+          next.steps.findIndex((candidate) => candidate.id === "shelter"),
+        );
+        const startedAt = new Date().toISOString();
+        const shelterRun: EvacuationRun = {
+          schemaVersion: 1,
+          stepId: next.steps.at(shelterIndex)?.id ?? "shelter",
+          fallbackActive: false,
+          startedAt,
+          updatedAt: startedAt,
+        };
+        // A reload resumes at the shelter step instead of restarting from the backpack.
+        writeRun(shelterRun);
+        setSession(next);
+        setRun(shelterRun);
+        setStepIndex(shelterIndex);
+      }
+      setFinder("idle");
+    } catch {
+      setFinder("failed");
     }
-    // Same as every live fix: guidance starts from this position until the watcher delivers a newer one.
-    saveLastKnownPosition(position);
-    const shelters = await loadShelters(fetchJson).catch(() => []);
-    const outcome = await findEmergencyTarget({
-      previous: navigation,
-      origin: position,
-      shelters,
-      online: navigator.onLine,
-      router: walkingRouter,
-    });
-    if (outcome.kind === "none") {
-      setFinder("no-candidates");
-      return;
-    }
-    clearRun();
-    setRun(null);
-    setResumePrompt(false);
-    setFinder("idle");
-    if (outcome.kind === "direct") {
-      setSession(readSession());
-      setEmergency(outcome.destination);
-      setStepIndex(0);
-      return;
-    }
-    // Route prepared: from here it is the normal prepared path, started straight at the shelter step.
-    writeNavigation(outcome.navigation);
-    const next = readSession();
-    setSession(next);
-    setStepIndex(
-      Math.max(
-        0,
-        next.steps.findIndex((candidate) => candidate.id === "shelter"),
-      ),
-    );
   };
 
   const liveFix = coords !== null && fixedAt !== null && now - fixedAt < FIX_STALE_MS ? coords : null;
@@ -595,6 +653,46 @@ export default function GuidanceScreen() {
     />
   );
 
+  // S-02 manual arrival (indoors, weak GPS) — the same two-stage hold + confirm on the map and the arrow view.
+  const confirmArrivalControl = (
+    <>
+      {!showArrival && (
+        // Stopka nie jest objęta regionem aria-live sekcji: bez tego drugi etap pojawia się bez zapowiedzi.
+        <div role="status" className="w-full">
+          {confirming ? (
+            <Button
+              ref={confirmButtonRef}
+              type="button"
+              variant="secondary"
+              className="min-h-14 w-full text-base font-semibold"
+              onClick={confirmArrival}
+            >
+              <Check strokeWidth={2} aria-hidden="true" />
+              Potwierdź: jestem na miejscu
+            </Button>
+          ) : (
+            <HoldButton
+              holdMs={HOLD_MS}
+              onComplete={() => {
+                setConfirming(true);
+              }}
+              label="Potwierdź dojście"
+              icon={Check}
+              hintId="hold-hint"
+              className="border-input text-foreground focus-visible:ring-ring active:bg-surface-secondary"
+            />
+          )}
+        </div>
+      )}
+
+      {(fallbackAvailable || (!showArrival && !confirming)) && (
+        <p id="hold-hint" className="text-muted-foreground text-sm">
+          Akcje z pierścieniem przytrzymaj przez 2 sekundy.
+        </p>
+      )}
+    </>
+  );
+
   if (preferMap && mapAvailable && point.route && guidance && !showArrival) {
     // The arrow screen's status lines, condensed to one line above the map.
     const mapNotice: MapNotice | null =
@@ -630,11 +728,7 @@ export default function GuidanceScreen() {
             <VoiceUnlockButton voice={voice} />
             {compassButton}
             {fallbackHold}
-            {fallbackAvailable && (
-              <p id="hold-hint" className="text-muted-foreground text-sm">
-                Przytrzymaj przez 2 sekundy.
-              </p>
-            )}
+            {confirmArrivalControl}
             <Button
               type="button"
               variant="secondary"
@@ -656,7 +750,9 @@ export default function GuidanceScreen() {
     <main className="flex min-h-screen flex-col gap-6 px-4 py-6">
       <header>
         <p className="text-guidance text-lg font-semibold">{content.title}</p>
-        <h1 className="font-heading mt-1 text-3xl break-words">{point.label}</h1>
+        <h1 ref={arrowHeadingRef} tabIndex={-1} className="font-heading mt-1 text-3xl break-words outline-none">
+          {point.label}
+        </h1>
         {point.route && (
           <p className="text-muted-foreground mt-1 flex items-center gap-2 text-base">
             <Route className="size-4" strokeWidth={2} aria-hidden="true" />
@@ -767,40 +863,7 @@ export default function GuidanceScreen() {
 
         {fallbackHold}
 
-        {!showArrival && (
-          // Stopka nie jest objęta regionem aria-live sekcji: bez tego drugi etap pojawia się bez zapowiedzi.
-          <div role="status" className="w-full">
-            {confirming ? (
-              <Button
-                ref={confirmButtonRef}
-                type="button"
-                variant="secondary"
-                className="min-h-14 w-full text-base font-semibold"
-                onClick={confirmArrival}
-              >
-                <Check strokeWidth={2} aria-hidden="true" />
-                Potwierdź: jestem na miejscu
-              </Button>
-            ) : (
-              <HoldButton
-                holdMs={HOLD_MS}
-                onComplete={() => {
-                  setConfirming(true);
-                }}
-                label="Potwierdź dojście"
-                icon={Check}
-                hintId="hold-hint"
-                className="border-input text-foreground focus-visible:ring-ring active:bg-surface-secondary"
-              />
-            )}
-          </div>
-        )}
-
-        {(fallbackAvailable || (!showArrival && !confirming)) && (
-          <p id="hold-hint" className="text-muted-foreground text-sm">
-            Akcje z pierścieniem przytrzymaj przez 2 sekundy.
-          </p>
-        )}
+        {confirmArrivalControl}
 
         <VoiceToggle voice={voice} />
         <ExitLink />

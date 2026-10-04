@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { proposeRegion, type MapRegion } from "@/lib/map-regions";
+import { needsHomeScreenInstall } from "@/lib/platform";
 import {
   downloadStateFor,
   mapStorageSupported,
@@ -14,16 +15,6 @@ import {
 } from "@/lib/services/map-storage";
 import { readPlan } from "@/lib/services/plan-storage";
 import type { MapDownloadMessage, MapDownloadRequest } from "@/workers/map-download.worker";
-
-/** iOS keeps a home-screen PWA's storage apart from Safari's: a map downloaded in a Safari tab is not in the app. */
-export function needsHomeScreenInstall(): boolean {
-  const ios =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const standalone =
-    (navigator as Navigator & { standalone?: boolean }).standalone === true ||
-    matchMedia("(display-mode: standalone)").matches;
-  return ios && !standalone;
-}
 
 export interface MapPackage {
   state: MapPackageState | null;

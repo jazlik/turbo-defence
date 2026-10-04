@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { CheckCircle2, CircleDashed } from "lucide-react";
 
-import { needsHomeScreenInstall } from "@/components/hooks/useMapPackage";
 import { formatClockTime } from "@/lib/format";
+import { needsHomeScreenInstall } from "@/lib/platform";
 import { isMapReady, readMapPackage } from "@/lib/services/map-storage";
 import { readNavigation } from "@/lib/services/navigation-storage";
 import { readPlan } from "@/lib/services/plan-storage";
