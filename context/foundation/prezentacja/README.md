@@ -2,6 +2,10 @@
 
 Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”. Zasady: [`JEZYK_WIZUALNY.md`](../../../JEZYK_WIZUALNY.md) §12 i §20 — w skrócie: te same tokeny co aplikacja, ilustracje tylko w stylu „kontur”, ikony Lucide, wyróżnienia stalą lub pogrubieniem (nie bursztynem), grafiki AI oznaczone w zgłoszeniu.
 
+## Wersja robocza decku
+
+`W_razie_W_HackYeah_2026_wersja_robocza.pptx` — szablon zespołu z wstawionymi: logo (slajdy 1, 5), ikonami Lucide (5, 7, 8) i zrzutami aplikacji (6). Podgląd wszystkich slajdów: `podglad.png`. Puste nadal: nagłówki z mediów (2–4), ilustracja slajdu 4, nazwa zespołu, źródło „77%”.
+
 ## Mapa slotów
 
 | Slajd                   | Slot                                                | Czym wypełniamy                                                                                                    | Stan                     |
