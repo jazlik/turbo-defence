@@ -10,7 +10,8 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 - **Rozwiązanie (5):** ilustracje poradnika zamiast ikon (rodzina w drzwiach, udostępnienie, plecak, prowadzenie), w kartach tylko tytuły; opisy funkcji przeniesione do notatek prelegenta. Pod kartami przerywana „droga” łącząca 4 funkcje.
 - **Informacja ≠ gotowość (4):** większa postać pod stosem (2,85″).
 - **Dwa tryby (6):** zrzuty offline bez ramki, ucięte dolną krawędzią; nad nimi ścieżka — stalowa po jasnej stronie, bursztynowa (guidance) po ciemnej.
-- **Czym się różnimy (7), Dalsze kroki (8):** ikony powiększone z 0,43″ do 0,64″. Slajd 8 czeka na 4 ilustracje (zadanie niżej) — wtedy dostanie układ jak slajd 5.
+- **Czym się różnimy (7):** ikony powiększone z 0,43″ do 0,64″.
+- **Dalsze kroki (8):** 4 ilustracje (wybór: rodzina c2, wspólny plan c1, oficjalne dane c2, scenariusze c1), w kartach tylko tytuły, opisy w notatkach prelegenta; ścieżka z kart dochodzi do supergrafiki „punkt docelowy”.
 - **Aneks (9):** ikony + źródło 77%.
 
 - **Akcenty (2026-10-04):**
@@ -19,11 +20,11 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
   - **supergrafika „punkt docelowy”** (slajd 8) — duże koło `#E3E7E9` z pierścieniem i punktem w stali, ucięte rogiem slajdu; ścieżka z kart dochodzi do celu;
   - **kickery „KROK n · …”** nad tytułami slajdów 2–8 (11 pt, stal, rozstrzelone wersaliki) — nawiązanie do „jednego kroku na ekranie” w aplikacji;
   - **Morph 5 → 6** — „droga” spod funkcji przesuwa się nad ekrany (działa w PowerPoincie; w Google Slides zamienia się na zwykłe przejście).
-- **Assety osobno** do ręcznej pracy w PowerPoincie / Google Slides: `assets/` (tekstura, biały znak logo), `assets/ikony/` (wszystkie ikony Lucide użyte w decku, PNG 256 px, `#2F3E45`).
+- **Assety osobno** do ręcznej pracy w PowerPoincie / Google Slides: `assets/` (tekstura, biały znak logo), `assets/ilustracje/` (wybrane ilustracje slajdów 4 i 8, przezroczyste PNG), `assets/ikony/` (wszystkie ikony Lucide użyte w decku, PNG 256 px, `#2F3E45`).
 
 Podgląd każdego slajdu: `podglad/slajd-1.png` … `slajd-9.png` — prawdziwy render PPTX (LibreOffice Impress z fontem Commissioner 400/500/600/700). Puste nadal: wycinki (2–4), nazwa zespołu i imiona.
 
-## Zadanie dla Codexa — 4 ilustracje na „Dalsze kroki” (slajd 8)
+## Zadanie dla Codexa — 4 ilustracje na „Dalsze kroki” (slajd 8) — wykonane
 
 `Styl: D` (kontur, `JEZYK_WIZUALNY.md` §12), referencje stylu: 4 karty z `public/ilustracje/poradnik/`. **2 kandydatów na ilustrację**, zapis `kandydaci/slajd-8-<n>-c1.png`, `-c2.png`. Każda scena: 1–2 osoby z rodziny poradnika, jeden obiekt w stali `#536B75`, bez tekstu, bez interfejsu na ekranach (ekran = jednolity kształt), przezroczyste tło.
 
