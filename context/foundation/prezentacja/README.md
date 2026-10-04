@@ -4,7 +4,7 @@ Deck: 9 slajdów (8 + aneks), szablon zespołu „W razie W · HackYeah 2026”.
 
 ## Wersja robocza decku
 
-`W_razie_W_HackYeah_2026_wersja_robocza.pptx` — szablon zespołu z wstawionymi: logo (slajdy 1, 5), ikonami Lucide (5, 7, 8) i zrzutami aplikacji (6) i ilustracją slajdu 4 (`kandydaci/slajd-4-c1.png`, rekomendacja: zwarty stos, postać w środku; c2 = alternatywa). Podgląd każdego slajdu w pełnym rozmiarze (1600×900): `podglad/slajd-1.png` … `slajd-9.png` — złożony na PDF szablonu, bo LibreOffice w środowisku agenta nie renderuje PPTX; ostatecznie sprawdź w PowerPoincie. Puste nadal: nagłówki z mediów i miniatury materiałów (2–4), nazwa zespołu, źródło „77%”.
+`W_razie_W_HackYeah_2026_wersja_robocza.pptx` — szablon zespołu z wstawionymi: logo (slajdy 1, 5), ikonami Lucide (5, 7, 8, 9) i zrzutami aplikacji (6) i ilustracją slajdu 4 (`kandydaci/slajd-4-c1.png`, rekomendacja: zwarty stos, postać w środku; c2 = alternatywa). Podgląd każdego slajdu w pełnym rozmiarze (1600×900): `podglad/slajd-1.png` … `slajd-9.png` — złożony na PDF szablonu, bo LibreOffice w środowisku agenta nie renderuje PPTX; ostatecznie sprawdź w PowerPoincie. Puste nadal: wycinki z mediów i miniatury materiałów (2–4), nazwa zespołu i imiona.
 
 ## Mapa slotów
 
